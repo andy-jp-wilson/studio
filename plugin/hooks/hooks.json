@@ -1,5 +1,8 @@
 {
-  "description": "Studio safety: a hidden snapshot before Claude's first change in each request, plain-language notes when a step fails, and pre-approval for Studio's own helper commands.",
+  "description": "Studio: the band above the prompt and the Studio panel (a mod), plus safety hooks: a hidden snapshot before Claude's first change in each request, plain-language notes when a step fails, and pre-approval for Studio's own helper commands.",
+  "modules": [
+    "./studio.js"
+  ],
   "hooks": {
     "PreToolUse": [
       {

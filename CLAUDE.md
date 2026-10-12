@@ -28,6 +28,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
   - `/handoff` stays as the git pull request ("share online for review").
   - The new `/handover` makes a local team handover: a changelog (always), a Figma handover page (Studio default template, page 05), and a developer pack (HTML + CSS folder with a review page). Plan: `plans/handover-plan.md`.
   - Handovers show only the final design, never before and after. Specs are a fixed reference to the **Acme Design System** (link still to be added), not repeated values.
+- **Phase 3 decisions** (2026-10-12): the band and panel are mods (plan: `plans/phase-3-band-and-panel.md`). Studio guesses the journey stage (Explore on main or an exploration with no save points of its own, Refine once it has some, Build after a handover) and the person can override it per project. The panel's Send to Figma asks Claude to capture the current screen into a Figma file the person picks, after confirming. The band's Pause becomes Stop (`$.turn.abort`), since Claude Code can't pause.
 - **Phase 2 plan:** `plans/phase-2-foundation.md`.
 - **Phase 1 plan:** `plans/phase-1-figma.md`.
 
@@ -38,6 +39,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - The output style lives at `output-styles/<name>.md` and can be forced on with `force-for-plugin`.
 - Skill `allowed-tools` only last for the turn in which the skill starts, so a command that asks the person a question loses them on the next turn. `hooks/allow-studio-tools.sh` pre-approves plain calls to Studio's own `bin/` helpers instead.
 - Headless Chrome won't lay a window out narrower than about 500px. `studio-capture` centres the screen in a frame of the exact size, then trims the picture with `sips`.
+- In tests, a `Link`'s `key` isn't kept on the terminal surface, so find links by `type: 'Link'`. A `$.clock.every` stub must return plain data (`{ value: {} }`).
 - Panes have no tab widget (use button rows), can't open Desktop's Browser pane (use a localhost Link), and can only show `Svg` in Desktop.
 
 ## Progress
@@ -45,3 +47,4 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - Phase 1 (design in Figma): done 2026-10-12, all five pages approved.
 - Phase 2 (foundation): built 2026-10-12 in `plugin/`. Terminal tests passed via `claude -p --plugin-dir` in `playground/onboarding`. Desktop checklist steps 1 to 8 and 10 passed (2026-10-12).
 - `/handover` built 2026-10-12. Changelog, developer pack and Figma page were each tested in the practice project; the Figma page was tested directly from this session, because `claude -p` subprocesses couldn't reach Figma. Next: the user tries `/handover` in Desktop.
+- Phase 3 (band and panel mod) built 2026-10-12 in `plugin/hooks/studio.js` and `plugin/hooks/studio/*`. 10 automatic tests pass (`claude plugin test` in `plugin/`), and a real session loaded it with no errors. Next: the user checks it visually with `plans/phase-3-test-checklist.md`.
