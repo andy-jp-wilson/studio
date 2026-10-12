@@ -36,9 +36,12 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - A plugin can't set the main `statusLine`. A setup skill writes it to the user's settings instead. The status line gets no branch or last-commit field, so the script runs `git` itself.
 - A plugin can ship a theme via `themes/<slug>.json` (`experimental.themes`). It is terminal only and can't set the terminal background.
 - The output style lives at `output-styles/<name>.md` and can be forced on with `force-for-plugin`.
+- Skill `allowed-tools` only last for the turn in which the skill starts, so a command that asks the person a question loses them on the next turn. `hooks/allow-studio-tools.sh` pre-approves plain calls to Studio's own `bin/` helpers instead.
+- Headless Chrome won't lay a window out narrower than about 500px. `studio-capture` centres the screen in a frame of the exact size, then trims the picture with `sips`.
 - Panes have no tab widget (use button rows), can't open Desktop's Browser pane (use a localhost Link), and can only show `Svg` in Desktop.
 
 ## Progress
 - Phase 0 (connect Figma): done 2026-10-12. Signed in and the design file is readable: one empty page, "Page 1" (`0:1`).
 - Phase 1 (design in Figma): done 2026-10-12, all five pages approved.
-- Phase 2 (foundation): built 2026-10-12 in `plugin/`. Terminal tests passed via `claude -p --plugin-dir` in `playground/onboarding`. Next: user testing in the interactive terminal and the Desktop Code tab.
+- Phase 2 (foundation): built 2026-10-12 in `plugin/`. Terminal tests passed via `claude -p --plugin-dir` in `playground/onboarding`. Desktop checklist steps 1 to 8 and 10 passed (2026-10-12).
+- `/handover` built 2026-10-12. Changelog, developer pack and Figma page were each tested in the practice project; the Figma page was tested directly from this session, because `claude -p` subprocesses couldn't reach Figma. Next: the user tries `/handover` in Desktop.

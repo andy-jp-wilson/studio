@@ -1,0 +1,37 @@
+#!/bin/bash
+# studio-changelog
+# Lists the save points since the last Studio handover, with what changed,
+# so Claude can write the changelog in design words.
+# The last handover is the newest refs/studio/handovers/* that is part of the
+# current history. With none, it starts after the very first save point.
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "status: no-save-points"; exit 0; }
+git rev-parse --verify -q HEAD >/dev/null || { echo "status: no-first-save-point"; exit 0; }
+
+base=""; base_label="start"
+for ref in $(git for-each-ref refs/studio/handovers --sort=-creatordate --format='%(refname)'); do
+  if git merge-base --is-ancestor "$ref" HEAD 2>/dev/null; then base="$ref"; base_label="${ref#refs/studio/handovers/}"; break; fi
+done
+if [ -n "$base" ]; then
+  range="$base..HEAD"
+else
+  root=$(git rev-list --max-parents=0 HEAD | tail -1)
+  range="$root..HEAD"
+fi
+
+count=$(git rev-list --count "$range")
+echo "status: ok"
+echo "project: $(basename "$(git rev-parse --show-toplevel)")"
+echo "exploration: $(git branch --show-current)"
+echo "designer: $(git config --get user.name)"
+echo "since: $base_label"
+echo "save-points: $count"
+echo "unsaved-files: $(git status --porcelain | wc -l | tr -d ' ')"
+
+for c in $(git rev-list --reverse "$range"); do
+  echo
+  echo "=== $(git log -1 --format='%h | %ad | %s' --date=format:'%d %b · %H:%M' "$c")"
+  echo "files: $(git diff-tree --no-commit-id --name-only -r "$c" | tr '\n' ' ')"
+  git show --format= --unified=0 --no-color "$c" -- . ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.svg' \
+    | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ' | head -40
+done

@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""studio-pack <handover.json>
+
+Builds a Studio developer pack next to handover.json:
+  index.html     review page (same content as the Figma handover page)
+  CHANGELOG.md   the changelog as text
+  prototype/     clean copy of the project (no history, packages or handovers)
+  screens/       pictures of the final screens (made earlier by studio-capture)
+  .gitignore     keeps the pack out of the project's save points
+Then marks the handover (refs/studio/handovers/<date>-<slug>) so the next
+changelog starts from here. Prints "built <folder>" or "failed <reason>".
+"""
+import html, json, os, subprocess, sys
+
+def flat(s): return ", ".join(map(str, s)) if isinstance(s, list) else str(s or "")
+def esc(s): return html.escape(flat(s))
+
+def main():
+    if len(sys.argv) != 2:
+        print("failed usage: studio-pack <handover.json>"); return
+    path = os.path.abspath(sys.argv[1])
+    try:
+        d = json.load(open(path))
+    except Exception as e:
+        print(f"failed could not read {path}: {e}"); return
+    out = os.path.dirname(path)
+    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=out, capture_output=True, text=True).stdout.strip()
+    if not top:
+        print("failed this folder does not keep save points"); return
+
+    # Clean copy of the prototype.
+    proto = os.path.join(out, "prototype")
+    os.makedirs(proto, exist_ok=True)
+    r = subprocess.run(["rsync", "-a", "--delete",
+                        "--exclude", ".git", "--exclude", "node_modules", "--exclude", "handover",
+                        "--exclude", ".DS_Store", "--exclude", ".claude",
+                        top + "/", proto + "/"], capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f"failed copying the prototype: {r.stderr.strip()}"); return
+    open(os.path.join(out, ".gitignore"), "w").write("*\n")
+
+    title, date = d.get("title", "Handover"), d.get("date", "")
+    try:
+        import datetime
+        nice = datetime.date.fromisoformat(date).strftime("%d %B %Y").lstrip("0")
+    except Exception:
+        nice = date
+    changes = d.get("changes", [])
+    screens = [s for s in d.get("screens", []) if os.path.exists(os.path.join(out, s.get("file", "")))]
+    comps = d.get("components", [])
+    link = d.get("packLink") or ""
+    ks_link = d.get("acmeLink") or ""
+
+    # CHANGELOG.md
+    md = [f"# {title}", "", f"Handover · {nice} · {d.get('project','')} · {d.get('exploration','')}", "",
+          d.get("summary", ""), "", "## Changelog", ""]
+    for c in changes:
+        md += [f"### {c.get('title','')}", f"_{c.get('when','')}_", "", c.get("detail", ""), "",
+               f"**Why:** {c.get('why','')}", "", f"Files: `{flat(c.get('files'))}`", ""]
+    md += ["## Specs", "", "Use the Acme Design System as the source of truth.",
+           "", "Acme Design System components on these screens: " + ", ".join(comps), ""]
+    open(os.path.join(out, "CHANGELOG.md"), "w").write("\n".join(md))
+
+    # index.html
+    points = "".join(f'<div class="card"><h3>{esc(p.get("title"))}</h3><p>{esc(p.get("detail"))}</p></div>' for p in d.get("points", []))
+    if screens:
+        shots = "".join(f'<figure><img src="{esc(s["file"])}" alt="{esc(s.get("name"))}"><figcaption>{esc(s.get("name"))}</figcaption></figure>' for s in screens)
+    else:
+        first = esc((d.get("screens") or [{}])[0].get("page", "index.html"))
+        shots = f'<figure><iframe src="prototype/{first}" title="Final design"></iframe><figcaption>Live prototype</figcaption></figure>'
+    log = "".join(f'''<div class="entry"><div class="when">{esc(c.get("when"))}</div><div>
+      <div class="t">{esc(c.get("title"))}</div><div>{esc(c.get("detail"))}</div>
+      <div class="why"><b>WHY</b> {esc(c.get("why"))}</div><code>{esc(c.get("files"))}</code></div></div>''' for c in changes)
+    comp_list = "".join(f"<li>{esc(c)}</li>" for c in comps)
+    ks = f'<a href="{esc(ks_link)}">Open Acme Design System</a>' if ks_link else '<span class="todo">Link to Acme Design System: to be added</span>'
+    pk = f'<a href="{esc(link)}">{esc(link)}</a>' if link else '<span class="todo">Developer pack link: to be added</span>'
+    meta = "".join(f'<div class="meta"><span>{k}</span>{esc(v)}</div>' for k, v in
+                   [("Project", d.get("project")), ("Exploration", d.get("exploration")),
+                    ("Designer", d.get("designer")), ("Save points", d.get("savePoints"))])
+    page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>{esc(title)} · Handover</title>
+<style>
+:root{{--bg:#F7F4EE;--surface:#EFEAE1;--raised:#FFFFFF;--border:#E2DACD;--text:#2A2723;--muted:#6E675E;--accent:#C2643D;--accent-soft:#F3E1D6;--info:#4F6D8F;--info-soft:#DFE6EE;--warn:#B8862B;--warn-soft:#F3E8D2}}
+@media (prefers-color-scheme:dark){{:root{{--bg:#1A1917;--surface:#22201E;--raised:#2B2926;--border:#3A3631;--text:#ECE7DE;--muted:#A8A095;--accent:#E08A62;--accent-soft:#3A2A22;--info:#8FAED0;--info-soft:#222B36;--warn:#D9AE5B;--warn-soft:#352D1E}}}}
+*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}}
+.wrap{{display:flex;min-height:100vh}}nav{{width:220px;padding:32px 24px;border-right:1px solid var(--border);position:sticky;top:0;height:100vh}}
+nav b{{display:block;font-size:11px;letter-spacing:.04em;color:var(--accent);margin-bottom:12px}}nav a{{display:block;padding:6px 8px;border-radius:4px;color:var(--muted);text-decoration:none}}nav a:hover{{background:var(--accent-soft);color:var(--accent)}}
+main{{flex:1;max-width:1040px;padding:48px}}section{{margin-bottom:56px}}h1{{font:400 56px/1.1 "Instrument Serif",Georgia,serif;margin:8px 0 16px}}h2{{font-size:28px;margin:0 0 4px}}
+.label,.meta span{{display:block;font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}}.lede,.sub{{color:var(--muted);max-width:760px}}
+.metas,.cards{{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}}.meta{{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-weight:600}}
+.card{{flex:1;min-width:220px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}}.card h3{{margin:0 0 8px;font-size:20px}}.card p{{margin:0;color:var(--muted)}}
+figure{{display:inline-block;margin:16px 24px 0 0}}figure img,iframe{{width:390px;height:844px;border:1px solid var(--border);border-radius:28px;background:#fff}}img{{height:auto}}figcaption{{font-size:12px;color:var(--muted);margin-top:8px}}
+.entry{{display:flex;gap:24px;padding:16px 0;border-bottom:1px solid var(--border)}}.when{{width:140px;font:14px "JetBrains Mono",ui-monospace,monospace;color:var(--muted)}}.t{{font-weight:600}}
+.why{{font-size:12px;color:var(--muted);margin:4px 0}}.why b{{color:var(--accent);font-size:11px;margin-right:6px}}code{{font:13px "JetBrains Mono",ui-monospace,monospace;background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--muted)}}
+.ks{{display:flex;gap:32px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:16px}}.ks>div{{flex:1}}.ks h3{{margin:4px 0 8px}}.ks li::marker{{color:var(--accent)}}
+.todo{{display:inline-block;background:var(--warn-soft);color:var(--warn);font-size:12px;padding:4px 8px;border-radius:4px}}.dev{{background:var(--info-soft);border-radius:12px;padding:24px;margin-top:16px}}.dev p{{margin:4px 0}}a{{color:var(--accent)}}
+</style></head><body><div class="wrap">
+<nav><b>STUDIO HANDOVER</b><a href="#summary">Summary</a><a href="#design">Final design</a><a href="#changelog">Changelog</a><a href="#acme">Acme Design System</a><a href="#developers">For developers</a></nav>
+<main>
+<section><span class="label">Handover · {esc(nice)}</span><h1>{esc(title)}</h1><p class="lede">{esc(d.get("summary"))}</p><div class="metas">{meta}</div></section>
+<section id="summary"><h2>Summary</h2><p class="sub">What this handover covers.</p><div class="cards">{points}</div></section>
+<section id="design"><h2>Final design</h2><p class="sub">The finished screens. Earlier versions are not included; the changelog describes what changed.</p>{shots}</section>
+<section id="changelog"><h2>Changelog</h2><p class="sub">Every save point since the last handover, newest first.</p>{log}</section>
+<section id="acme"><h2>Specs</h2><p class="sub">Colours, type, spacing and components come from Acme Design System, our design system. Use Acme Design System as the source of truth.</p>
+<div class="ks"><div><span class="label">Design system</span><h3>Acme Design System Design System &amp; Component Library</h3>{ks}</div><div><span class="label">Acme Design System components on these screens</span><ul>{comp_list}</ul></div></div></section>
+<section id="developers"><h2>For developers</h2><div class="dev">
+<p>Where this pack lives: {pk}</p><p>The prototype’s HTML and CSS are in the <code>prototype/</code> folder next to this page. Open <code>prototype/index.html</code> to try it.</p>
+<p>Pictures of the final screens are in <code>screens/</code>; the changelog is also in <code>CHANGELOG.md</code>.</p><p>Specs: use the Acme Design System Design System &amp; Component Library.</p></div></section>
+</main></div></body></html>'''
+    open(os.path.join(out, "index.html"), "w").write(page)
+
+    # Mark the handover so the next changelog starts here.
+    name = f"{date}-{d.get('slug','handover')}"
+    subprocess.run(["git", "update-ref", f"refs/studio/handovers/{name}", "HEAD"], cwd=top)
+    print(f"built {out}")
+
+main()

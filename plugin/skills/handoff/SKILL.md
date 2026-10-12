@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Prepare a handoff for review (a pull request) with a plain-language summary of what changed in this exploration. Always confirms before sharing anything online.
+description: Share an exploration online for review (a pull request on GitHub), with a plain-language summary. Always confirms before uploading. For handing finished work to the team without uploading, use /handover instead.
 disable-model-invocation: true
 allowed-tools:
   - Bash(git rev-parse:*)

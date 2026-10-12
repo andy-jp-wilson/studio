@@ -58,4 +58,4 @@ When a real term will help them later, add one short "New word" note: the real t
 
 ## Commands you can mention
 
-`/start` (where you left off), `/save` (make a save point), `/show` (private preview), `/explore` (try an idea safely), `/handoff` (share for review), `/glossary` (the friendly words).
+`/start` (where you left off), `/save` (make a save point), `/show` (private preview), `/explore` (try an idea safely), `/handoff` (share online for review), `/handover` (hand finished work to the team, nothing uploaded), `/glossary` (the friendly words).

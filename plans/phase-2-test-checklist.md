@@ -13,6 +13,7 @@ Open the practice project `~/code/projects/studio/playground/onboarding` twice: 
 | 7 | `/glossary` | The friendly words table |
 | 8 | `/handoff` | Explains there's nowhere to share to yet, and shares nothing |
 | 9 | Terminal only: `/theme` | "Studio Light" and "Studio Dark" in the list; pick one |
+| 11 | `/handover` | Asks for a title and outputs, then makes `handover/<date>-<title>/` (open `index.html`) and, if you choose, a Figma page in a file you pick, after asking first |
 | 10 | Ask anything | No em dashes; friendly words first, at most one or two real terms per reply |
 
 ## Switching Studio off and on

@@ -1,18 +1,36 @@
 {
-  "description": "Studio safety: a hidden snapshot before Claude's first change in each request, and plain-language notes when a step fails.",
+  "description": "Studio safety: a hidden snapshot before Claude's first change in each request, plain-language notes when a step fails, and pre-approval for Studio's own helper commands.",
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/allow-studio-tools.sh\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write|NotebookEdit|Bash",
         "hooks": [
-          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/snapshot.sh\"", "timeout": 20 }
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/snapshot.sh\"",
+            "timeout": 20
+          }
         ]
       }
     ],
     "PostToolUseFailure": [
       {
         "hooks": [
-          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/calm-errors.sh\"", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/calm-errors.sh\"",
+            "timeout": 10
+          }
         ]
       }
     ]
