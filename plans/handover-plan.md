@@ -22,6 +22,7 @@
      index.html      a review page: screens, changelog, specs (opens in any browser)
      CHANGELOG.md    the changelog as text
      specs.json      colours, fonts and spacing found in the CSS
+     screens/        images of each screen
      prototype/      copy of the HTML, CSS and images (no packages, no history)
    ```
 
