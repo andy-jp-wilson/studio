@@ -1,5 +1,5 @@
 ---
-name: show
+name: preview
 description: Start the designer's private preview (a local website on their computer) and give them the link. Use when they ask to see, preview, open or try their work.
 allowed-tools:
   - Bash(lsof -i:*)
@@ -11,7 +11,7 @@ allowed-tools:
   - Bash(curl -s:*)
 ---
 
-# /show: open your private preview
+# /preview: open your private preview
 
 1. Work out how this project previews:
    - **`package.json` with a `dev` or `start` script**: use `npm run dev` (or `start`). If `node_modules` is missing, say you need to download the project's packages first (one sentence on what that means), ask, then run `npm install`.

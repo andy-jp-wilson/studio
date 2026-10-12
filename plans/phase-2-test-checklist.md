@@ -6,7 +6,7 @@ Open the practice project `~/code/projects/studio/playground/onboarding` twice: 
 |---|---|---|
 | 1 | `/start` | Project, exploration ("bolder-button"), last save point and a suggested next step, in calm plain language |
 | 2 | "Make the Continue button a bit bolder" | Claude says what it will do, narrates short steps, mentions the snapshot, and ends with how to see it and go back |
-| 3 | `/show` | A private preview link (http://localhost:4321) that opens the sign-up screen. Desktop also mentions the Browser pane |
+| 3 | `/preview` | A private preview link (http://localhost:4321) that opens the sign-up screen. Desktop also mentions the Browser pane |
 | 4 | "go back" | It offers what to go back to, asks first, then restores |
 | 5 | `/save` | "✓ Saved …" and the files included |
 | 6 | `/explore` | A list with the main version and bolder-button, offering to switch |

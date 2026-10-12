@@ -32,7 +32,7 @@ Beside the conversation in Desktop, or at the side of a wide terminal (type `/pa
 | Command | What it does |
 |---|---|
 | `/start` | Where you left off, and what to do next |
-| `/show` | Open your private preview, the design running on your computer |
+| `/preview` | Open your private preview, the design running on your computer |
 | `/save` | Make a save point now |
 | `/explore` | Try an idea safely in a new exploration |
 | `/handover` | Hand finished work to your team: changelog, Figma page, developer pack |

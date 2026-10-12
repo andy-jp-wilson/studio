@@ -81,7 +81,7 @@ function actionsFor($) {
     $.command.run({ command: name }).catch(() => $.prompt.submit({ text: '/' + name, asUser: true }).catch(() => {}))
   }
   return {
-    show: () => run('show'),
+    show: () => run('preview'),
     save: () => run('save'),
     guide: () => run('guide'),
     figma: () => { $.prompt.submit({ text: FIGMA_REQUEST, asUser: true }).catch(() => {}) },

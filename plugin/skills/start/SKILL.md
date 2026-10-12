@@ -33,7 +33,7 @@ allowed-tools:
    - Unsaved changes: 2 files (SignUpScreen.tsx, styles.css)
    - 3 snapshots you can go back to
 
-   Then suggest one or two next steps. For example, `/save` if there are unsaved changes, `/show` to see the preview, or `/explore` to try something new.
+   Then suggest one or two next steps. For example, `/save` if there are unsaved changes, `/preview` to see the preview, or `/explore` to try something new.
 
 If the current exploration is `main` or `master`, write "on the **main version**" instead of "exploring main".
 

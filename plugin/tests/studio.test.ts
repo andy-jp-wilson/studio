@@ -122,14 +122,14 @@ test('a step list adds "step 2 of 3"', async ($, on) => {
   expect(await ui.find({ type: 'Text', text: 'Reading styles.css, step 2 of 3' })).toBeDefined()
 })
 
-test('with new changes, the band says so and Save point appears; buttons run /show and /save', async ($, on) => {
+test('with new changes, the band says so and Save point appears; buttons run /preview and /save', async ($, on) => {
   const calls = setup(on, UNSAVED)
   await pastWelcome($)
   const ui = await $.ui.mount(BAND(120))
   expect(await ui.find({ type: 'Text', text: 'Changes not saved yet' })).toBeDefined()
   await ui.press({ key: 'band-preview' })
   await ui.press({ key: 'band-save' })
-  expect(calls.commands).toEqual(['show', 'save'])
+  expect(calls.commands).toEqual(['preview', 'save'])
 })
 
 test('a narrow band drops the Now text and stage names, keeping buttons', async ($, on) => {

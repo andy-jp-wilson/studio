@@ -50,7 +50,7 @@ Make the folder `handover/<YYYY-MM-DD>-<slug>/` and write `handover.json` into i
 - `packLink`, `acmeLink`
 
 ## 4. Pictures of the final screens
-Make sure the private preview is running (as in `/show`, reusing one that's already running). Then, for each screen:
+Make sure the private preview is running (as in `/preview`, reusing one that's already running). Then, for each screen:
 
 ```
 studio-capture <preview url>/<page> handover/<folder>/screens/<n>.png
