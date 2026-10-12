@@ -27,6 +27,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - **Two kinds of handoff** (2026-10-12):
   - `/handoff` stays as the git pull request ("share online for review").
   - The new `/handover` makes a local team handover: a changelog (always), a Figma handover page (Studio default template, page 05), and a developer pack (HTML + CSS folder with a review page). Plan: `plans/handover-plan.md`.
+  - Handovers show only the final design, never before and after. Specs are a fixed reference to the **Acme Design System** (link still to be added), not repeated values.
 - **Phase 2 plan:** `plans/phase-2-foundation.md`.
 - **Phase 1 plan:** `plans/phase-1-figma.md`.
 

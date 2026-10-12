@@ -10,19 +10,18 @@
    - With no earlier handover, it starts from the first save point.
 2. **Figma handover page**, built from the Studio default template:
    - cover and summary
-   - captured screens
+   - the final design only (earlier versions are described in the changelog, never shown, to avoid confusion)
    - the changelog
-   - specs: colours, type and spacing used in the screens
+   - specs: a fixed reference to the Acme Design System, plus the Acme Design System components used (no repeated values)
    - notes for developers
 
    Studio asks which Figma file to add it to, and confirms before writing.
 3. **Developer pack**, a folder in the project:
    ```
    handover/2026-10-12-calmer-sign-up/
-     index.html      a review page: screens, changelog, specs (opens in any browser)
+     index.html      a review page: final screens, changelog, Acme Design System reference (opens in any browser)
      CHANGELOG.md    the changelog as text
-     specs.json      colours, fonts and spacing found in the CSS
-     screens/        images of each screen
+     screens/        images of the final screens
      prototype/      copy of the HTML, CSS and images (no packages, no history)
    ```
 
