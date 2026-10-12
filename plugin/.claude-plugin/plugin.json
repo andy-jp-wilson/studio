@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "studio",
+  "displayName": "Studio",
+  "version": "0.1.0",
+  "description": "Makes Claude Code calmer and clearer for designers: plain language, automatic save points, and a guided way of working.",
+  "author": { "name": "Andrew Wilson" },
+  "keywords": ["design", "designers", "figma", "prototyping"],
+  "experimental": { "themes": "./themes/" }
+}

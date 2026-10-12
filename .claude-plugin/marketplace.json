@@ -1,0 +1,14 @@
+{
+  "name": "studio-local",
+  "owner": {
+    "name": "Andrew Wilson"
+  },
+  "description": "Local source for the Studio plugin while it's being built.",
+  "plugins": [
+    {
+      "name": "studio",
+      "source": "./plugin",
+      "description": "Makes Claude Code calmer and clearer for designers."
+    }
+  ]
+}

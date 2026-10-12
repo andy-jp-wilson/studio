@@ -1,0 +1,40 @@
+#!/bin/bash
+# studio-snapshot [message]
+# Stores a hidden snapshot of the working tree (tracked and untracked files,
+# respecting .gitignore) under refs/studio/snapshots/<timestamp>, without
+# touching the current branch, the index or the working tree.
+# Prints exactly one line:
+#   created <ref>
+#   same-as-save-point <subject>
+#   same-as-snapshot <ref>
+#   no-save-points        (not a git repository)
+#   no-first-save-point   (repository has no commits yet)
+#   failed
+
+msg="${1:-Studio snapshot before changes by Claude}"
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "no-save-points"; exit 0; }
+git rev-parse --verify -q HEAD >/dev/null || { echo "no-first-save-point"; exit 0; }
+
+tmp=$(mktemp) || { echo "failed"; exit 0; }
+trap 'rm -f "$tmp"' EXIT
+idx=$(git rev-parse --git-path index)
+[ -f "$idx" ] && cp "$idx" "$tmp"
+GIT_INDEX_FILE="$tmp" git add -A >/dev/null 2>&1 || { echo "failed"; exit 0; }
+tree=$(GIT_INDEX_FILE="$tmp" git write-tree 2>/dev/null) || { echo "failed"; exit 0; }
+
+if [ "$(git rev-parse 'HEAD^{tree}')" = "$tree" ]; then
+  echo "same-as-save-point $(git log -1 --format=%s)"; exit 0
+fi
+last=$(git for-each-ref refs/studio/snapshots --sort=-creatordate --count=1 --format='%(refname)')
+if [ -n "$last" ] && [ "$(git rev-parse "$last^{tree}" 2>/dev/null)" = "$tree" ]; then
+  echo "same-as-snapshot $last"; exit 0
+fi
+
+base="refs/studio/snapshots/$(date +%Y%m%d-%H%M%S)"
+ref="$base"; n=1
+while git rev-parse -q --verify "$ref" >/dev/null; do ref="$base-$n"; n=$((n+1)); done
+commit=$(git -c user.name="Studio" -c user.email="studio@localhost" \
+  commit-tree "$tree" -p HEAD -m "$msg" 2>/dev/null) || { echo "failed"; exit 0; }
+git update-ref "$ref" "$commit" 2>/dev/null || { echo "failed"; exit 0; }
+echo "created $ref"

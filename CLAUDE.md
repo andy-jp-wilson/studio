@@ -19,6 +19,12 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - **Fonts:** Inter (UI/body), JetBrains Mono (terminal), Instrument Serif (display, cover only).
 - **Example content uses product-design language** (2026-10-12). The running example is an app's *onboarding* flow, an exploration called *fewer-steps*, and the *sign-up screen*. Avoid website-marketing terms like "landing page" or "hero". Status-line pieces carry short labels ("project", "exploring") so they explain themselves.
 - **No em dashes in copy** (2026-10-12). Use a comma or semicolon instead. This applies to Figma text and, in Phase 2, the output style and every UI string.
+- **Phase 2 decisions** (2026-10-12):
+  - Automatic save points are *hidden snapshots*: commits stored under `refs/studio/snapshots/*` that leave the branch, history and index untouched. Only `/save` makes visible commits.
+  - Studio is installed at user scope from the local marketplace in this folder, so it can be tested in Desktop.
+  - This folder is a git repo (local only; identity set repo-locally). `playground/` is git-ignored and has its own repo.
+  - There's no `/undo` command, because the built-in `/rewind` already uses `/undo` as an alias. A model-invoked `go-back` skill restores snapshots instead.
+- **Phase 2 plan:** `plans/phase-2-foundation.md`.
 - **Phase 1 plan:** `plans/phase-1-figma.md`.
 
 ## Platform facts (from the docs, checked 2026-10-12 on Claude Code 2.1.296)
@@ -30,4 +36,5 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 
 ## Progress
 - Phase 0 (connect Figma): done 2026-10-12. Signed in and the design file is readable: one empty page, "Page 1" (`0:1`).
-- Phase 1 (design in Figma): all five pages built 2026-10-12. Waiting for final approval before Phase 2. Node IDs are in `plans/figma-ledger.json`.
+- Phase 1 (design in Figma): done 2026-10-12, all five pages approved.
+- Phase 2 (foundation): built 2026-10-12 in `plugin/`. Terminal tests passed via `claude -p --plugin-dir` in `playground/onboarding`. Next: user testing in the interactive terminal and the Desktop Code tab.
