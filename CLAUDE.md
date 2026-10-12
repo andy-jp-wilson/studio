@@ -24,6 +24,9 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
   - Studio is installed at user scope from the local marketplace in this folder, so it can be tested in Desktop.
   - This folder is a git repo (local only; identity set repo-locally). `playground/` is git-ignored and has its own repo.
   - There's no `/undo` command, because the built-in `/rewind` already uses `/undo` as an alias. A model-invoked `go-back` skill restores snapshots instead.
+- **Two kinds of handoff** (2026-10-12):
+  - `/handoff` stays as the git pull request ("share online for review").
+  - The new `/handover` makes a local team handover: a changelog (always), a Figma handover page (Studio default template, page 05), and a developer pack (HTML + CSS folder with a review page). Plan: `plans/handover-plan.md`.
 - **Phase 2 plan:** `plans/phase-2-foundation.md`.
 - **Phase 1 plan:** `plans/phase-1-figma.md`.
 
