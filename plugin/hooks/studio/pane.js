@@ -2,7 +2,7 @@
 // Tabs (Journey · Glossary) are buttons, because mods have no tab control.
 // Pure drawing: takes the element table, Studio's state, the panel's own view
 // state (tab, search) and the actions, and returns the panel's tree.
-import { STAGES, GLYPH, COLOR, stageState, stageDetail, ago, memoryBar } from './journey.js'
+import { STAGES, GLYPH, COLOR, stageState, stageDetail, saveStatus, memoryBar } from './journey.js'
 import { search } from './glossary.js'
 import { noteFor } from './narrate.js'
 
@@ -62,7 +62,7 @@ function journeyTab(el, s, actions) {
   const row = []
   if (s.previewUrl) row.push(Link({ key: 'preview-link', href: s.previewUrl, label: 'Open preview' }))
   else row.push(Button({ key: 'pane-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }))
-  row.push(Button({ key: 'pane-save', label: 'Save', hotkey: 's', onPress: actions.save }))
+  if (s.unsaved) row.push(Button({ key: 'pane-save', label: 'Save point', hotkey: 's', onPress: actions.save }))
   row.push(Button({ key: 'pane-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }))
   out.push(Box({ key: 'actions', flexDirection: 'row', columnGap: 2, children: row }))
   out.push(Text({ key: 'actions-note', color: 'subtle', children: [s.previewUrl ? 'Your private preview is running at ' + s.previewUrl : 'Preview opens a private website only you can see.'] }))
@@ -71,8 +71,11 @@ function journeyTab(el, s, actions) {
   out.push(Text({ key: 'gap-3', children: [' '] }))
   const bar = memoryBar(s.memory)
   const where = s.isMain ? 'on the main version' : 'exploring ' + s.exploration
-  const saved = ago(s.lastSaveAt, s.now) || 'no save points yet'
-  out.push(Text({ key: 'footer', color: 'subtle', children: [where + '  ·  ' + saved] }))
+  const save = saveStatus(s)
+  out.push(Box({ key: 'footer', flexDirection: 'row', children: [
+    Text({ key: 'footer-where', color: 'subtle', children: [where + '  ·  '] }),
+    Text({ key: 'footer-save', color: save ? save.color : 'subtle', children: [save ? save.text : 'No save points yet'] }),
+  ] }))
   out.push(Box({ key: 'memory', flexDirection: 'row', columnGap: 1, children: [
     Text({ key: 'mem-label', color: 'subtle', children: ['working memory'] }),
     Text({ key: 'mem-filled', color: bar.color, children: [bar.filled] }),
@@ -105,6 +108,7 @@ export function drawPane(el, s, view, actions, columns) {
     Text({ key: 'title', bold: true, color: 'text', children: ['Studio'] }),
     Button({ key: 'tab-journey', label: 'Journey', hotkey: 'j', dimColor: view.tab !== 'journey', onPress: () => actions.tab('journey') }),
     Button({ key: 'tab-glossary', label: 'Glossary', hotkey: 'g', dimColor: view.tab !== 'glossary', onPress: () => actions.tab('glossary') }),
+    Button({ key: 'pane-guide', label: 'Guide', hotkey: 'h', dimColor: true, onPress: actions.guide }),
   ] })
   const body = view.tab === 'glossary' ? glossaryTab(el, view, actions) : journeyTab(el, s, actions)
   return Box({ key: 'studio-pane', flexDirection: 'column', rowGap: 1, width: Math.max(20, columns), children: [tabs, ...body] })

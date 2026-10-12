@@ -103,10 +103,13 @@
     "handoverTemplate": "14:14",
     "developerPack": "15:32",
     "reviewBrowser": "15:55",
-    "testHandoverPage": "17:2"
+    "testHandoverPage": "17:2",
+    "01 Band states": "19:60",
+    "01 Band/Welcome": "19:66",
+    "01 Band/Unsaved": "19:77"
   },
   "notes": [
-    "Trailing spaces in hugging text get dropped \u2014 use U+00A0 non-breaking spaces.",
+    "Trailing spaces in hugging text get dropped — use U+00A0 non-breaking spaces.",
     "After switching an auto-layout frame's direction, re-set children to HUG height or they collapse.",
     "Connectors are FigJam-only; in design files draw flows as auto-layout rows with arrow text.",
     "Page 17:2 is a /handover test page made from the practice project; it's safe to delete when no longer needed."

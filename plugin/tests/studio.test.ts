@@ -9,6 +9,7 @@ const GIT: Record<string, string> = {
   'rev-list --count main..HEAD': '2',
   'log -1 --format=%ct': String(Math.round(NOW / 1000) - 120),
   'branch --format=%(refname:short)': 'bolder-button\nmain',
+  'status --porcelain': '',
 }
 
 const BAND = (columns: number, surface: 'terminal' | 'desktop' = 'terminal') => ({
@@ -24,7 +25,8 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 }) as const
 
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
-function setup(on: any) {
+function setup(on: any, git: Record<string, string> = {}) {
+  const map = { ...GIT, ...git }
   const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
@@ -32,7 +34,7 @@ function setup(on: any) {
   on('process.run', ($: any, e: any) => {
     const [bin, ...rest] = e.argv
     if (bin === 'lsof') return { value: { exitCode: 0, stdout: 'p123\nn*:4321\n', stderr: '' } }
-    const out = GIT[rest.join(' ')]
+    const out = map[rest.join(' ')]
     return { value: out === undefined ? { exitCode: 1, stdout: '', stderr: '' } : { exitCode: 0, stdout: out + '\n', stderr: '' } }
   })
   on('clock.now', () => ({ value: NOW }))
@@ -53,18 +55,43 @@ function setup(on: any) {
 }
 
 const start = ($: any) => $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work/onboarding' })
+// One finished request, so the band shows the journey rather than the welcome.
+const pastWelcome = async ($: any) => {
+  await start($)
+  await $.turn.start({ turnId: 't0' })
+  await $.turn.complete({ turnId: 't0', answer: '', durationMs: 1, isAborted: false, usage: null })
+}
+const UNSAVED = { 'status --porcelain': ' M styles.css' }
 
-test('the band shows the journey, ready text and two buttons when idle', async ($, on) => {
+test('a new session opens with the Studio welcome', async ($, on) => {
   setup(on)
   await start($)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'Calm Claude Code for designers · /guide' })).toBeDefined()
+  expect(await ui.find({ key: 'band-preview' })).toBeDefined()
+  await ui.unmount()
+  const small = await $.ui.mount(BAND(50))
+  expect(await small.find({ type: 'Text', text: 'Studio' })).toBeDefined()
+  expect(await small.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeUndefined()
+  await small.unmount()
+  await $.turn.start({ turnId: 't1' })
+  const after = await $.ui.mount(BAND(120))
+  expect(await after.find({ type: 'Text', text: 'Calm Claude Code for designers · /guide' })).toBeUndefined()
+})
+
+test('the band shows the journey, ready text, when you last saved and Preview when idle', async ($, on) => {
+  setup(on)
+  await pastWelcome($)
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount(BAND(120, surface))
     expect(await ui.find({ type: 'Text', text: '✓ Explore' })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: '● Refine' })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: '○ Build' })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: 'Ready when you are' })).toBeDefined()
-    expect(await ui.find({ key: 'band-show' })).toBeDefined()
-    expect(await ui.find({ key: 'band-save' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: '✓ Saved 2m ago' })).toBeDefined()
+    expect(await ui.find({ key: 'band-preview' })).toBeDefined()
+    expect(await ui.find({ key: 'band-save' })).toBeUndefined()
     expect(await ui.find({ key: 'band-stop' })).toBeUndefined()
     await ui.unmount()
   }
@@ -95,18 +122,19 @@ test('a step list adds "step 2 of 3"', async ($, on) => {
   expect(await ui.find({ type: 'Text', text: 'Reading styles.css, step 2 of 3' })).toBeDefined()
 })
 
-test('band buttons run /show and /save', async ($, on) => {
-  const calls = setup(on)
-  await start($)
+test('with new changes, the band says so and Save point appears; buttons run /show and /save', async ($, on) => {
+  const calls = setup(on, UNSAVED)
+  await pastWelcome($)
   const ui = await $.ui.mount(BAND(120))
-  await ui.press({ key: 'band-show' })
+  expect(await ui.find({ type: 'Text', text: 'Changes not saved yet' })).toBeDefined()
+  await ui.press({ key: 'band-preview' })
   await ui.press({ key: 'band-save' })
   expect(calls.commands).toEqual(['show', 'save'])
 })
 
 test('a narrow band drops the Now text and stage names, keeping buttons', async ($, on) => {
-  setup(on)
-  await start($)
+  setup(on, UNSAVED)
+  await pastWelcome($)
   const ui = await $.ui.mount(BAND(50))
   expect(await ui.find({ type: 'Text', text: 'Ready when you are' })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: '●' })).toBeDefined()
@@ -137,11 +165,13 @@ test('the panel journey tab shows stages, happening now, actions and footer', as
       ['save step', { type: 'Text', text: 'Making a save point' }],
       ['did you know', { type: 'Text', text: 'Developers call a save point a “commit”.' }],
       ['preview link', { type: 'Link', text: 'Open preview' }],
-      ['footer', { type: 'Text', text: 'exploring bolder-button  ·  saved 2m ago' }],
+      ['footer', { type: 'Text', text: 'exploring bolder-button  ·  ' }],
+      ['save status', { type: 'Text', text: '✓ Saved 2m ago' }],
     ]
     const missing: string[] = []
     for (const [name, q] of wanted) if (!(await ui.find(q))) missing.push(surface + ': ' + name)
     expect(missing).toEqual([])
+    expect(await ui.find({ key: 'pane-save' })).toBeUndefined()
     await ui.unmount()
   }
 })
@@ -169,12 +199,16 @@ test('the glossary tab lists words and searches them', async ($, on) => {
   expect(await ui.find({ type: 'Text', text: 'Save point' })).toBeUndefined()
 })
 
-test('Send to Figma asks Claude, and /panel opens the panel', async ($, on) => {
-  const calls = setup(on)
+test('Send to Figma asks Claude, Guide and Save point run commands, and /panel opens the panel', async ($, on) => {
+  const calls = setup(on, UNSAVED)
   await start($)
   const ui = await $.ui.mount(PANE())
   await ui.press({ key: 'pane-figma' })
   expect(calls.prompts.at(-1)).toMatch(/Figma/)
+  await ui.press({ key: 'pane-guide' })
+  await ui.press({ key: 'pane-save' })
+  expect(calls.commands).toEqual(['guide', 'save'])
+  expect(await ui.find({ type: 'Text', text: 'Changes not saved yet' })).toBeDefined()
   const answer = await $.command.run({ command: 'panel', args: '' })
   expect(answer).toEqual({})
 })

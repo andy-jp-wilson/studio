@@ -1,4 +1,4 @@
-# Studio — project brief
+# Studio: project brief
 
 Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more teaching-friendly for designers. Terminal first, and fully working in the Claude Desktop app's Code tab. The full brief is in `studio-kickoff-prompt.md`.
 
@@ -29,6 +29,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
   - The new `/handover` makes a local team handover: a changelog (always), a Figma handover page (Studio default template, page 05), and a developer pack (HTML + CSS folder with a review page). Plan: `plans/handover-plan.md`.
   - Handovers show only the final design, never before and after. Specs are a fixed reference to the **Acme Design System** (link still to be added), not repeated values.
 - **Phase 3 decisions** (2026-10-12): the band and panel are mods (plan: `plans/phase-3-band-and-panel.md`). Studio guesses the journey stage (Explore on main or an exploration with no save points of its own, Refine once it has some, Build after a handover) and the person can override it per project. The panel's Send to Figma asks Claude to capture the current screen into a Figma file the person picks, after confirming. The band's Pause becomes Stop (`$.turn.abort`), since Claude Code can't pause.
+- **Band changes after first look** (2026-10-12): Show is now **Preview**. Save points are offered only when needed: the band and panel show "✓ Saved 2m ago" or "Changes not saved yet", and the **Save point** button appears only with unsaved changes; Claude ends a reply that changed files with one save-point offer. Help is **`/guide`** (Claude Code's own `/help` can't be taken). A session opens with a **welcome in the band** (big STUDIO block wordmark, tagline, tip) until the first request, since plugins can't change Claude Code's own welcome box.
 - **Phase 2 plan:** `plans/phase-2-foundation.md`.
 - **Phase 1 plan:** `plans/phase-1-figma.md`.
 
@@ -40,6 +41,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - Skill `allowed-tools` only last for the turn in which the skill starts, so a command that asks the person a question loses them on the next turn. `hooks/allow-studio-tools.sh` pre-approves plain calls to Studio's own `bin/` helpers instead.
 - Headless Chrome won't lay a window out narrower than about 500px. `studio-capture` centres the screen in a frame of the exact size, then trims the picture with `sips`.
 - In tests, a `Link`'s `key` isn't kept on the terminal surface, so find links by `type: 'Link'`. A `$.clock.every` stub must return plain data (`{ value: {} }`).
+- Mod Button hotkeys must be one digit or lowercase letter. No render site exists for Claude Code's welcome box; `/help` stays the built-in one (a plugin skill would be `/studio:help`).
 - Panes have no tab widget (use button rows), can't open Desktop's Browser pane (use a localhost Link), and can only show `Svg` in Desktop.
 
 ## Progress
@@ -47,4 +49,4 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - Phase 1 (design in Figma): done 2026-10-12, all five pages approved.
 - Phase 2 (foundation): built 2026-10-12 in `plugin/`. Terminal tests passed via `claude -p --plugin-dir` in `playground/onboarding`. Desktop checklist steps 1 to 8 and 10 passed (2026-10-12).
 - `/handover` built 2026-10-12. Changelog, developer pack and Figma page were each tested in the practice project; the Figma page was tested directly from this session, because `claude -p` subprocesses couldn't reach Figma. Next: the user tries `/handover` in Desktop.
-- Phase 3 (band and panel mod) built 2026-10-12 in `plugin/hooks/studio.js` and `plugin/hooks/studio/*`. 10 automatic tests pass (`claude plugin test` in `plugin/`), and a real session loaded it with no errors. Next: the user checks it visually with `plans/phase-3-test-checklist.md`.
+- Phase 3 (band and panel mod) built 2026-10-12 in `plugin/hooks/studio.js` and `plugin/hooks/studio/*`. 10 automatic tests pass (`claude plugin test` in `plugin/`), and a real session loaded it with no errors. After the user's first look: Preview, save status, `/guide` and the welcome added (11 tests pass). Next: the user checks it visually with `plans/phase-3-test-checklist.md`.

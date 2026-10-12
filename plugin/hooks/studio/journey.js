@@ -53,3 +53,12 @@ export function stageDetail(stage, p, state) {
   if (state === 'upcoming') return 'Hand it over to your team'
   return p.handoverLabel ? 'Handed over ' + p.handoverLabel : 'Ready to hand over'
 }
+
+// "✓ Saved 2m ago" when everything is in a save point; "Changes not saved yet"
+// when there's something new. Nothing outside a project that keeps save points.
+export function saveStatus(s) {
+  if (!s.hasSavePoints) return null
+  if (s.unsaved) return { text: 'Changes not saved yet', color: 'warning' }
+  const when = ago(s.lastSaveAt, s.now)
+  return when ? { text: '✓ ' + when.charAt(0).toUpperCase() + when.slice(1), color: 'success' } : null
+}
