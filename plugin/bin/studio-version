@@ -1,0 +1,59 @@
+#!/bin/bash
+# studio-version [--update | --no-fetch]
+# Compares the Studio that's running with the latest one its marketplace
+# offers (for a local folder marketplace, that folder; for an online one,
+# after fetching it). Prints exactly one line:
+#   up-to-date <installed>
+#   update-available <installed> <latest>
+#   unversioned-changes <installed>   (same version number, different files)
+#   from-folder <version>             (loaded straight from a folder, not installed)
+#   unknown <installed>
+# With --update, installs the latest and prints one line:
+#   updated <old> <new>
+#   update-failed <installed>
+# --no-fetch skips refreshing an online marketplace first (used by the band).
+
+mode="$1"
+root="$(cd "$(dirname "$0")/.." && pwd)"
+field() { jq -r "$2 // empty" "$1" 2>/dev/null; }
+installed=$(field "$root/.claude-plugin/plugin.json" .version)
+
+case "$root" in
+  */plugins/cache/*/*/*) ;;
+  *) echo "from-folder $installed"; exit 0 ;;
+esac
+plugin=$(basename "$(dirname "$root")")
+mkt=$(basename "$(dirname "$(dirname "$root")")")
+known="$HOME/.claude/plugins/known_marketplaces.json"
+
+kind=$(jq -r --arg m "$mkt" '.[$m].source.source // empty' "$known" 2>/dev/null)
+if [ "$kind" != "directory" ] && [ "$mode" != "--no-fetch" ]; then
+  claude plugin marketplace update "$mkt" >/dev/null 2>&1
+fi
+loc=$(jq -r --arg m "$mkt" '.[$m].installLocation // empty' "$known" 2>/dev/null)
+rel=$(jq -r --arg p "$plugin" '.plugins[] | select(.name == $p) | .source | strings' "$loc/.claude-plugin/marketplace.json" 2>/dev/null)
+src="$loc/${rel#./}"
+latest=$(field "$src/.claude-plugin/plugin.json" .version)
+[ -z "$loc" ] || [ -z "$rel" ] || [ -z "$latest" ] && { echo "unknown $installed"; exit 0; }
+
+newer=$(printf '%s\n%s\n' "$installed" "$latest" | sort -V | tail -1)
+
+if [ "$mode" = "--update" ]; then
+  if [ "$latest" = "$installed" ] || [ "$newer" != "$latest" ]; then echo "up-to-date $installed"; exit 0; fi
+  claude plugin marketplace update "$mkt" >/dev/null 2>&1
+  claude plugin update "$plugin@$mkt" >/dev/null 2>&1
+  if [ -d "$(dirname "$root")/$latest" ]; then echo "updated $installed $latest"; else echo "update-failed $installed"; fi
+  exit 0
+fi
+
+if [ "$latest" = "$installed" ]; then
+  if diff -rq -x .in_use -x .git -x node_modules "$root" "$src" >/dev/null 2>&1; then
+    echo "up-to-date $installed"
+  else
+    echo "unversioned-changes $installed"
+  fi
+elif [ "$newer" = "$latest" ]; then
+  echo "update-available $installed $latest"
+else
+  echo "up-to-date $installed"
+fi

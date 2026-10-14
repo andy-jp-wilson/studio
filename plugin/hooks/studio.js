@@ -19,6 +19,8 @@ let memory = 0
 // request of a session.
 let welcome = true
 let stageOverride = null
+// Which Studio is running, and whether a newer one is ready (bin/studio-version).
+let studio = { version: '', update: '' }
 let view = { tab: 'journey', query: '' }
 let refreshing = null
 
@@ -67,6 +69,18 @@ async function refresh($) {
   return refreshing
 }
 
+async function checkVersion($) {
+  try {
+    const manifest = JSON.parse(await $.fs.read($.plugin.root + '/.claude-plugin/plugin.json'))
+    studio = { ...studio, version: String(manifest.version || '') }
+  } catch {}
+  try {
+    const r = await $.process.run([$.plugin.root + '/bin/studio-version', '--no-fetch'], { timeoutMs: 8000 })
+    const [status, , latest] = String(r.stdout || '').trim().split(' ')
+    studio = { ...studio, update: status === 'update-available' && latest ? latest : '' }
+  } catch {}
+}
+
 async function findPreview($) {
   try {
     const r = await $.process.run(['lsof', '-nP', '-iTCP', '-sTCP:LISTEN', '-Fn'], { timeoutMs: 3000 })
@@ -77,7 +91,7 @@ async function findPreview($) {
 }
 
 function state(now) {
-  return { ...project, ...live, memory, welcome, stageOverride, stage: stageOverride || guessStage(project), now }
+  return { ...project, ...live, memory, welcome, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
 }
 
 function actionsFor($) {
@@ -106,6 +120,7 @@ function actionsFor($) {
 export function register(on) {
   on('session.start', async ($, e, next) => {
     await refresh($)
+    checkVersion($).then(() => $.ui.invalidate('ui.render')).catch(() => {})
     try { await $.clock.every(30000, async () => { await refresh($); $.ui.invalidate('ui.render') }) } catch {}
     try { await $.ui.open({ id: PANE, title: 'Studio' }) } catch {}
     try { await $.command.register({ name: 'panel', description: 'Open the Studio panel', immediate: true }) } catch {}

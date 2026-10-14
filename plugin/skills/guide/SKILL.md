@@ -39,6 +39,7 @@ Beside the conversation in Desktop, or at the side of a wide terminal (type `/pa
 | `/handoff` | Share an exploration online for review |
 | `/glossary` | The friendly words and what they mean |
 | `/panel` | Open the Studio panel |
+| `/version` | Which Studio you have, and update it if there's a newer one |
 | `/guide` | This guide |
 
 ## Friendly words

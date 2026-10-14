@@ -34,10 +34,17 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
   on('process.run', ($: any, e: any) => {
     const [bin, ...rest] = e.argv
+    if (String(bin).endsWith('/bin/studio-version')) {
+      const line = map['studio-version']
+      return { value: line === undefined ? { exitCode: 1, stdout: '', stderr: '' } : { exitCode: 0, stdout: line + '\n', stderr: '' } }
+    }
     if (bin === 'lsof') return { value: { exitCode: 0, stdout: 'p123\nn*:4321\n', stderr: '' } }
     const out = map[rest.join(' ')]
     return { value: out === undefined ? { exitCode: 1, stdout: '', stderr: '' } : { exitCode: 0, stdout: out + '\n', stderr: '' } }
   })
+  on('fs.read', ($: any, e: any) => map['version'] && String(e.path).endsWith('/.claude-plugin/plugin.json')
+    ? { value: JSON.stringify({ name: 'studio', version: map['version'] }) }
+    : { deny: 'missing' })
   on('clock.now', () => ({ value: NOW }))
   on('clock.every', () => ({ value: {} }))
   on('ui.open', () => ({ value: { isPlaced: true } }))
@@ -118,6 +125,29 @@ test('the app draws the STUDIO pixel lettering as a picture; the terminal keeps 
   expect(await term.find({ type: 'Svg' })).toBeUndefined()
   expect(await term.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeDefined()
   await term.unmount()
+})
+
+test('the welcome and panel show the Studio version; an update shows a note', async ($, on) => {
+  setup(on, { 'version': '0.2.2', 'studio-version': 'up-to-date 0.2.2' })
+  await start($)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ type: 'Text', text: 'Calm Claude Code for designers · v0.2.2 · /guide' })).toBeDefined()
+  expect(await ui.find({ key: 'welcome-update' })).toBeUndefined()
+  await ui.unmount()
+  const pane = await $.ui.mount(PANE())
+  expect(await pane.find({ type: 'Text', text: 'Studio v0.2.2' })).toBeDefined()
+  await pane.unmount()
+})
+
+test('when a newer Studio is ready, the welcome and panel say so', async ($, on) => {
+  setup(on, { 'version': '0.2.2', 'studio-version': 'update-available 0.2.2 0.2.3' })
+  await start($)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ type: 'Text', text: 'Update ready · /version' })).toBeDefined()
+  await ui.unmount()
+  const pane = await $.ui.mount(PANE())
+  expect(await pane.find({ type: 'Text', text: ' · v0.2.3 ready, type /version' })).toBeDefined()
+  await pane.unmount()
 })
 
 test('a folder without save points says so in the welcome', async ($, on) => {

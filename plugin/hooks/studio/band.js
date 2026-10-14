@@ -43,6 +43,16 @@ export const APP_WORDMARK = pixelWordmark('STUDIO')
 export const TAGLINE = 'Calm Claude Code for designers'
 export const TIP = 'Try: “make the heading softer”'
 
+// "Calm Claude Code for designers · v0.2.2 · /guide"
+function tagline(s) {
+  return TAGLINE + (s.studioVersion ? ' · v' + s.studioVersion : '') + ' · /guide'
+}
+
+// Shown only when a newer Studio is ready to install.
+function updateNote(el, s) {
+  return s.studioUpdate ? [el.Text({ key: 'welcome-update', color: 'warning', children: ['Update ready · /version'] })] : []
+}
+
 function buttons(el, s, actions) {
   const { Box, Button } = el
   const list = [Button({ key: 'band-preview', label: 'Preview', hotkey: '1', plain: true, onPress: actions.show })]
@@ -105,6 +115,7 @@ function drawWelcome(el, s, actions, columns, rows) {
       Text({ key: 'welcome-name', color: 'claude', bold: true, children: ['Studio'] }),
       Text({ key: 'welcome-left-off', color: 'subtle', wrap: 'truncate-end', children: [leftOffShort(s) + ' · /guide'] }),
       Box({ key: 'spacer', flexGrow: 1, children: [] }),
+      ...updateNote(el, s),
       buttons(el, s, actions),
     ] })
   }
@@ -114,8 +125,8 @@ function drawWelcome(el, s, actions, columns, rows) {
       : WORDMARK.map((line, i) => Text({ key: 'mark-' + i, color: 'claude', bold: true, wrap: 'truncate-end', children: [line] }))),
     ...summary,
     Box({ key: 'welcome-row', flexDirection: 'row', columnGap: 3, children: [
-      Text({ key: 'welcome-tagline', color: 'text', children: [TAGLINE + ' · /guide'] }),
-      ...(columns >= 96 ? [Text({ key: 'welcome-tip', color: 'subtle', wrap: 'truncate-end', children: [TIP] })] : []),
+      Text({ key: 'welcome-tagline', color: 'text', children: [tagline(s)] }),
+      ...(s.studioUpdate ? updateNote(el, s) : columns >= 96 ? [Text({ key: 'welcome-tip', color: 'subtle', wrap: 'truncate-end', children: [TIP] })] : []),
       Box({ key: 'spacer', flexGrow: 1, children: [] }),
       buttons(el, s, actions),
     ] }),

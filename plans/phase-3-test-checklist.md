@@ -4,7 +4,7 @@ Start a **new** session in `~/code/projects/studio/playground/onboarding`, once 
 
 | # | Do this | You should see |
 |---|---|---|
-| 1 | Just start the session | **The welcome** above the prompt: the STUDIO lettering in clay (big block letters in the terminal; crisp pixel letters, drawn as a picture, in the app), then where you left off ("project onboarding · exploring …" and "last save point “…”, 2h ago · everything saved"), then "Calm Claude Code for designers · /guide", a tip, and **1 Preview**. In a small window it's one line |
+| 1 | Just start the session | **The welcome** above the prompt: the STUDIO lettering in clay (big block letters in the terminal; crisp pixel letters, drawn as a picture, in the app), then where you left off ("project onboarding · exploring …" and "last save point “…”, 2h ago · everything saved"), then "Calm Claude Code for designers · v0.2.3 · /guide", a tip, and **1 Preview**. In a small window it's one line |
 | 2 | Look beside the conversation (Desktop) or to the side (wide terminal) | **The Studio panel**: Journey tab with your three stages, Happening now, Actions, and the footer with when you last saved and the working-memory bar. In a narrower terminal, type `/panel` |
 | 3 | Type `/guide` | A short plain guide to Studio, the band, the panel and the commands |
 | 4 | Ask "Make the help text a little quieter" | The welcome gives way to the normal band. **Now** changes as Claude works ("Reading styles.css", "Editing styles.css"), a **3 Stop** button appears, and the working line uses the same words |
@@ -15,6 +15,7 @@ Start a **new** session in `~/code/projects/studio/playground/onboarding`, once 
 | 9 | In the panel, press **Build** under the stages | The band and panel both move to Build and say "You chose this stage". **Let Studio guess** undoes it |
 | 10 | Press **Preview** (or **Open preview** if it's already running) | Your private preview starts or opens |
 | 11 | Press **Send to Figma** | Claude asks which Figma file to use, and doesn't write anything until you say yes |
-| 12 | Overall | Calm, readable, nothing cut off, colours sensible in light and dark. Does the STUDIO lettering look right in Desktop? |
+| 12 | Type `/version` | "You're on Studio 0.2.3, the latest." The panel's footer says "Studio v0.2.3" |
+| 13 | Overall | Calm, readable, nothing cut off, colours sensible in light and dark. Does the STUDIO lettering look right in Desktop? |
 
 Note anything that looks different between the terminal and Desktop, and send screenshots if you can.
