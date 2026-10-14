@@ -106,16 +106,17 @@ test('on the main design with everything saved', async ($, on) => {
   await ui.unmount()
 })
 
-test('the app gets the smaller STUDIO lettering; the terminal keeps the big one', async ($, on) => {
+test('the app draws the STUDIO pixel lettering as a picture; the terminal keeps the big one', async ($, on) => {
   setup(on)
   await start($)
   const app = await $.ui.mount(BAND(120, 'desktop'))
-  expect(await app.find({ type: 'Text', text: '█▀▀ ▀█▀ █ █ █▀▄ █ █▀█' })).toBeDefined()
+  expect(await app.find({ type: 'Svg' })).toBeDefined()
   expect(await app.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeUndefined()
   expect(await app.find({ type: 'Text', text: 'Calm Claude Code for designers · /guide' })).toBeDefined()
   await app.unmount()
   const term = await $.ui.mount(BAND(120, 'terminal'))
-  expect(await term.find({ type: 'Text', text: '█▀▀ ▀█▀ █ █ █▀▄ █ █▀█' })).toBeUndefined()
+  expect(await term.find({ type: 'Svg' })).toBeUndefined()
+  expect(await term.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeDefined()
   await term.unmount()
 })
 

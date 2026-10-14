@@ -15,12 +15,31 @@ export const WORDMARK = [
   '███████║   ██║   ╚██████╔╝██████╔╝██║╚██████╔╝',
   '╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝ ╚═════╝ ',
 ]
-// The smaller STUDIO for the Desktop app, 3 rows, 21 columns.
-export const SMALL_WORDMARK = [
-  '█▀▀ ▀█▀ █ █ █▀▄ █ █▀█',
-  '▀▀█  █  █ █ █ █ █ █ █',
-  '▀▀▀  ▀  ▀▀▀ ▀▀  ▀ ▀▀▀',
-]
+// The STUDIO wordmark for the Desktop app: the same pixel letters, drawn as
+// a crisp picture (SVG), since block characters come apart in the app's type.
+// Each letter is 3 by 5 pixels with a 1-pixel gap; clay, lighter in dark mode.
+const PIXEL_LETTERS = {
+  S: ['111', '100', '111', '001', '111'],
+  T: ['111', '010', '010', '010', '010'],
+  U: ['101', '101', '101', '101', '111'],
+  D: ['110', '101', '101', '101', '110'],
+  I: ['111', '010', '010', '010', '111'],
+  O: ['111', '101', '101', '101', '111'],
+}
+const PIXEL = 6
+function pixelWordmark(word) {
+  let rects = '', x = 0
+  for (const ch of word) {
+    PIXEL_LETTERS[ch].forEach((row, y) => [...row].forEach((on, i) => {
+      if (on === '1') rects += `<rect x="${(x + i) * PIXEL}" y="${y * PIXEL}" width="${PIXEL}" height="${PIXEL}"/>`
+    }))
+    x += 4
+  }
+  const w = (x - 1) * PIXEL, h = 5 * PIXEL
+  return { width: w, height: h, source: `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges"><style>rect{fill:#C2643D}@media (prefers-color-scheme: dark){rect{fill:#E08A62}}</style>${rects}</svg>` }
+}
+export const APP_WORDMARK = pixelWordmark('STUDIO')
+
 export const TAGLINE = 'Calm Claude Code for designers'
 export const TIP = 'Try: “make the heading softer”'
 
@@ -78,8 +97,9 @@ function leftOffShort(s) {
 function drawWelcome(el, s, actions, columns, rows) {
   const { Box, Text } = el
   const summary = leftOff(el, s)
-  const mark = s.surface === 'desktop' ? SMALL_WORDMARK : WORDMARK
-  const big = columns >= 60 && (rows == null || rows >= mark.length + 1 + summary.length)
+  const app = s.surface === 'desktop' && el.Svg
+  const markRows = app ? 2 : WORDMARK.length
+  const big = columns >= 60 && (rows == null || rows >= markRows + 1 + summary.length)
   if (!big) {
     return Box({ key: 'studio-welcome', flexDirection: 'row', columnGap: 2, width: columns, children: [
       Text({ key: 'welcome-name', color: 'claude', bold: true, children: ['Studio'] }),
@@ -89,7 +109,9 @@ function drawWelcome(el, s, actions, columns, rows) {
     ] })
   }
   return Box({ key: 'studio-welcome', flexDirection: 'column', width: columns, children: [
-    ...mark.map((line, i) => Text({ key: 'mark-' + i, color: 'claude', bold: true, wrap: 'truncate-end', children: [line] })),
+    ...(app
+      ? [Box({ key: 'mark', marginBottom: 1, children: [el.Svg({ key: 'mark-svg', source: APP_WORDMARK.source, alt: 'Studio', width: APP_WORDMARK.width, height: APP_WORDMARK.height })] })]
+      : WORDMARK.map((line, i) => Text({ key: 'mark-' + i, color: 'claude', bold: true, wrap: 'truncate-end', children: [line] }))),
     ...summary,
     Box({ key: 'welcome-row', flexDirection: 'row', columnGap: 3, children: [
       Text({ key: 'welcome-tagline', color: 'text', children: [TAGLINE + ' · /guide'] }),
