@@ -2,8 +2,9 @@
 //   ✓ Explore ─ ● Refine ─ ○ Build    Now  editing styles.css, step 2 of 3    ✓ Saved 2m ago    [1 Preview] [3 Stop]
 // Pure drawing: takes the element table, Studio's state and the actions, and
 // returns the band. Narrower bands drop text before buttons. Until the first
-// request of a session, the band shows the welcome instead.
-import { STAGES, GLYPH, COLOR, stageState, saveStatus } from './journey.js'
+// request of a session, the band shows the welcome instead, with a short
+// "where you left off" summary under the wordmark (the same facts as /start).
+import { STAGES, GLYPH, COLOR, stageState, saveStatus, ago } from './journey.js'
 
 // The STUDIO wordmark, 6 rows, 47 columns.
 export const WORDMARK = [
@@ -26,19 +27,63 @@ function buttons(el, s, actions) {
   return Box({ key: 'buttons', flexDirection: 'row', columnGap: 2, children: list })
 }
 
+// Two lines under the wordmark:
+//   project onboarding · exploring fewer-steps
+//   last save point “Calmer sign-up”, 2h ago · 2 files not saved yet
+export function leftOff(el, s) {
+  const { Box, Text } = el
+  const label = (key, text) => Text({ key, color: 'subtle', children: [text] })
+  const value = (key, text) => Text({ key, color: 'text', bold: true, children: [text] })
+  const where = [label('left-project-label', 'project '), value('left-project', s.project)]
+  if (s.hasSavePoints) {
+    where.push(label('left-sep', ' · '))
+    if (s.isMain) where.push(label('left-exploring-label', 'on the '), value('left-exploring', 'main version'))
+    else where.push(label('left-exploring-label', 'exploring '), value('left-exploring', s.exploration))
+  }
+  const lines = [Box({ key: 'left-where', flexDirection: 'row', children: where })]
+  if (!s.hasSavePoints) {
+    lines.push(Text({ key: 'left-setup', color: 'subtle', wrap: 'truncate-end', children: ['Save points aren’t set up here yet; /start can set them up'] }))
+    return lines
+  }
+  const saved = []
+  if (s.lastSaveNote) {
+    const when = ago(s.lastSaveAt, s.now)
+    saved.push(label('left-save-label', 'last save point '))
+    saved.push(Text({ key: 'left-save-note', color: 'text', wrap: 'truncate-end', children: ['“' + s.lastSaveNote + '”'] }))
+    if (when) saved.push(label('left-save-when', ', ' + when.replace(/^saved /, '')))
+    saved.push(label('left-save-sep', ' · '))
+  }
+  const n = s.unsavedCount || 0
+  saved.push(n
+    ? Text({ key: 'left-unsaved', color: 'warning', children: [`${n} file${n === 1 ? '' : 's'} not saved yet`] })
+    : Text({ key: 'left-unsaved', color: 'success', children: ['everything saved'] }))
+  lines.push(Box({ key: 'left-saved', flexDirection: 'row', children: saved }))
+  return lines
+}
+
+// The one-line version for small bands: "onboarding · fewer-steps · not saved yet".
+function leftOffShort(s) {
+  const parts = [s.project]
+  if (s.hasSavePoints) parts.push(s.isMain ? 'main version' : s.exploration)
+  if (s.unsaved) parts.push('not saved yet')
+  return parts.filter(Boolean).join(' · ')
+}
+
 function drawWelcome(el, s, actions, columns, rows) {
   const { Box, Text } = el
-  const big = columns >= 60 && (rows == null || rows >= WORDMARK.length + 2)
+  const summary = leftOff(el, s)
+  const big = columns >= 60 && (rows == null || rows >= WORDMARK.length + 1 + summary.length)
   if (!big) {
     return Box({ key: 'studio-welcome', flexDirection: 'row', columnGap: 2, width: columns, children: [
       Text({ key: 'welcome-name', color: 'claude', bold: true, children: ['Studio'] }),
-      Text({ key: 'welcome-tagline', color: 'subtle', wrap: 'truncate-end', children: [TAGLINE + ' · /guide'] }),
+      Text({ key: 'welcome-left-off', color: 'subtle', wrap: 'truncate-end', children: [leftOffShort(s) + ' · /guide'] }),
       Box({ key: 'spacer', flexGrow: 1, children: [] }),
       buttons(el, s, actions),
     ] })
   }
   return Box({ key: 'studio-welcome', flexDirection: 'column', width: columns, children: [
     ...WORDMARK.map((line, i) => Text({ key: 'mark-' + i, color: 'claude', bold: true, wrap: 'truncate-end', children: [line] })),
+    ...summary,
     Box({ key: 'welcome-row', flexDirection: 'row', columnGap: 3, children: [
       Text({ key: 'welcome-tagline', color: 'text', children: [TAGLINE + ' · /guide'] }),
       ...(columns >= 96 ? [Text({ key: 'welcome-tip', color: 'subtle', wrap: 'truncate-end', children: [TIP] })] : []),

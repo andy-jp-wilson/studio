@@ -11,11 +11,12 @@ const PREVIEW_PORTS = [4321, 5173, 3000, 8080, 8000, 4173, 5000]
 const FIGMA_REQUEST = 'Send the current screen to Figma: take a picture of my private preview and add it to a Figma file I choose. Ask me which file, and confirm before writing anything.'
 
 // What Studio knows about the project (refreshed from git).
-let project = { project: '', exploration: '', isMain: true, ownSavePoints: 0, explorations: 0, lastSaveAt: 0, handedOver: false, handoverLabel: '', previewUrl: '', root: '', hasSavePoints: false, unsaved: false }
+let project = { project: '', exploration: '', isMain: true, ownSavePoints: 0, explorations: 0, lastSaveAt: 0, handedOver: false, handoverLabel: '', previewUrl: '', root: '', hasSavePoints: false, unsaved: false, unsavedCount: 0, lastSaveNote: '' }
 // What Claude is doing in this request.
 let live = { working: false, turnId: '', current: null, steps: [], todo: null, lastKind: null }
 let memory = 0
-// The welcome shows in the band until the first request of a session.
+// The welcome, with where you left off, shows in the band until the first
+// request of a session.
 let welcome = true
 let stageOverride = null
 let view = { tab: 'journey', query: '' }
@@ -35,7 +36,7 @@ async function refresh($) {
     const folder = String(cwd).split('/').filter(Boolean).pop() || 'project'
     const next = { ...project, project: folder, previewUrl: await findPreview($) }
     if ((await git($, ['rev-parse', '--is-inside-work-tree'])) !== 'true') {
-      project = { ...next, hasSavePoints: false, unsaved: false, isMain: true, exploration: '', ownSavePoints: 0, lastSaveAt: 0, handedOver: false, root: cwd }
+      project = { ...next, hasSavePoints: false, unsaved: false, unsavedCount: 0, lastSaveNote: '', isMain: true, exploration: '', ownSavePoints: 0, lastSaveAt: 0, handedOver: false, root: cwd }
       return
     }
     const root = (await git($, ['rev-parse', '--show-toplevel'])) || cwd
@@ -43,8 +44,11 @@ async function refresh($) {
     const main = (await git($, ['rev-parse', '--verify', '-q', 'main'])) ? 'main' : ((await git($, ['rev-parse', '--verify', '-q', 'master'])) ? 'master' : '')
     const isMain = !branch || branch === main
     const own = !isMain && main ? Number(await git($, ['rev-list', '--count', main + '..HEAD'])) || 0 : 0
-    const unsaved = Boolean(await git($, ['status', '--porcelain']))
+    const status = (await git($, ['status', '--porcelain'])) || ''
+    const unsavedCount = status.split('\n').filter(Boolean).length
+    const unsaved = unsavedCount > 0
     const last = Number(await git($, ['log', '-1', '--format=%ct'])) || 0
+    const lastSaveNote = (await git($, ['log', '-1', '--format=%s'])) || ''
     const branches = ((await git($, ['branch', '--format=%(refname:short)'])) || '').split('\n').filter(b => b && b !== main)
     let handedOver = false, handoverLabel = ''
     const h = await git($, ['for-each-ref', 'refs/studio/handovers', '--sort=-creatordate', '--count=1', '--format=%(objectname)|%(creatordate:format:%d %b)'])
@@ -54,7 +58,7 @@ async function refresh($) {
       const onMain = main ? (await git($, ['merge-base', '--is-ancestor', obj, main])) !== null : false
       if (onThis && !onMain) { handedOver = true; handoverLabel = String(when).replace(/^0/, '') }
     }
-    project = { ...next, root, hasSavePoints: true, unsaved, exploration: branch || main, isMain, ownSavePoints: own, explorations: branches.length, lastSaveAt: last * 1000, handedOver, handoverLabel }
+    project = { ...next, root, hasSavePoints: true, unsaved, unsavedCount, lastSaveNote, exploration: branch || main, isMain, ownSavePoints: own, explorations: branches.length, lastSaveAt: last * 1000, handedOver, handoverLabel }
     try {
       const saved = await $.store.get('stage:' + root)
       stageOverride = typeof saved === 'string' ? saved : null

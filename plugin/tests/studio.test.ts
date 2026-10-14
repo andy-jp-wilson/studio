@@ -8,6 +8,7 @@ const GIT: Record<string, string> = {
   'rev-parse --verify -q main': 'abc123',
   'rev-list --count main..HEAD': '2',
   'log -1 --format=%ct': String(Math.round(NOW / 1000) - 120),
+  'log -1 --format=%s': 'Calmer sign-up',
   'branch --format=%(refname:short)': 'bolder-button\nmain',
   'status --porcelain': '',
 }
@@ -78,6 +79,39 @@ test('a new session opens with the Studio welcome', async ($, on) => {
   await $.turn.start({ turnId: 't1' })
   const after = await $.ui.mount(BAND(120))
   expect(await after.find({ type: 'Text', text: 'Calm Claude Code for designers · /guide' })).toBeUndefined()
+})
+
+test('the welcome shows where you left off, without typing /start', async ($, on) => {
+  setup(on, { 'status --porcelain': ' M styles.css\n M SignUpScreen.tsx' })
+  await start($)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ type: 'Text', text: 'onboarding' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'exploring ' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'bolder-button' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: '“Calmer sign-up”' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: ', 2m ago' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: '2 files not saved yet' })).toBeDefined()
+  await ui.unmount()
+  const small = await $.ui.mount(BAND(50))
+  expect(await small.find({ type: 'Text', text: 'onboarding · bolder-button · not saved yet · /guide' })).toBeDefined()
+  await small.unmount()
+})
+
+test('on the main version with everything saved', async ($, on) => {
+  setup(on, { 'branch --show-current': 'main' })
+  await start($)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ type: 'Text', text: 'main version' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'everything saved' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a folder without save points says so in the welcome', async ($, on) => {
+  setup(on, { 'rev-parse --is-inside-work-tree': 'false' })
+  await start($)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ type: 'Text', text: 'Save points aren’t set up here yet; /start can set them up' })).toBeDefined()
+  await ui.unmount()
 })
 
 test('the band shows the journey, ready text, when you last saved and Preview when idle', async ($, on) => {
