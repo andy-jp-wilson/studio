@@ -14,7 +14,7 @@ allowed-tools:
 
 First, if this folder doesn't keep save points yet, offer `/start` to set it up and stop.
 
-Call `main` or `master` the **main version**, not an exploration.
+Call `main` or `master` the **main design**, not an exploration.
 
 ## With a name ($ARGUMENTS)
 

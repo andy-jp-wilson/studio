@@ -97,13 +97,26 @@ test('the welcome shows where you left off, without typing /start', async ($, on
   await small.unmount()
 })
 
-test('on the main version with everything saved', async ($, on) => {
+test('on the main design with everything saved', async ($, on) => {
   setup(on, { 'branch --show-current': 'main' })
   await start($)
   const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'main version' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: 'main design' })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: 'everything saved' })).toBeDefined()
   await ui.unmount()
+})
+
+test('the app gets the smaller STUDIO lettering; the terminal keeps the big one', async ($, on) => {
+  setup(on)
+  await start($)
+  const app = await $.ui.mount(BAND(120, 'desktop'))
+  expect(await app.find({ type: 'Text', text: '█▀▀ ▀█▀ █ █ █▀▄ █ █▀█' })).toBeDefined()
+  expect(await app.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeUndefined()
+  expect(await app.find({ type: 'Text', text: 'Calm Claude Code for designers · /guide' })).toBeDefined()
+  await app.unmount()
+  const term = await $.ui.mount(BAND(120, 'terminal'))
+  expect(await term.find({ type: 'Text', text: '█▀▀ ▀█▀ █ █ █▀▄ █ █▀█' })).toBeUndefined()
+  await term.unmount()
 })
 
 test('a folder without save points says so in the welcome', async ($, on) => {

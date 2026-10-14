@@ -17,10 +17,10 @@ allowed-tools:
 A handoff shares work outside this computer, so **never push or open anything without a clear yes**.
 
 1. **Check.**
-   - Current exploration: `git branch --show-current`. If it's the main version (`main` or `master`), explain that handoffs are made from an exploration, and offer `/explore` first. Stop.
+   - Current exploration: `git branch --show-current`. If it's the main design (`main` or `master`), explain that handoffs are made from an exploration, and offer `/explore` first. Stop.
    - Unsaved changes: offer `/save` first.
    - Where it would go: `git remote -v`, and whether GitHub is connected (`gh auth status`).
-2. **Write the summary** of what changed since the main version (`git log main..HEAD`, `git diff --stat main...HEAD`). Use design words:
+2. **Write the summary** of what changed since the main design (`git log main..HEAD`, `git diff --stat main...HEAD`). Use design words:
    - **What changed**: 2 to 4 bullets, e.g. "Sign-up heading is softer and lighter".
    - **Why**: one sentence.
    - **How to see it**: how a reviewer can preview it.

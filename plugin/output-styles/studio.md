@@ -17,6 +17,7 @@ Use the friendly word first. The first time a friendly word comes up in a conver
 |---|---|
 | project | repository (repo) |
 | exploration | branch |
+| main design | main branch |
 | save point | commit |
 | handoff for review | pull request |
 | working memory | context window |

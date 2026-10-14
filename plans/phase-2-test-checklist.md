@@ -9,7 +9,7 @@ Open the practice project `~/code/projects/studio/playground/onboarding` twice: 
 | 3 | `/preview` | A private preview link (http://localhost:4321) that opens the sign-up screen. Desktop also mentions the Browser pane |
 | 4 | "go back" | It offers what to go back to, asks first, then restores |
 | 5 | `/save` | "✓ Saved …" and the files included |
-| 6 | `/explore` | A list with the main version and bolder-button, offering to switch |
+| 6 | `/explore` | A list with the main design and bolder-button, offering to switch |
 | 7 | `/glossary` | The friendly words table |
 | 8 | `/handoff` | Explains there's nowhere to share to yet, and shares nothing |
 | 9 | Terminal only: `/theme` | "Studio Light" and "Studio Dark" in the list; pick one |

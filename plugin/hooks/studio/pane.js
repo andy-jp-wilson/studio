@@ -70,7 +70,7 @@ function journeyTab(el, s, actions) {
   // Footer
   out.push(Text({ key: 'gap-3', children: [' '] }))
   const bar = memoryBar(s.memory)
-  const where = s.isMain ? 'on the main version' : 'exploring ' + s.exploration
+  const where = s.isMain ? 'on the main design' : 'exploring ' + s.exploration
   const save = saveStatus(s)
   out.push(Box({ key: 'footer', flexDirection: 'row', children: [
     Text({ key: 'footer-where', color: 'subtle', children: [where + '  ·  '] }),

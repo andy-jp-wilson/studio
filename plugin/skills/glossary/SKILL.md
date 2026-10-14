@@ -13,7 +13,7 @@ If the person named a word ($ARGUMENTS), explain just that one. Otherwise show t
 | Project | repository (repo) | The folder that holds everything for one piece of work, with its history. |
 | Exploration | branch | A safe copy where you can try an idea without touching the original. |
 | Save point | commit | A snapshot of your work you can always go back to. |
-| Handoff for review | pull request | Asking a teammate to look at an exploration before it joins the main work. |
+| Handoff for review | pull request | Asking a teammate to look at an exploration before it joins the main design. |
 | Working memory | context window | How much of your conversation Claude can hold in mind at once. |
 | Workspace | terminal | The text window where you talk to Claude Code. |
 | Private preview | localhost | A website running on your own computer that only you can see. |
@@ -22,7 +22,7 @@ More words, explained the same way when they come up:
 
 | Friendly word | Real term | In one sentence |
 |---|---|---|
-| Main version | main branch | The agreed version of the project that explorations join back into. |
+| Main design | main branch | The agreed design that explorations start from and join back into. |
 | Snapshot | (Studio's hidden save point) | A copy Studio keeps automatically before Claude changes anything. |
 | Clash | merge conflict | Two explorations changed the same thing, so you need to choose which to keep. |
 | Packages | dependencies | Ready-made code the project borrows, downloaded onto your computer. |

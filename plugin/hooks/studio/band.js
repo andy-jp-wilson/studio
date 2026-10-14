@@ -15,6 +15,12 @@ export const WORDMARK = [
   '███████║   ██║   ╚██████╔╝██████╔╝██║╚██████╔╝',
   '╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝ ╚═════╝ ',
 ]
+// The smaller STUDIO for the Desktop app, 3 rows, 21 columns.
+export const SMALL_WORDMARK = [
+  '█▀▀ ▀█▀ █ █ █▀▄ █ █▀█',
+  '▀▀█  █  █ █ █ █ █ █ █',
+  '▀▀▀  ▀  ▀▀▀ ▀▀  ▀ ▀▀▀',
+]
 export const TAGLINE = 'Calm Claude Code for designers'
 export const TIP = 'Try: “make the heading softer”'
 
@@ -37,7 +43,7 @@ export function leftOff(el, s) {
   const where = [label('left-project-label', 'project '), value('left-project', s.project)]
   if (s.hasSavePoints) {
     where.push(label('left-sep', ' · '))
-    if (s.isMain) where.push(label('left-exploring-label', 'on the '), value('left-exploring', 'main version'))
+    if (s.isMain) where.push(label('left-exploring-label', 'on the '), value('left-exploring', 'main design'))
     else where.push(label('left-exploring-label', 'exploring '), value('left-exploring', s.exploration))
   }
   const lines = [Box({ key: 'left-where', flexDirection: 'row', children: where })]
@@ -64,7 +70,7 @@ export function leftOff(el, s) {
 // The one-line version for small bands: "onboarding · fewer-steps · not saved yet".
 function leftOffShort(s) {
   const parts = [s.project]
-  if (s.hasSavePoints) parts.push(s.isMain ? 'main version' : s.exploration)
+  if (s.hasSavePoints) parts.push(s.isMain ? 'main design' : s.exploration)
   if (s.unsaved) parts.push('not saved yet')
   return parts.filter(Boolean).join(' · ')
 }
@@ -72,7 +78,8 @@ function leftOffShort(s) {
 function drawWelcome(el, s, actions, columns, rows) {
   const { Box, Text } = el
   const summary = leftOff(el, s)
-  const big = columns >= 60 && (rows == null || rows >= WORDMARK.length + 1 + summary.length)
+  const mark = s.surface === 'desktop' ? SMALL_WORDMARK : WORDMARK
+  const big = columns >= 60 && (rows == null || rows >= mark.length + 1 + summary.length)
   if (!big) {
     return Box({ key: 'studio-welcome', flexDirection: 'row', columnGap: 2, width: columns, children: [
       Text({ key: 'welcome-name', color: 'claude', bold: true, children: ['Studio'] }),
@@ -82,7 +89,7 @@ function drawWelcome(el, s, actions, columns, rows) {
     ] })
   }
   return Box({ key: 'studio-welcome', flexDirection: 'column', width: columns, children: [
-    ...WORDMARK.map((line, i) => Text({ key: 'mark-' + i, color: 'claude', bold: true, wrap: 'truncate-end', children: [line] })),
+    ...mark.map((line, i) => Text({ key: 'mark-' + i, color: 'claude', bold: true, wrap: 'truncate-end', children: [line] })),
     ...summary,
     Box({ key: 'welcome-row', flexDirection: 'row', columnGap: 3, children: [
       Text({ key: 'welcome-tagline', color: 'text', children: [TAGLINE + ' · /guide'] }),

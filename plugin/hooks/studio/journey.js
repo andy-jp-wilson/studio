@@ -2,7 +2,7 @@
 
 export const STAGES = ['Explore', 'Refine', 'Build']
 
-// Studio's guess (decided 2026-10-12): Explore on the main version or on an
+// Studio's guess (decided 2026-10-12): Explore on the main design or on an
 // exploration with no save points of its own; Refine once it has some;
 // Build after a handover covers it. A stage the person chose wins.
 export function guessStage(p) {
@@ -43,7 +43,7 @@ export function stageDetail(stage, p, state) {
   if (stage === 'Explore') {
     const n = p.explorations || 0
     if (state === 'upcoming') return 'Try a few ideas safely'
-    return n > 1 ? `${n} explorations so far` : 'Trying ideas on ' + (p.isMain ? 'the main version' : p.exploration)
+    return n > 1 ? `${n} explorations so far` : 'Trying ideas on ' + (p.isMain ? 'the main design' : p.exploration)
   }
   if (stage === 'Refine') {
     if (state === 'upcoming') return 'Polish one idea with save points'

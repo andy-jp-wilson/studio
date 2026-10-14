@@ -162,7 +162,7 @@ export function register(on) {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
-    const band = drawBand(el, state(await $.clock.now()), actionsFor($), e.props.bodyColumns, e.props.maxRows)
+    const band = drawBand(el, { ...state(await $.clock.now()), surface: e.surface }, actionsFor($), e.props.bodyColumns, e.props.maxRows)
     const rest = await next(e)
     return rest ? el.Box({ key: 'studio-band-wrap', flexDirection: 'column', children: [band, rest] }) : band
   })

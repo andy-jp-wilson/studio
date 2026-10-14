@@ -35,6 +35,6 @@ allowed-tools:
 
    Then suggest one or two next steps. For example, `/save` if there are unsaved changes, `/preview` to see the preview, or `/explore` to try something new.
 
-If the current exploration is `main` or `master`, write "on the **main version**" instead of "exploring main".
+If the current exploration is `main` or `master`, write "on the **main design**" instead of "exploring main".
 
 Use friendly words; turn branch names and file names into readable text where it helps. Don't use em dashes.

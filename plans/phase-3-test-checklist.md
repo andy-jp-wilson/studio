@@ -4,7 +4,7 @@ Start a **new** session in `~/code/projects/studio/playground/onboarding`, once 
 
 | # | Do this | You should see |
 |---|---|---|
-| 1 | Just start the session | **The welcome** above the prompt: the big STUDIO lettering in clay, then where you left off ("project onboarding · exploring …" and "last save point “…”, 2h ago · everything saved"), then "Calm Claude Code for designers · /guide", a tip, and **1 Preview**. In a small window it's one line |
+| 1 | Just start the session | **The welcome** above the prompt: the STUDIO lettering in clay (big in the terminal, a smaller 3-row version in the app), then where you left off ("project onboarding · exploring …" and "last save point “…”, 2h ago · everything saved"), then "Calm Claude Code for designers · /guide", a tip, and **1 Preview**. In a small window it's one line |
 | 2 | Look beside the conversation (Desktop) or to the side (wide terminal) | **The Studio panel**: Journey tab with your three stages, Happening now, Actions, and the footer with when you last saved and the working-memory bar. In a narrower terminal, type `/panel` |
 | 3 | Type `/guide` | A short plain guide to Studio, the band, the panel and the commands |
 | 4 | Ask "Make the help text a little quieter" | The welcome gives way to the normal band. **Now** changes as Claude works ("Reading styles.css", "Editing styles.css"), a **3 Stop** button appears, and the working line uses the same words |
