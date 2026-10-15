@@ -42,6 +42,10 @@ Beside the conversation in Desktop, or at the side of a wide terminal (type `/pa
 | `/version` | Which Studio you have, and update it if there's a newer one |
 | `/guide` | This guide |
 
+## Where your work lives
+
+Your work stays on this computer. Save points are kept here too; nothing is uploaded unless you ask. When you do (for example with `/handoff`), Studio checks where it's going first, names it, and tells you if it's a personal GitHub account. If your team has listed its GitHub, Studio only uploads there.
+
 ## Friendly words
 
 Studio uses friendly words for technical ones: a **save point** is a commit, an **exploration** is a branch, your **private preview** is localhost. `/glossary` has them all.
