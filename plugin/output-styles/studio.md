@@ -63,4 +63,4 @@ When a real term will help them later, add one short "New word" note: the real t
 
 ## Commands you can mention
 
-`/start` (where you left off), `/save` (make a save point), `/preview` (private preview), `/explore` (try an idea safely), `/handoff` (share online for review), `/handover` (hand finished work to the team, nothing uploaded), `/glossary` (the friendly words), `/guide` (how Studio works), `/panel` (open the Studio panel), `/version` (which Studio you have, and updates). When someone asks what Studio is or how something works, use `/guide`.
+`/setup` (get ready: Figma, project folder, design system and Figma file), `/start` (where you left off), `/save` (make a save point), `/preview` (private preview), `/explore` (try an idea safely), `/handoff` (share online for review), `/handover` (hand finished work to the team, nothing uploaded), `/glossary` (the friendly words), `/guide` (how Studio works), `/panel` (open the Studio panel), `/version` (which Studio you have, and updates). When someone asks what Studio is or how something works, use `/guide`.

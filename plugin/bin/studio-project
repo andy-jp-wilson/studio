@@ -1,0 +1,122 @@
+#!/bin/bash
+# studio-project: Studio's setup notes for a project, and its folder layout.
+# Never moves, overwrites or deletes anything the person made.
+#
+#   studio-project status [dir]
+#       Prints this project's setup notes as JSON (.studio/project.json),
+#       plus "computer": what's been confirmed on this computer, and
+#       "missing": layout folders that don't exist yet. {} parts when unset.
+#   studio-project new <parent-folder> <name>
+#       Creates <parent-folder>/<name> with the Studio layout. Prints
+#       "created <path>", or "exists <path>" (and changes nothing).
+#   studio-project layout [dir]
+#       Adds any missing layout folders and README.md to an existing folder.
+#       Prints one "added <path>" line per thing added, or "complete".
+#   studio-project set <key> <value> [dir]
+#       Records one answer in .studio/project.json and refreshes the links
+#       in README.md (only between Studio's markers). Keys: figmaAccount,
+#       designSystemUrl, designSystemName, targetFileUrl, targetFileName.
+#       figmaAccount is also remembered for this computer.
+#       Prints "set <key>".
+#   studio-project done <step> [dir]
+#       Marks a setup step done: connection, account, folder, designSystem,
+#       targetFile. Prints "done <step>".
+
+LAYOUT_DIRS="prototype prototype/assets handovers .studio"
+COMPUTER="$HOME/.studio/setup.json"
+cmd="$1"; shift
+
+notes() { echo "$1/.studio/project.json"; }
+read_json() { [ -f "$1" ] && jq -c . "$1" 2>/dev/null || echo '{}'; }
+
+readme() {
+  local dir="$1" name; name=$(basename "$dir")
+  cat <<EOF
+# $name
+
+What this project is, and who's involved.
+
+<!-- studio:links -->
+<!-- /studio:links -->
+
+## Folders
+
+- \`prototype/\`: the prototype's code, the screens you preview
+- \`prototype/assets/\`: images, icons and fonts the prototype uses
+- \`handovers/\`: what /handover makes, changelogs and developer packs
+EOF
+}
+
+refresh_links() {
+  local dir="$1" f="$1/README.md" j block
+  [ -f "$f" ] || return 0
+  grep -q '<!-- studio:links -->' "$f" || return 0
+  j=$(read_json "$(notes "$dir")")
+  block=$(printf '%s' "$j" | jq -r '
+    [ (if .targetFileUrl then "- Figma file: [\(.targetFileName // "Figma file")](\(.targetFileUrl))" else empty end),
+      (if .designSystemUrl then "- Design system: [\(.designSystemName // "Design system")](\(.designSystemUrl))" else empty end)
+    ] | join("\n")')
+  local tmp blk; tmp=$(mktemp) || return 0; blk=$(mktemp) || return 0
+  printf '%s' "$block" > "$blk"
+  awk -v blk="$blk" '
+    /<!-- studio:links -->/ { print; while ((getline line < blk) > 0) print line; skip=1; next }
+    /<!-- \/studio:links -->/ { skip=0 }
+    !skip { print }' "$f" > "$tmp" && cat "$tmp" > "$f"
+  rm -f "$tmp" "$blk"
+}
+
+write_key() {  # file key value
+  local f="$1" tmp; mkdir -p "$(dirname "$f")"
+  tmp=$(mktemp) || return 1
+  read_json "$f" | jq --arg k "$2" --arg v "$3" '.[$k] = $v' > "$tmp" && cat "$tmp" > "$f"
+  rm -f "$tmp"
+}
+
+case "$cmd" in
+  status)
+    dir="${1:-$PWD}"
+    missing=$(for d in $LAYOUT_DIRS README.md; do [ -e "$dir/$d" ] || printf '%s\n' "$d"; done | jq -R . | jq -sc .)
+    jq -n --argjson p "$(read_json "$(notes "$dir")")" --argjson c "$(read_json "$COMPUTER")" \
+      --arg folder "$dir" --argjson missing "$missing" \
+      '{folder: $folder, project: $p, computer: $c, missing: $missing}'
+    ;;
+  new)
+    parent="$1"; name="$2"
+    [ -z "$parent" ] || [ -z "$name" ] && { echo "usage: studio-project new <parent-folder> <name>"; exit 1; }
+    case "$name" in */*|.*) echo "bad-name $name"; exit 1 ;; esac
+    dir="$parent/$name"
+    [ -e "$dir" ] && { echo "exists $dir"; exit 0; }
+    mkdir -p "$dir" || { echo "failed $dir"; exit 1; }
+    for d in $LAYOUT_DIRS; do mkdir -p "$dir/$d"; done
+    readme "$dir" > "$dir/README.md"
+    printf '.DS_Store\nnode_modules/\n' > "$dir/.gitignore"
+    echo "created $dir"
+    ;;
+  layout)
+    dir="${1:-$PWD}"; added=0
+    for d in $LAYOUT_DIRS; do
+      [ -e "$dir/$d" ] || { mkdir -p "$dir/$d" && echo "added $d/"; added=1; }
+    done
+    [ -e "$dir/README.md" ] || { readme "$dir" > "$dir/README.md" && echo "added README.md"; added=1; }
+    [ "$added" = 0 ] && echo "complete"
+    ;;
+  set)
+    key="$1"; value="$2"; dir="${3:-$PWD}"
+    case "$key" in figmaAccount|designSystemUrl|designSystemName|targetFileUrl|targetFileName) ;; *) echo "unknown-key $key"; exit 1 ;; esac
+    write_key "$(notes "$dir")" "$key" "$value"
+    [ "$key" = figmaAccount ] && write_key "$COMPUTER" figmaAccount "$value"
+    refresh_links "$dir"
+    echo "set $key"
+    ;;
+  done)
+    step="$1"; dir="${2:-$PWD}"
+    case "$step" in connection|account|folder|designSystem|targetFile) ;; *) echo "unknown-step $step"; exit 1 ;; esac
+    f=$(notes "$dir"); tmp=$(mktemp); mkdir -p "$(dirname "$f")"
+    read_json "$f" | jq --arg s "$step" --arg t "$(date +%Y-%m-%d)" '.done[$s] = $t' > "$tmp" && cat "$tmp" > "$f"; rm -f "$tmp"
+    case "$step" in connection|account) write_key "$COMPUTER" "$step" "$(date +%Y-%m-%d)" ;; esac
+    echo "done $step"
+    ;;
+  *)
+    sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
+    ;;
+esac

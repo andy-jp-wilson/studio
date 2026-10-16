@@ -31,6 +31,7 @@ Beside the conversation in Desktop, or at the side of a wide terminal (type `/pa
 
 | Command | What it does |
 |---|---|
+| `/setup` | Get ready: check Figma, confirm your account, set up the project folder, and link your design system and Figma file |
 | `/start` | Where you left off, and what to do next |
 | `/preview` | Open your private preview, the design running on your computer |
 | `/save` | Make a save point now |
