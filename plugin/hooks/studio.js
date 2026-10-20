@@ -131,7 +131,7 @@ function wordsNote() {
 }
 
 // The Studio lab (temporary): what the app really draws. See studio/lab.js.
-let labState = { page: '1', said: '', bandSvg: false, hint: false, bandMotion: false, running: false, frame: 0 }
+let labState = { page: '1', said: '', bandSvg: false, hint: false, bandMotion: false, running: false, frame: 0, progressStyle: 'bars' }
 let labTimer = null
 let ccVersion = ''
 
@@ -148,6 +148,7 @@ function labFor($) {
     ask: async () => { try { const a = await $.ui.ask('Work in Studio’s design file in Figma?', ['Yes, go ahead', 'No']); say('You picked: ' + a) } catch (err) { say('Question closed: ' + err) } },
     toggleBand: () => { labState = { ...labState, bandSvg: !labState.bandSvg }; redraw() },
     toggleHint: () => { labState = { ...labState, hint: !labState.hint }; redraw() },
+    setProgress: id => { labState = { ...labState, progressStyle: id }; redraw() },
     toggleBandMotion: () => { labState = { ...labState, bandMotion: !labState.bandMotion }; redraw() },
     toggleRun: async () => {
       if (labTimer) { try { labTimer.cancel() } catch {} labTimer = null; labState = { ...labState, running: false }; return redraw() }
@@ -243,7 +244,7 @@ export function register(on) {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
     const extra = labState.bandMotion && e.surface !== 'terminal' ? drawBandMotion(el, labState.frame) : []
-    const studioBand = drawBand(el, { ...state(), surface: e.surface, extra }, actionsFor($), e.props.bodyColumns)
+    const studioBand = drawBand(el, { ...state(), surface: e.surface, extra, progressStyle: labState.progressStyle }, actionsFor($), e.props.bodyColumns)
     const extras = e.surface === 'terminal' ? [] : (labState.bandSvg ? [drawBandTest(el)] : [])
     const band = extras.length ? el.Box({ key: 'lab-band-wrap', flexDirection: 'column', children: [studioBand, ...extras] }) : studioBand
     const rest = await next(e)

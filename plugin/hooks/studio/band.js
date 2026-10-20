@@ -17,17 +17,28 @@ export function statusParts(s) {
   return { parts: ['Step ' + step + ' of 9', stageOf(step).name, detail].filter(Boolean), needs: Boolean(st.needs), step }
 }
 
-// A still progress bar of nine steps, made of text with a thin gap between each:
-// done and current in colour, the current one twice as long, the rest grey.
-function progress(el, step, color) {
+// A still progress bar of nine steps, made of text. Several styles while the
+// user chooses (Studio lab, Progress page); 'bars' is the default.
+export const PROGRESS_STYLES = {
+  bars: { name: 'Bars', done: '▬', now: '▬▬', todo: '▬', gap: '\u2009' },
+  dots: { name: 'Dots', done: '●', now: '◉', todo: '○', gap: '\u2009' },
+  small: { name: 'Small dots', done: '•', now: '●', todo: '·', gap: '\u2009' },
+  squares: { name: 'Squares', done: '■', now: '■', todo: '□', gap: '\u2009' },
+  line: { name: 'Line and marker', done: '━', now: '●', todo: '─', gap: '' },
+  ticks: { name: 'Ticks', done: '▮', now: '▮', todo: '▯', gap: '' },
+  stages: { name: 'Three stages', done: '▪', now: '▪', todo: '▫', gap: '', stageGap: '\u2002' },
+}
+
+export function progress(el, step, color, style = 'bars', key = 'band-progress') {
   const { Box, Text } = el
+  const st = PROGRESS_STYLES[style] || PROGRESS_STYLES.bars
   const parts = []
   for (let i = 1; i <= 9; i++) {
-    // A thin space between steps (a whole cell was too wide)
-    if (i > 1) parts.push(Text({ key: 'band-progress-gap-' + i, children: ['\u2009'] }))
-    parts.push(Text({ key: 'band-progress-' + i, color: i <= step ? color : MIST.control, children: [i === step ? '▬▬' : '▬'] }))
+    const gap = st.stageGap && (i === 4 || i === 7) ? st.stageGap : st.gap
+    if (i > 1 && gap) parts.push(Text({ key: key + '-gap-' + i, children: [gap] }))
+    parts.push(Text({ key: key + '-' + i, color: i <= step ? color : MIST.control, children: [i < step ? st.done : i === step ? st.now : st.todo] }))
   }
-  return Box({ key: 'band-progress', flexDirection: 'row', children: parts })
+  return Box({ key, flexDirection: 'row', children: parts })
 }
 
 export function drawBand(el, s, actions, columns) {
@@ -48,7 +59,7 @@ export function drawBand(el, s, actions, columns) {
   const row = [
     mark(el, s.surface, 'band-mark', color),
     ...(s.extra || []), // the Studio lab's motion test, when it's on
-    ...(step && width >= 60 ? [progress(el, step, color)] : []),
+    ...(step && width >= 60 ? [progress(el, step, color, s.progressStyle)] : []),
     Box({ key: 'status', flexDirection: 'row', flexGrow: 1, flexShrink: 1, children: status }),
   ]
   if (s.working) row.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))

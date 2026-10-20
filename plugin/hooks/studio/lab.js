@@ -2,13 +2,14 @@
 // so we know what the app really draws before redesigning. Each page is its
 // own drawing: if the app refuses a prop, only that page goes blank, which is
 // itself the answer. Open it with /studio-lab. Remove once the tests are done.
-import { MIST } from './mist.js'
+import { MIST, stageOf } from './mist.js'
+import { PROGRESS_STYLES, progress } from './band.js'
 
 export const LAB_PANE = 'studio-lab'
 
 export const LAB_PAGES = [
   ['1', 'Type'], ['2', 'Colour'], ['3', 'Borders'], ['4', 'Pictures'], ['5', 'Controls'],
-  ['6', 'Spacing'], ['7', 'Messages'], ['8', 'Hover'], ['9', 'Band and hint'], ['m', 'Motion'],
+  ['6', 'Spacing'], ['7', 'Messages'], ['8', 'Hover'], ['9', 'Band and hint'], ['m', 'Motion'], ['p', 'Progress'],
 ]
 
 const DOT = (w, h, r) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><circle cx="${w / 2}" cy="${h / 2}" r="${r}" fill="${MIST.coral}"/></svg>`
@@ -152,8 +153,30 @@ export function drawBandMotion(el, frame) {
   ]
 }
 
+// Progress styles: each at step 2 (the brief), step 5 (the design) and needs
+// you, with a button to try it in the band.
+function progressPage(el, lab) {
+  const { Box, Text, Button } = el
+  const out = [Text({ key: 'pp-note', color: MIST.muted, children: ['Each style at step 2, step 5, step 8, and when something needs you. "Try in the band" uses it there.'] })]
+  for (const [id, st] of Object.entries(PROGRESS_STYLES)) {
+    out.push(Box({ key: 'pp-' + id, flexDirection: 'column', children: [
+      Box({ key: 'pp-' + id + '-head', flexDirection: 'row', columnGap: 2, children: [
+        Text({ key: 'pp-' + id + '-name', bold: true, children: [st.name + (lab.progressStyle === id ? ' · in the band now' : '')] }),
+        Button({ key: 'pp-' + id + '-try', label: 'Try in the band', plain: true, onPress: () => lab.setProgress(id) }),
+      ] }),
+      Box({ key: 'pp-' + id + '-rows', flexDirection: 'row', columnGap: 3, children: [
+        progress(el, 2, stageOf(2).color, id, 'pp-' + id + '-2'),
+        progress(el, 5, stageOf(5).color, id, 'pp-' + id + '-5'),
+        progress(el, 8, stageOf(8).color, id, 'pp-' + id + '-8'),
+        progress(el, 5, MIST.needs, id, 'pp-' + id + '-n'),
+      ] }),
+    ] }))
+  }
+  return out
+}
+
 export function drawLab(el, lab, version) {
-  return el.Box({ key: 'lab', flexDirection: 'column', rowGap: 1, children: [header(el, lab, version), ...(lab.page === 'm' ? motion(el, lab) : page(el, lab))] })
+  return el.Box({ key: 'lab', flexDirection: 'column', rowGap: 1, children: [header(el, lab, version), ...(lab.page === 'm' ? motion(el, lab) : lab.page === 'p' ? progressPage(el, lab) : page(el, lab))] })
 }
 
 // The band test row: dots at three sizes beside the word, to see which draw.
