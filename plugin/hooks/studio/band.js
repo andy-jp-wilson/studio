@@ -42,6 +42,8 @@ export function drawBand(el, s, actions, columns) {
   ]
   if (s.working) row.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
 
-  // Fills the whole band area: full width, with room above and below the status.
-  return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 2, paddingY: 1, width: '100%', minWidth: width, flexGrow: 1, backgroundColor: MIST.surface, children: row })
+  // No background of Studio's own: the app draws the band's box (a rounded
+  // grey) and Studio can only draw inside it, so a second colour never lines
+  // up with its edges (seen 2026-10-20). The app's box is the band's colour.
+  return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 2, alignItems: 'center', width, children: row })
 }
