@@ -18,6 +18,8 @@ Use the helper `studio-project` (already allowed) for all reading and writing of
 
 Run `studio-project status`. It prints JSON with `project` (this folder's answers and `done` steps), `computer` (what's been confirmed on this computer) and `missing` (layout folders not here yet).
 
+Also run `studio-team show` for the team's settings (lines like `STUDIO_DESIGN_SYSTEMS=…`, or `none`). They come from the team's setup guide; use them where the steps below say so. If there are none, carry on: Studio works without them.
+
 - If everything is done, say so with a short tick list and ask whether they want to **recheck** (run steps 1 and 2 again) or **change** an answer. Don't redo steps unasked.
 - If nothing is done yet on this computer (`computer` is empty), start with a short welcome, three lines at most: "Studio works inside Claude Code, the version of Claude that works with real files on your computer and connects to Figma and your design system. That's what lets it check your designs and hand them over to developers. For quick idea exploration, Claude Design is great too; `/guide which Claude` explains when to use which."
 - Then say: "Setup has six short steps. You're on step N." Skip steps already done in this project, but always do step 1 (it's quick).
@@ -52,7 +54,7 @@ Ask: "Do you want to start a **new project**, or set up **this folder** (<folder
 
 **New project**
 1. Ask for a short name, e.g. "onboarding". Use lowercase and hyphens; turn spaces into hyphens.
-2. Suggest a home for it: `~/Studio projects/` unless they say otherwise.
+2. Suggest a home for it: `STUDIO_PROJECTS_FOLDER` if the team set one, otherwise `~/Studio projects/`, unless they say otherwise.
 3. Explain the layout in one short list, and ask if they'd like it (they can say no and keep their own):
    - `prototype/`: the prototype's code, the screens you preview
    - `prototype/assets/`: images, icons and fonts
@@ -71,12 +73,17 @@ Ask: "Do you want to start a **new project**, or set up **this folder** (<folder
 
 Say: "Next, the design system your designs use."
 
-If the `STUDIO_DESIGN_SYSTEM_URL` setting is present (`printenv STUDIO_DESIGN_SYSTEM_URL`), offer it: "Your team uses <name from link>. Use that?" Otherwise ask: "Does this project use a design system or component library? If so, paste the Figma link to its library file." Don't name or suggest any particular design system. If they don't have one, that's fine: say Studio will work without one, mark the step done and move on.
+If the team set `STUDIO_DESIGN_SYSTEMS` (entries `Name | link`, separated by `;`):
+- One design system: "Your team uses **<name>**. Is that the one for this project?"
+- More than one: "Which design system is this project using?" and list them by name (a team may have a newer one and an older one still in use). They can also say none, or paste a different link.
+
+Otherwise ask: "Does this project use a design system or component library? If so, paste the Figma link to its library file." Don't name or suggest any particular design system. If they don't have one, that's fine: say Studio will work without one, mark the step done and move on.
 
 Check it:
 - It must be a `figma.com/design/...` or `figma.com/file/...` link. Take the file key from it.
 - Call the Figma `get_metadata` tool with that file key (no node id) to read its pages. If it fails, explain plainly (the link may be wrong, or this account can't open it) and ask for another link.
 - Show the file name (from the link, as readable words) and its pages, and ask: "Is **<file name>** the design system this project uses?"
+- For one picked from the team's list, use the team's name for it and skip that question; still read its pages, so a broken link is caught.
 - Yes: `studio-project set designSystemUrl "<link>"`, `studio-project set designSystemName "<name>"`, `studio-project done designSystem`.
 
 ## 5. Target Figma file

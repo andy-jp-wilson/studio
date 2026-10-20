@@ -10,7 +10,8 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
 [ -z "$cmd" ] && exit 0
 case "$cmd" in *$'\n'*) exit 0 ;; esac
 
-if printf '%s' "$cmd" | grep -Eq '^studio-(changelog|capture|pack|snapshot|version|project)( [^;&|`$<>()\\]*)?$'; then
+# studio-team only reads without asking; changing team settings always asks.
+if printf '%s' "$cmd" | grep -Eq '^studio-(changelog|capture|pack|snapshot|version|project)( [^;&|`$<>()\\]*)?$' || [ "$cmd" = "studio-team show" ]; then
   jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow",permissionDecisionReason:"Studio helper"}}'
 fi
 exit 0

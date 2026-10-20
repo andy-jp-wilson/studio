@@ -66,6 +66,10 @@ Beside the conversation in Desktop, or at the side of a wide terminal (type `/pa
 
 Your work stays on this computer. Save points are kept here too; nothing is uploaded unless you ask. When you do (for example with `/handoff`), Studio checks where it's going first, names it, and tells you if it's a personal GitHub account. If your team has listed its GitHub, Studio only uploads there.
 
+## Setting Studio up for a team
+
+Studio comes with a team setup guide, `team/studio-team-setup.md` in Studio's folder. The person looking after the team fills in the team's settings (where work may be uploaded, the design systems, where projects go) and shares it. Each designer adds it to a conversation and says "Set up Studio for my team using this file."
+
 ## Friendly words
 
 Studio uses friendly words for technical ones: a **save point** is a commit, an **exploration** is a branch, your **private preview** is localhost. `/glossary` has them all.

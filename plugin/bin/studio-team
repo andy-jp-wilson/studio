@@ -1,0 +1,49 @@
+#!/bin/bash
+# studio-team: the team's Studio settings, kept in Claude Code's user
+# settings (~/.claude/settings.json, under "env") so every session sees them.
+# Only Studio's own settings are ever read or written; nothing else changes.
+#
+#   studio-team show
+#       Prints the Studio settings currently set, as KEY=value lines,
+#       or "none".
+#   studio-team set <KEY> <value>
+#       Sets one Studio setting (an empty value removes it). Keeps a copy of
+#       the settings file first (settings.json.studio-backup). Prints
+#       "set <KEY>" or "removed <KEY>". Takes effect in new sessions.
+#
+# Keys:
+#   STUDIO_TEAM_NAME           the team's name, for Studio's messages
+#   STUDIO_ALLOWED_ORGS        GitHub owners work may be uploaded to, comma-separated
+#   STUDIO_DESIGN_SYSTEMS      design systems, "Name | link" separated by ";"
+#   STUDIO_FIGMA_WRITE_PLACES  Figma teams or folders Studio may write to (not enforced yet)
+#   STUDIO_PROJECTS_FOLDER     where new projects go
+
+KEYS="STUDIO_TEAM_NAME STUDIO_ALLOWED_ORGS STUDIO_DESIGN_SYSTEMS STUDIO_FIGMA_WRITE_PLACES STUDIO_PROJECTS_FOLDER"
+file="$HOME/.claude/settings.json"
+cmd="$1"; shift
+
+case "$cmd" in
+  show)
+    out=$( [ -f "$file" ] && jq -r --arg keys "$KEYS" '
+      ($keys | split(" ")) as $k | (.env // {}) | to_entries[] | select(.key as $x | $k | index($x)) | "\(.key)=\(.value)"' "$file" 2>/dev/null)
+    [ -n "$out" ] && printf '%s\n' "$out" || echo "none"
+    ;;
+  set)
+    key="$1"; value="$2"
+    case " $KEYS " in *" $key "*) ;; *) echo "unknown-key $key"; exit 1 ;; esac
+    mkdir -p "$(dirname "$file")"
+    [ -f "$file" ] || echo '{}' > "$file"
+    jq empty "$file" 2>/dev/null || { echo "unreadable-settings $file"; exit 1; }
+    cp "$file" "$file.studio-backup"
+    tmp=$(mktemp) || exit 1
+    if [ -z "$value" ]; then
+      jq --arg k "$key" 'if .env then .env |= del(.[$k]) else . end' "$file" > "$tmp" && cat "$tmp" > "$file" && echo "removed $key"
+    else
+      jq --arg k "$key" --arg v "$value" '.env = ((.env // {}) + {($k): $v})' "$file" > "$tmp" && cat "$tmp" > "$file" && echo "set $key"
+    fi
+    rm -f "$tmp"
+    ;;
+  *)
+    sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+    ;;
+esac
