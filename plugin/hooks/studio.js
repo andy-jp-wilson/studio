@@ -5,6 +5,7 @@
 import { describe } from './studio/narrate.js'
 import { drawBand } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
+import { LAB_PANE, drawLab, drawBandTest } from './studio/lab.js'
 
 const PANE = 'studio'
 
@@ -129,6 +130,26 @@ function wordsNote() {
     (words.known.length ? ' The person already knows these, so do not explain them: ' + words.known.join(', ') + '.' : '')
 }
 
+// The Studio lab (temporary): what the app really draws. See studio/lab.js.
+let labState = { page: '1', said: '', bandSvg: false, hint: false }
+let ccVersion = ''
+
+function labFor($) {
+  const redraw = () => $.ui.invalidate('ui.render')
+  const say = text => { labState = { ...labState, said: text }; redraw() }
+  return {
+    ...labState,
+    go: k => { labState = { ...labState, page: k, said: '' }; redraw() },
+    say,
+    toast: async () => { try { await $.ui.toast('Studio lab: this is a toast'); say('Toast sent') } catch (err) { say('Toast failed: ' + err) } },
+    status: async on => { try { await $.ui.status(on ? 'Step 2 of 9 · 4 questions for you' : ''); say(on ? 'Status line set' : 'Status line cleared') } catch (err) { say('Status failed: ' + err) } },
+    log: async () => { try { await $.ui.log('Studio lab: a log line'); say('Log line added') } catch (err) { say('Log failed: ' + err) } },
+    ask: async () => { try { const a = await $.ui.ask('Work in Studio’s design file in Figma?', ['Yes, go ahead', 'No']); say('You picked: ' + a) } catch (err) { say('Question closed: ' + err) } },
+    toggleBand: () => { labState = { ...labState, bandSvg: !labState.bandSvg }; redraw() },
+    toggleHint: () => { labState = { ...labState, hint: !labState.hint }; redraw() },
+  }
+}
+
 function actionsFor($) {
   return {
     stop: () => { if (live.turnId) $.turn.abort({ turnId: live.turnId }).catch(() => {}) },
@@ -144,11 +165,18 @@ export function register(on) {
     await loadPrefs($)
     try { await $.ui.open({ id: PANE, title: 'Studio' }) } catch {}
     try { await $.command.register({ name: 'panel', description: 'Open the Studio panel', immediate: true }) } catch {}
+    try { await $.command.register({ name: 'studio-lab', description: 'Studio lab (temporary): test what the app draws', immediate: true }) } catch {}
+    try { ccVersion = String(await $.session.version()) } catch {}
     return next(e)
   })
 
   on('command.run', { command: 'panel' }, async ($) => {
     await $.ui.open({ id: PANE, title: 'Studio', focus: true })
+    return {}
+  })
+
+  on('command.run', { command: 'studio-lab' }, async ($) => {
+    await $.ui.open({ id: LAB_PANE, title: 'Studio lab', focus: true })
     return {}
   })
 
@@ -199,7 +227,8 @@ export function register(on) {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
-    const band = drawBand(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
+    const studioBand = drawBand(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
+    const band = labState.bandSvg && e.surface !== 'terminal' ? el.Box({ key: 'lab-band-wrap', flexDirection: 'column', children: [studioBand, drawBandTest(el)] }) : studioBand
     const rest = await next(e)
     return rest ? el.Box({ key: 'studio-band-wrap', flexDirection: 'column', children: [band, rest] }) : band
   })
@@ -208,6 +237,16 @@ export function register(on) {
     if (e.requestId !== PANE) return next(e)
     const el = $.ui.resolve(e)
     return drawPane(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
+  })
+
+  on('ui.render', { component: 'Pane' }, async ($, e, next) => {
+    if (e.requestId !== LAB_PANE) return next(e)
+    return drawLab($.ui.resolve(e), labFor($), ccVersion)
+  })
+
+  on('ui.render', { component: 'PromptHint' }, async ($, e, next) => {
+    if (!labState.hint) return next(e)
+    return next({ ...e, props: { ...e.props, hint: 'Paste a Jira story to start' } })
   })
 
   on('ui.render', { component: 'Spinner' }, async ($, e, next) => {

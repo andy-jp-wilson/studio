@@ -224,7 +224,7 @@ test('Claude is still told the word and project notes before each reply', async 
 test('only /panel is registered as a command; the cut commands are gone', async ($, on) => {
   const calls = setup(on)
   await start($)
-  expect(calls.registered).toEqual(['panel'])
+  expect(calls.registered).toEqual(['panel', 'studio-lab']) // studio-lab is temporary
 })
 
 test('“don’t show again” takes effect before the next reply', async ($, on) => {
@@ -235,4 +235,27 @@ test('“don’t show again” takes effect before the next reply', async ($, on
   await $.tool.call({ tool: 'Bash', command: 'studio-words off' })
   const r: any = await $.prompt.compose(COMPOSE2)
   expect(r.sections.find((x: any) => x.id === 'studio:words').text).toMatch(/OFF: the person said "don’t show again"/)
+})
+
+const LAB = (surface: 'terminal' | 'desktop' = 'desktop') => ({
+  plugin: 'studio', component: 'Pane', requestId: 'studio-lab', surface,
+  viewport: { columns: 160, rows: 50 },
+  props: { title: 'Studio lab', isFocused: true, bodyColumns: 60, placement: 'dock', scroll: { offset: 0, bodyRows: 40 }, view: {} },
+}) as const
+
+test('the Studio lab draws every page in the app', async ($, on) => {
+  setup(on)
+  on('session.version', () => ({ value: '2.1.300' }))
+  await start($)
+  await $.command.run({ command: 'studio-lab', args: '' })
+  const firsts: Record<string, string> = { '1': 'Size caption: Faster sign-up', '2': 'Hex text #E07A6E', '3': 'borderStyle round', '4': '8 × 16', '5': 'Nothing pressed yet', '6': 'padding md on a white box', '7': 'Nothing pressed yet', '8': 'Hover over me: I should turn pale coral', '9': 'Show test dots in the band' }
+  for (const k of Object.keys(firsts)) {
+    const ui = await $.ui.mount(LAB('desktop'))
+    await ui.press({ key: 'lab-tab-' + k })
+    await ui.unmount()
+    const again = await $.ui.mount(LAB('desktop'))
+    const found = await again.find({ type: 'Text', text: firsts[k] }) ?? await again.find({ key: 'band-svg' })
+    expect(found).toBeDefined()
+    await again.unmount()
+  }
 })
