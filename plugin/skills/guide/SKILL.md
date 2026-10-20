@@ -68,7 +68,7 @@ Your work stays on this computer. Save points are kept here too; nothing is uplo
 
 ## Setting Studio up for a team
 
-Studio comes with a team setup guide, `team/studio-team-setup.md` in Studio's folder. The person looking after the team fills in the team's settings (where work may be uploaded, the design systems, where projects go) and shares it. Each designer adds it to a conversation and says "Set up Studio for my team using this file."
+Studio comes with a team setup page, `team/studio-team-setup.html` in Studio's folder. The person looking after the team fills in the team's settings (where work may be uploaded, the design systems, where projects go) and downloads a small setup file to share. (`team/studio-team-setup.md` is the same file to fill in by hand.) Each designer adds it to a conversation and says "Set up Studio for my team using this file."
 
 ## Friendly words
 
