@@ -26,7 +26,7 @@ Also run `studio-team show` for the team's settings (lines like `STUDIO_DESIGN_S
 
 ## 1. Team settings
 
-Say: "First, your team's settings: where work may be uploaded, your design systems, and where projects go."
+Say: "First, your team's settings: your design systems, where projects go, and where work may be shared. All optional."
 
 - **Already set** (`studio-team show` listed some): show them as a short list in plain words and ask "Keep these, or change them?" Keep: a tick, move on. Change: open the form, below.
 - **Not set:** open the form.
@@ -35,14 +35,14 @@ Say: "First, your team's settings: where work may be uploaded, your design syste
 
 **Without the panel** (for example in VS Code), or if they'd rather do it here:
 - Ask whether they have a team file (recommended). If so, they drag it into the conversation; run `studio-team read <path>`, show what's in it in plain words, and ask before saving.
-- Otherwise ask for each setting in turn: team name, upload places (GitHub organisations), projects folder, Figma write places (recorded, not enforced yet), and each design system's name and Figma link.
+- Otherwise ask for each setting in turn, each optional: team or company name (only for messages), GitHub repository (or organisation) work may be uploaded to, with a one-line explanation of GitHub, projects folder on this computer, Figma team folder (destination; recorded, not enforced yet), and each design system's name and Figma link.
 - Save each with `studio-team set <KEY> "<value>"` (keys: `STUDIO_TEAM_NAME`, `STUDIO_ALLOWED_ORGS`, `STUDIO_PROJECTS_FOLDER`, `STUDIO_FIGMA_WRITE_PLACES`, `STUDIO_DESIGN_SYSTEMS` as `Name | link` joined with `; `).
 
 No team settings at all is fine: say Studio works without them, and move on. They're saved on this computer only; nothing is uploaded.
 
 ## 2. Figma connection
 
-Say: "First, checking that Studio can reach Figma."
+Say: "Next, checking that Studio can reach Figma."
 
 Call the Figma `whoami` tool.
 - It works: "✓ Figma is connected." Run `studio-project done connection`.

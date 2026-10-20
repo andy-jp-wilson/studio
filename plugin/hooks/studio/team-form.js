@@ -9,10 +9,10 @@ export const TEAM_PANE = 'studio-team'
 export const EMPTY = { teamName: '', uploadPlaces: '', projectsFolder: '', figmaWritePlaces: '', designSystems: [] }
 
 export const FIELDS = [
-  { id: 'teamName', label: 'Team name', placeholder: 'Acme Design', hint: 'Used in Studio’s messages.' },
-  { id: 'uploadPlaces', label: 'Upload places', placeholder: 'acme', hint: 'The only GitHub organisations or accounts work may be uploaded to. Anything else is stopped. Separate several with commas.' },
-  { id: 'projectsFolder', label: 'Projects folder', placeholder: '~/Studio projects', hint: 'Where new projects are made.' },
-  { id: 'figmaWritePlaces', label: 'Figma write places', placeholder: 'Acme · Product design', hint: 'The Figma teams or folders Studio may change. Recorded now; enforced in a later version.' },
+  { id: 'teamName', label: 'Team or company name (optional)', placeholder: 'Product Design', hint: 'Only used in Studio’s messages and to name the team file. Leave it empty if you like.' },
+  { id: 'uploadPlaces', label: 'GitHub repository (optional)', placeholder: 'https://github.com/acme/design-work', hint: 'GitHub is a website where teams store and share project files. If your team uses it, paste the repository (or organisation) designers’ work may go to; Studio will never upload anywhere else. Leave it empty to keep all work on this computer.' },
+  { id: 'projectsFolder', label: 'Projects folder on this computer (optional)', placeholder: '~/Studio projects', hint: 'A folder on each designer’s own computer where Studio makes new projects, so everyone’s projects are in the same, easy-to-find place. Leave it empty to use ~/Studio projects.' },
+  { id: 'figmaWritePlaces', label: 'Figma team folder (destination)', placeholder: 'Product Design · Projects', hint: 'The Figma team or project folder where Studio may create and change files, such as handover pages. Coming in a later version: Studio will then refuse to change files anywhere else.' },
 ]
 
 // Settings as Studio stores them (bin/studio-team set KEY value).
@@ -43,8 +43,8 @@ const gap = (Text, key) => Text({ key, children: [' '] })
 function summary(el, v, prefix) {
   const { Box, Text } = el
   const rows = [
-    ['Team', v.teamName], ['Uploads only to', v.uploadPlaces], ['New projects in', v.projectsFolder],
-    ['Figma write places', v.figmaWritePlaces],
+    ['Team or company', v.teamName], ['GitHub repository', v.uploadPlaces], ['Projects folder', v.projectsFolder],
+    ['Figma team folder', v.figmaWritePlaces],
     ['Design systems', (v.designSystems || []).map(d => d.name || d.link).join(', ')],
   ]
   return Box({ key: prefix + '-summary', flexDirection: 'column', borderStyle: 'round', paddingX: 1, children: rows.map(([k, val], i) =>
@@ -57,7 +57,7 @@ function summary(el, v, prefix) {
 function choose(el, f, a) {
   const { Box, Text, Button } = el
   const out = [
-    note(Text, 'intro', 'Studio can use your team’s settings: where work may be uploaded, your design systems, and where projects go. They stay on this computer.'),
+    note(Text, 'intro', 'Studio can use your team’s settings: your design systems, where projects go, and where work may be shared. Every one is optional, and they stay on this computer.'),
     gap(Text, 'g1'),
   ]
   if (isSet(f.current)) {

@@ -47,11 +47,19 @@ where=${target:-${url:-somewhere outside this computer}}
 decide() { jq -n --arg d "$1" --arg r "$2" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:$d,permissionDecisionReason:$r}}'; exit 0; }
 
 if [ -n "$STUDIO_ALLOWED_ORGS" ]; then
-  allowed=$(printf '%s' "$STUDIO_ALLOWED_ORGS" | tr 'A-Z' 'a-z' | tr -d ' ')
-  o=$(printf '%s' "$owner" | tr 'A-Z' 'a-z')
-  if [ -z "$o" ] || ! printf ',%s,' "$allowed" | grep -q ",$o,"; then
+  # Each entry is an organisation or account ("acme") or one repository
+  # ("acme/design-work", or its GitHub link).
+  allowed=$(printf '%s' "$STUDIO_ALLOWED_ORGS" | tr 'A-Z' 'a-z' | tr -d ' ' | tr ',' '\n' \
+    | sed -E 's#^(https?://)?(www\.)?github\.com[:/]##; s#^git@github\.com:##; s#\.git$##; s#/+$##')
+  o=$(printf '%s' "$owner" | tr 'A-Z' 'a-z'); full=$(printf '%s' "$target" | tr 'A-Z' 'a-z')
+  ok=""
+  while IFS= read -r a; do
+    [ -z "$a" ] && continue
+    case "$a" in */*) [ -n "$full" ] && [ "$a" = "$full" ] && ok=1 ;; *) [ -n "$o" ] && [ "$a" = "$o" ] && ok=1 ;; esac
+  done <<< "$allowed"
+  if [ -z "$ok" ]; then
     if [ -n "$target" ]; then why="$target isn't on it"; else why="this project has no upload place there"; fi
-    decide deny "Studio only uploads to your team's GitHub ($STUDIO_ALLOWED_ORGS), and $why, so this was stopped. The work is still saved on this computer. Tell the person in plain words and suggest asking their team where to share it."
+    decide deny "Studio only uploads to your team's GitHub repository ($STUDIO_ALLOWED_ORGS), and $why, so this was stopped. The work is still saved on this computer. Tell the person in plain words and suggest asking their team where to share it."
   fi
 fi
 

@@ -6,10 +6,10 @@ Studio works for one designer on their own, but it's better when everyone on a t
 
 | Setting | What it does |
 |---|---|
-| Team name | Used in Studio's messages. |
-| Upload places | The only GitHub organisations or accounts work may be uploaded to. Anything else is stopped. |
-| Projects folder | Where new projects are made on each designer's computer. |
-| Figma write places | The Figma teams or folders Studio may change. Recorded now; enforced in a later version. |
+| Team or company name | Only used in Studio's messages and to name the team file. |
+| GitHub repository | GitHub is a website where teams store and share project files. If your team uses it, this is the repository (or organisation) designers' work may go to; Studio never uploads anywhere else. Leave it empty to keep all work on each designer's computer. |
+| Projects folder on this computer | A folder on each designer's own computer where Studio makes new projects, so everyone's are in the same, easy-to-find place. Defaults to `~/Studio projects`. |
+| Figma team folder (destination) | The Figma team or project folder where Studio may create and change files, such as handover pages. Recorded now; in a later version Studio will refuse to change files anywhere else. |
 | Design systems | Every design system your team uses, each with its Figma library link. Designers choose one for each project. |
 
 None of them are required. They're saved on each designer's computer, in Claude Code's own settings, and nothing is uploaded.
@@ -28,9 +28,9 @@ The form can be opened again any time with `/team-settings`.
 ### For the person setting up the team
 
 - [ ] Studio is installed on your computer
-- [ ] You know your team's GitHub organisation, if uploads should only go there
+- [ ] You know your team's GitHub repository, if work should be shared there
 - [ ] You have the Figma library link for each design system your team uses
-- [ ] You've decided where new projects should go
+- [ ] You've decided where new projects should go on each computer, and which Figma team folder Studio may use
 - [ ] You've run `/setup`, chosen **Type them in**, and saved the team settings
 - [ ] You've clicked **Save a copy for the team** and found the file on your Desktop
 - [ ] You've shared the file with your designers, along with this guide
