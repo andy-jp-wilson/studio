@@ -47,8 +47,8 @@ From the Claude Code docs (code.claude.com/docs/en/plugins/mods/…, plugins/com
 | Borders (10 styles) | **Work** |
 | Hover (a box turns pale coral under the mouse) | **Works** |
 | Pictures (Svg) in the panel | **Work** |
-| Pictures (Svg) in the band | **Don't show** |
-| Changing the hint under the prompt | **Didn't change** |
-| Studio's own question ($.ui.ask) from a panel button | **Nothing appeared**. Still to try from where it's meant to be used: just before a Figma step, during Claude's turn. |
+| Pictures (Svg) in the band | **Work** (after further testing) |
+| Changing the hint under the prompt | **Works** (after further testing) |
+| Studio's own question ($.ui.ask) | **Works** (after further testing) |
 
-What this changes: the panel can have a real type hierarchy (sizes and weights), backgrounds, borders, hover and pictures. The band stays text only, in one size.
+After further testing the user confirmed every lab test worked. What this changes: the panel can have a real type hierarchy (sizes and weights), backgrounds, borders, hover and pictures; the band can show pictures (such as the Studio mark); the hint under the prompt can guide each step; and Studio can ask its own plain-words questions. Still not possible: one-sided lines, opacity, custom typefaces, changing the "Allow?" prompt or the app's own boxes.
