@@ -105,8 +105,8 @@ async function readNotes($, root) {
 function projectNote() {
   if (prefs.designs === 'prototype') {
     return 'Studio project note: the person has made prototypes their default. When they ask to design or build something, build it as a working prototype in prototype/ (HTML and CSS), using the design system' +
-      (notes.dsName ? ' ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') : '') + ', and offer /preview. Work in Figma only when they ask or it’s needed' +
-      (notes.figmaUrl ? ', in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ')' : '') + '. They can switch back with `studio-prefs designs figma` or the Studio panel.'
+      (notes.dsName ? ' ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') : '') + '. Work in Figma only when they ask or it’s needed' +
+      (notes.figmaUrl ? ', in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ')' : '') + '. They can switch back with `studio-prefs designs figma`.'
   }
   const ds = notes.dsName ? ' Its design system is ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') + '; use its components, styles and variables.' : ' No design system is connected.'
   if (notes.figmaUrl) {
