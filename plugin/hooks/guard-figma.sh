@@ -5,8 +5,9 @@
 #   - refuses it if the file is a design system file (from the team's design
 #     systems list, STUDIO_DESIGN_SYSTEMS, or the project's .studio/project.json),
 #     even if Claude was asked;
-#   - asks the person before the first change to each Figma file in a
-#     conversation, naming the file and whether it's the project's own one.
+#   - asks the person before Claude first works in each Figma file in a
+#     conversation, in plain words: which file (by name when Studio knows it),
+#     what Claude says the step is for, and that it may read or change it.
 #     Claude can't answer that prompt for them.
 # Once a change to a file has gone through (record mode, run after the action),
 # later changes to it in the same conversation pass to the normal permissions.
@@ -52,7 +53,12 @@ fi
 
 grep -qxF "$key" "$seen" 2>/dev/null && exit 0
 
+# What Claude says this step is for (Figma's tool asks for a short description).
+what=$(printf '%s' "$input" | jq -r '.tool_input.description // empty' 2>/dev/null | tr '\n' ' ' | cut -c1-160 | sed -E 's/ +$//')
+doing=${what:+ Claude says it will: \"$what\".}
+after=" If you allow it, Claude won't ask again about this file in this conversation."
+
 if printf '%s\n' "$target_keys" | grep -qxF "$key"; then
-  decide ask "Studio asks before Claude's first change to a Figma file in each conversation. This changes the project's own Figma file${target_name:+, \"$target_name\"}. Allow it if you agreed to this change."
+  decide ask "Claude wants to work in Figma, in this project's file${target_name:+, \"$target_name\"}.$doing It may read the file or change it.$after"
 fi
-decide ask "Studio asks before Claude's first change to a Figma file in each conversation. This changes a Figma file that isn't the project's own one (file $key). Allow it only if you asked for changes to that exact file."
+decide ask "Claude wants to work in a Figma file that isn't this project's own one (Figma's ID for it: $key).$doing It may read the file or change it. Allow it only if you asked Claude to work in that file.$after"
