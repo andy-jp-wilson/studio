@@ -131,6 +131,23 @@ function teamActions($) {
       } catch { team = { ...team, path, error: 'That file couldn’t be read. Check it, or type the settings in instead.' } }
       redraw()
     },
+    pickFolder: async () => {
+      try {
+        const r = await $.process.run([$.plugin.root + '/bin/studio-team', 'pick-folder'], { timeoutMs: 600000 })
+        const p = String(r.stdout || '').trim()
+        if (p && p !== 'cancelled') team = { ...team, values: { ...team.values, projectsFolder: p } }
+      } catch {}
+      redraw()
+    },
+    pickFile: async () => {
+      let p = ''
+      try {
+        const r = await $.process.run([$.plugin.root + '/bin/studio-team', 'pick-file'], { timeoutMs: 600000 })
+        p = String(r.stdout || '').trim()
+      } catch {}
+      if (p && p !== 'cancelled') return teamActions($).load(p)
+      redraw()
+    },
     setField: (id, v) => { team = { ...team, values: { ...team.values, [id]: String(v || '') } }; if (id === 'figmaWritePlaces') redraw() },
     setDs: (i, k, v) => {
       const ds = team.values.designSystems.length ? [...team.values.designSystems] : [{ name: '', link: '' }]

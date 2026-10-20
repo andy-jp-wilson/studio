@@ -14,6 +14,9 @@
 #   studio-team export [folder]
 #       Saves the current settings as a team file to share, in [folder]
 #       (default: Desktop, else home). Prints "saved <path>".
+#   studio-team pick-folder | pick-file
+#       Opens the Mac's own folder or file picker and prints the chosen path
+#       (with ~ for the home folder), or "cancelled". Changes nothing.
 #   studio-team form
 #       Opens the team settings form in the Studio panel (the Studio band
 #       and panel watch for this). Prints "form".
@@ -74,10 +77,21 @@ case "$cmd" in
     out="$dir/${name:-team}.studio-team.json"
     printf '%s' "$cur" | jq '{studioTeam: 1} + .' > "$out" && echo "saved $out"
     ;;
+  pick-folder|pick-file)
+    if [ "$cmd" = pick-folder ]; then
+      script='POSIX path of (choose folder with prompt "Choose the folder where Studio should make new projects. You can make a new folder here too.")'
+    else
+      script='POSIX path of (choose file with prompt "Choose your team file (it ends in .studio-team.json).")'
+    fi
+    picked=$(osascript -e "$script" 2>/dev/null) || { echo "cancelled"; exit 0; }
+    picked="${picked%/}"
+    case "$picked" in "$HOME"/*) picked="~${picked#$HOME}" ;; "$HOME") picked="~" ;; esac
+    echo "$picked"
+    ;;
   form)
     echo "form"
     ;;
   *)
-    sed -n '2,37p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
     ;;
 esac

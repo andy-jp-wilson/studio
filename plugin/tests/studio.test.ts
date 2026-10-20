@@ -41,6 +41,8 @@ function setup(on: any, git: Record<string, string> = {}) {
       if (rest[0] === 'read') return ok(map['team-read'] ?? 'not-a-team-file')
       if (rest[0] === 'set') return ok((rest[2] ? 'set ' : 'removed ') + rest[1])
       if (rest[0] === 'export') return ok('saved /Users/sam/Desktop/acme-design.studio-team.json')
+      if (rest[0] === 'pick-folder') return ok(map['team-pick-folder'] ?? 'cancelled')
+      if (rest[0] === 'pick-file') return ok(map['team-pick-file'] ?? 'cancelled')
       return ok('')
     }
     if (String(bin).endsWith('/bin/studio-version')) {
@@ -371,4 +373,31 @@ test('/setup opens the form by running studio-team form, and saving tells Claude
   await ui.input({ key: 'file-path', text: '~/Desktop/acme-design.studio-team.json' })
   await ui.press({ key: 'save' })
   expect(calls.prompts.at(-1)).toMatch(/saved their team settings.*Acme DS, Acme Classic.*Carry on with \/setup/)
+})
+
+test('Choose a folder and Choose the file use the Mac pickers', async ($, on) => {
+  const calls = setup(on, { 'team-pick-folder': '~/Documents/Design projects', 'team-pick-file': '~/Desktop/acme.studio-team.json', 'team-read': TEAM_FILE })
+  await start($)
+  await $.command.run({ command: 'team-settings', args: '' })
+  const ui = await $.ui.mount(TEAM())
+  await ui.press({ key: 'type' })
+  await ui.press({ key: 'pick-folder' })
+  await ui.press({ key: 'save' })
+  expect(calls.team.filter(c => c[0] === 'set')).toContainEqual(['set', 'STUDIO_PROJECTS_FOLDER', '~/Documents/Design projects'])
+  await ui.press({ key: 'saved-change' })
+  await ui.press({ key: 'edit-back' })
+  await ui.press({ key: 'load' })
+  await ui.press({ key: 'pick-file' })
+  expect(calls.team).toContainEqual(['read', '~/Desktop/acme.studio-team.json'])
+  expect(await ui.find({ type: 'Text', text: 'Check your team’s settings' })).toBeDefined()
+})
+
+test('cancelling the picker changes nothing', async ($, on) => {
+  setup(on)
+  await start($)
+  await $.command.run({ command: 'team-settings', args: '' })
+  const ui = await $.ui.mount(TEAM())
+  await ui.press({ key: 'load' })
+  await ui.press({ key: 'pick-file' })
+  expect(await ui.find({ key: 'file-path' })).toBeDefined()
 })

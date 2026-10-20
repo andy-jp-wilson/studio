@@ -7,7 +7,7 @@ Studio works for one designer on their own, but it's better when everyone on a t
 | Setting | What it does |
 |---|---|
 | GitHub repository | GitHub is a website where teams store and share project files. If your team uses it, this is the repository (or organisation) designers' work may go to; Studio never uploads anywhere else. Leave it empty to keep all work on each designer's computer. |
-| Projects folder on this computer | A folder on each designer's own computer where Studio makes new projects, so everyone's are in the same, easy-to-find place. Defaults to `~/Studio projects`. To use an existing folder: in Finder, right-click it, hold **Option**, choose **Copy as Pathname**, and paste it. |
+| Projects folder on this computer | A folder on each designer's own computer where Studio makes new projects, so everyone's are in the same, easy-to-find place. Defaults to `~/Studio projects`; **Choose a folder…** in the form opens the Mac's folder picker. |
 | Figma team folder (destination) | A link to the Figma folder where Studio may create and change files, such as new project files and handover pages. Open the folder in Figma and copy the link from the address bar. Recorded now; in a later version Studio will refuse to change files anywhere else. |
 | Design systems | Every design system your team uses, each with its Figma library link. Designers choose one for each project. |
 
@@ -18,7 +18,7 @@ None of them are required. They're saved on each designer's computer, in Claude 
 1. **One person sets them up first.** They run `/setup` in Studio. At the first step, Team settings, they choose **Type them in**, fill in the form and save.
 2. **They save a copy for the team.** In the same form, **Save a copy for the team** makes a small team file on their Desktop, ending in `.studio-team.json`.
 3. **They share the file** with the team, however the team usually shares files.
-4. **Each designer loads it.** They run `/setup`, choose **Load a team file** (recommended), drag the file into the box, check the settings and save. Typing them in works too.
+4. **Each designer loads it.** They run `/setup`, choose **Load a team file** (recommended), choose the file (or drag it into the box), check the settings and save. Typing them in works too.
 
 The form can be opened again any time with `/team-settings`.
 
