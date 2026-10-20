@@ -4,6 +4,8 @@ Status: **approved** (2026-10-20). **R1 done** (0.2.33). **R2 built** (0.2.34), 
 
 ## Where we are (for the next session)
 
+- **Figma after the build** (2026-10-20): the app limits how closely Studio can match page 13 (the app draws the band and panel boxes and header; no one-sided lines, no Svg in the band, one type size). Don't redesign page 13 now. Once the rebuild is finished, add the final results to Figma as a new design page, so the design matches what was built.
+
 - **R1 (band) is built and in the app,** after three rounds of fixes from the user's screenshots:
   - The dot is a coral ● character; the band can't draw Svg pictures.
   - The top line was removed: one-sided borders aren't possible, and drawn line characters didn't match the design.
