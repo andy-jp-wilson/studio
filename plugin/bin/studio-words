@@ -1,0 +1,48 @@
+#!/bin/bash
+# studio-words: whether Studio explains technical words, and which ones the
+# person already knows. Kept on this computer in ~/.studio/words.json.
+#
+#   studio-words show        prints "explain: on|off" and "known: a, b" lines
+#   studio-words know <word> stop explaining this word
+#   studio-words forget <word>  explain this word again
+#   studio-words on | off    explain words, or stop explaining all of them
+#   studio-words context     one line for Claude at the start of a session
+
+file="$HOME/.studio/words.json"
+read_json() { [ -f "$file" ] && jq -c . "$file" 2>/dev/null || echo '{"explain":true,"known":[]}'; }
+write_json() { mkdir -p "$(dirname "$file")"; local tmp; tmp=$(mktemp) && printf '%s' "$1" | jq . > "$tmp" && cat "$tmp" > "$file"; rm -f "$tmp"; }
+word() { printf '%s' "$1" | tr 'A-Z' 'a-z' | sed -E 's/^ +| +$//g'; }
+
+cmd="$1"; shift
+case "$cmd" in
+  show)
+    j=$(read_json)
+    printf 'explain: %s\n' "$(printf '%s' "$j" | jq -r 'if .explain == false then "off" else "on" end')"
+    printf 'known: %s\n' "$(printf '%s' "$j" | jq -r '(.known // []) | join(", ")')"
+    ;;
+  know|forget)
+    w=$(word "$*"); [ -z "$w" ] && { echo "usage: studio-words $cmd <word>"; exit 1; }
+    if [ "$cmd" = know ]; then
+      write_json "$(read_json | jq -c --arg w "$w" '.known = (((.known // []) + [$w]) | unique)')"; echo "known $w"
+    else
+      write_json "$(read_json | jq -c --arg w "$w" '.known = ((.known // []) - [$w])')"; echo "forgotten $w"
+    fi
+    ;;
+  on|off)
+    write_json "$(read_json | jq -c --argjson v "$([ "$cmd" = on ] && echo true || echo false)" '.explain = $v')"; echo "explain $cmd"
+    ;;
+  context)
+    j=$(read_json)
+    if [ "$(printf '%s' "$j" | jq -r '.explain')" = "false" ]; then
+      echo "Studio word explanations are OFF: the person asked not to have technical words explained. If they ask for them again, run studio-words on."
+    else
+      known=$(printf '%s' "$j" | jq -r '(.known // []) | join(", ")')
+      extra=""
+      [ -n "$known" ] && extra=" The person already knows these, so do not explain them: $known."
+      echo "Studio word explanations are ON: explain technical words and file names every time they come up (see the Studio voice).$extra"
+    fi
+    ;;
+  *)
+    sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+    ;;
+esac

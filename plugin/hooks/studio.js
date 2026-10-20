@@ -92,7 +92,27 @@ async function findPreview($) {
 }
 
 function state(now) {
-  return { ...project, ...live, memory, welcome, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
+  return { ...project, ...live, memory, welcome, explainWords: words.explain, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
+}
+
+// Word explanations: on or off, and the words the person already knows
+// (bin/studio-words). Claude reads the current choice before every reply.
+let words = { explain: true, known: [] }
+
+async function loadWords($) {
+  try {
+    const r = await $.process.run([$.plugin.root + '/bin/studio-words', 'show'], { timeoutMs: 5000 })
+    const out = String(r.stdout || '')
+    const explain = !/explain: off/.test(out)
+    const known = ((out.match(/known: (.*)/) || [])[1] || '').split(',').map(x => x.trim()).filter(Boolean)
+    words = { explain, known }
+  } catch {}
+}
+
+function wordsNote() {
+  if (!words.explain) return 'Studio word explanations are OFF: the person asked not to have technical words and file names explained. Use the friendly words, and explain only if they ask. If they want explanations back, run `studio-words on`.'
+  return 'Studio word explanations are ON: explain technical words and file names every time they come up, as the Studio voice says.' +
+    (words.known.length ? ' The person already knows these, so do not explain them: ' + words.known.join(', ') + '.' : '')
 }
 
 // The team settings form (studio/team-form.js).
@@ -207,6 +227,12 @@ function actionsFor($) {
       } catch {}
       $.ui.invalidate('ui.render')
     },
+    toggleWords: async () => {
+      try { await $.process.run([$.plugin.root + '/bin/studio-words', words.explain ? 'off' : 'on'], { timeoutMs: 5000 }) } catch {}
+      await loadWords($)
+      try { await $.ui.toast(words.explain ? 'Studio will explain technical words again' : 'Studio won’t explain technical words. Turn it back on here any time.') } catch {}
+      $.ui.invalidate('ui.render')
+    },
     tab: t => { view = { ...view, tab: t }; $.ui.invalidate('ui.render') },
     search: q => { view = { ...view, query: String(q || '') }; $.ui.invalidate('ui.render') },
   }
@@ -216,6 +242,7 @@ export function register(on) {
   on('session.start', async ($, e, next) => {
     await refresh($)
     checkVersion($).then(() => $.ui.invalidate('ui.render')).catch(() => {})
+    await loadWords($)
     try { await $.clock.every(30000, async () => { await refresh($); $.ui.invalidate('ui.render') }) } catch {}
     try { await $.ui.open({ id: PANE, title: 'Studio' }) } catch {}
     try { await $.command.register({ name: 'panel', description: 'Open the Studio panel', immediate: true }) } catch {}
@@ -257,6 +284,13 @@ export function register(on) {
       $.ui.invalidate('ui.render')
       return next(e)
     }
+    // Claude records word choices with studio-words; pick them up straight away.
+    if (e.tool === 'Bash' && /^studio-words\b/.test(String(e.command || '').trim())) {
+      const result = await next(e)
+      await loadWords($)
+      $.ui.invalidate('ui.render')
+      return result
+    }
     // /setup asks for the team form by running `studio-team form`.
     if (e.tool === 'Bash' && String(e.command || '').trim() === 'studio-team form') {
       const result = await next(e)
@@ -274,6 +308,11 @@ export function register(on) {
     $.ui.invalidate('ui.render')
     return result
   }).catch(async ($, e, next) => next(e)) // Studio only narrates: if this hook fails, the step runs as normal
+
+  on('prompt.compose', async ($, e, next) => {
+    const r = await next(e)
+    return { ...r, sections: [...r.sections, { id: 'studio:words', text: wordsNote(), scope: 'session' }] }
+  })
 
   on('session.measure', async ($, e, next) => {
     try { memory = (await $.session.usage()).context.percent || 0 } catch {}

@@ -28,12 +28,18 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][] }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
   on('process.run', ($: any, e: any) => {
     const [bin, ...rest] = e.argv
+    if (String(bin).endsWith('/bin/studio-words')) {
+      calls.words.push(rest)
+      if (rest[0] === 'off') calls.wordsOff = true
+      if (rest[0] === 'on') calls.wordsOff = false
+      return { value: { exitCode: 0, stdout: rest[0] === 'show' ? `explain: ${calls.wordsOff ? 'off' : 'on'}\nknown: ${map['words-known'] ?? ''}\n` : 'ok\n', stderr: '' } }
+    }
     if (String(bin).endsWith('/bin/studio-team')) {
       calls.team.push(rest)
       const ok = (stdout: string) => ({ value: { exitCode: 0, stdout: stdout + '\n', stderr: '' } })
@@ -65,6 +71,7 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('store.delete', ($: any, e: any) => { calls.store.delete(e.key); return { value: undefined } })
   on('command.run', ($: any, e: any) => { calls.commands.push(e.command); return {} })
   on('prompt.submit', ($: any, e: any) => { calls.prompts.push(e.text); return { text: e.text } })
+  on('ui.toast', () => ({ value: undefined }))
   on('turn.abort', ($: any, e: any) => { calls.aborts.push(e.turnId); return { value: undefined } })
   on('turn.start', ($: any, e: any) => ({ turnId: e.turnId }))
   on('turn.complete', () => ({ text: '' }))
@@ -400,4 +407,25 @@ test('cancelling the picker changes nothing', async ($, on) => {
   await ui.press({ key: 'load' })
   await ui.press({ key: 'pick-file' })
   expect(await ui.find({ key: 'file-path' })).toBeDefined()
+})
+
+const COMPOSE = { model: 'claude-opus-5-5', promptModel: 'claude-opus-5-5', surfaces: ['desktop'], tools: [], outputStyle: null, traits: [], sections: [] }
+
+test('the panel switches word explanations off and on, and Claude is told before each reply', async ($, on) => {
+  const calls = setup(on, { 'words-known': '.gitignore' })
+  let note = ''
+  on('prompt.compose', ($: any, e: any) => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
+  await start($)
+  const ui = await $.ui.mount(PANE())
+  expect(await ui.find({ key: 'pane-words' })).toBeDefined()
+  let r: any = await $.prompt.compose(COMPOSE)
+  note = r.sections.find((x: any) => x.id === 'studio:words').text
+  expect(note).toMatch(/ON/)
+  expect(note).toMatch(/\.gitignore/)
+  await ui.press({ key: 'pane-words' })
+  expect(calls.words).toContainEqual(['off'])
+  r = await $.prompt.compose(COMPOSE)
+  expect(r.sections.find((x: any) => x.id === 'studio:words').text).toMatch(/OFF/)
+  await ui.press({ key: 'pane-words' })
+  expect(calls.words).toContainEqual(['on'])
 })

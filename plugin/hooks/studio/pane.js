@@ -82,6 +82,10 @@ function journeyTab(el, s, actions) {
     Text({ key: 'mem-empty', color: 'subtle', children: [bar.empty] }),
     Text({ key: 'mem-pct', color: bar.color, children: [bar.percent] }),
   ] }))
+  out.push(Box({ key: 'words', flexDirection: 'row', columnGap: 1, children: [
+    Text({ key: 'words-label', color: 'subtle', children: ['Explain technical words'] }),
+    Button({ key: 'pane-words', label: s.explainWords === false ? 'Off' : 'On', hotkey: 'w', dimColor: s.explainWords === false, onPress: actions.toggleWords }),
+  ] }))
   if (s.studioVersion) {
     out.push(Box({ key: 'version', flexDirection: 'row', children: [
       Text({ key: 'version-text', color: 'subtle', children: ['Studio v' + s.studioVersion] }),
