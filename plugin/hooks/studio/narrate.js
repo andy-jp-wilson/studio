@@ -3,6 +3,8 @@
 // as the working line ("Editing styles.css"). Returns null for steps that
 // aren't worth narrating (Claude's own step list, for example).
 
+import { friendlyFigma } from './figma.js'
+
 const base = p => String(p || '').split('/').filter(Boolean).pop() || 'a file'
 
 function describeBash(cmd) {
@@ -29,7 +31,7 @@ export function describe(e) {
   if (t === 'AskUserQuestion') return { label: 'Waiting for your answer', kind: 'ask' }
   if (t === 'Agent' || t === 'Task') return { label: 'Asking a helper to look into something', kind: 'helper' }
   if (t === 'Skill') return { label: 'Following Studio’s steps', kind: 'step' }
-  if (/figma/i.test(t)) return { label: 'Working in Figma', kind: 'figma' }
+  if (/figma/i.test(t)) return { label: (friendlyFigma(t, e) || { label: 'Working in Figma' }).label, kind: 'figma' }
   if (t === 'TodoWrite' || t === 'ToolSearch' || t === 'mcp__studio__story') return null
   if (t.startsWith('mcp__')) return { label: 'Using a connected app', kind: 'app' }
   return { label: 'Working', kind: 'step' }

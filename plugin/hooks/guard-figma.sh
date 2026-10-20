@@ -14,6 +14,17 @@
 #
 #   guard-figma.sh          PreToolUse: allow, ask or refuse
 #   guard-figma.sh record   PostToolUse: remember the file for this conversation
+#   guard-figma.sh allow <session> <file key>
+#                           The Studio mod, after the designer said yes to its own
+#                           question: remember the file, so this hook doesn't ask too
+
+if [ "$1" = allow ]; then
+  session=$(printf '%s' "$2" | tr -cd 'A-Za-z0-9_-'); key=$(printf '%s' "$3" | tr -cd 'A-Za-z0-9')
+  [ -z "$session" ] || [ -z "$key" ] && exit 1
+  seen="$HOME/.studio/figma-allowed/$session"
+  mkdir -p "$(dirname "$seen")" && { grep -qxF "$key" "$seen" 2>/dev/null || echo "$key" >> "$seen"; }
+  echo "allowed $key"; exit 0
+fi
 
 input=$(cat)
 key=$(printf '%s' "$input" | jq -r '.tool_input.fileKey // empty' 2>/dev/null)

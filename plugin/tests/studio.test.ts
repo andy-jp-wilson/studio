@@ -28,12 +28,15 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[], tools: [] as string[], registered: [] as string[], hints: [] as any[] }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[], tools: [] as string[], registered: [] as string[], hints: [] as any[], asks: [] as any[], askAnswer: 'Yes, go ahead' as string | null, runs: [] as string[][] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
+  on('env.get', ($: any, e: any) => ({ value: e.name === 'STUDIO_DESIGN_SYSTEMS' ? 'Acme DS | https://www.figma.com/design/dsKEY/Acme' : undefined }))
   on('process.run', ($: any, e: any) => {
     const [bin, ...rest] = e.argv
+    calls.runs.push(e.argv)
+    if (String(bin).endsWith('/hooks/guard-figma.sh')) return { value: { exitCode: 0, stdout: 'allowed\n', stderr: '' } }
     if (String(bin).endsWith('/bin/studio-prefs')) {
       if (rest[0] === 'designs') calls.designs = rest[1]
       return { value: { exitCode: 0, stdout: rest[0] === 'show' ? `designs: ${calls.designs}\n` : 'ok\n', stderr: '' } }
@@ -84,7 +87,15 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('turn.abort', ($: any, e: any) => { calls.aborts.push(e.turnId); return { value: undefined } })
   on('turn.start', ($: any, e: any) => ({ turnId: e.turnId }))
   on('turn.complete', () => ({ text: '' }))
-  on('tool.call', () => ({ result: 'ok' }))
+  on('tool.call', ($: any, e: any) => {
+    // Studio's own question arrives as Claude Code's question step: answer it like the designer would
+    if (e.tool === 'AskUserQuestion') {
+      calls.asks.push(e)
+      if (calls.askAnswer === null) return { deny: 'The user closed the question' }
+      return { result: { questions: e.questions, answers: { [e.questions[0].question]: calls.askAnswer } } }
+    }
+    return { result: 'ok' }
+  })
   on('ui.render', ($: any, e: any) => { if (e.component === 'Spinner') calls.spinner.push(e.props); if (e.component === 'PromptHint') calls.hints.push(e.props); return { type: 'Text', props: {}, children: ['drawn by Claude Code'] } })
   return calls
 }
@@ -323,4 +334,49 @@ test('the Studio lab draws every page in the app', async ($, on) => {
     expect(found).toBeDefined()
     await again.unmount()
   }
+})
+
+const FIGMA = { tool: 'mcp__plugin_figma_figma__use_figma', code: '', description: 'Add the sign-up screens' }
+
+test('Studio asks in plain words before the first Figma step in a file, then lets Claude carry on', async ($, on) => {
+  const calls = setup(on, { 'project-notes': JSON.stringify({ targetFileUrl: 'https://www.figma.com/design/projKEY/Onboarding', targetFileName: 'Onboarding' }) })
+  await start($)
+  const r: any = await $.tool.call({ ...FIGMA, fileKey: 'projKEY' })
+  expect(r.deny).toBeUndefined()
+  expect(calls.asks.length).toBe(1)
+  expect(JSON.stringify(calls.asks[0])).toMatch(/Work in “Onboarding” in Figma\? Claude says it will: Add the sign-up screens\./)
+  expect(calls.runs.some(a => String(a[0]).endsWith('/hooks/guard-figma.sh') && a[1] === 'allow' && a[3] === 'projKEY')).toBe(true)
+  // Later steps in the same file: no second question
+  await $.tool.call({ ...FIGMA, fileKey: 'projKEY' })
+  expect(calls.asks.length).toBe(1)
+})
+
+test('No, or closing the question, stops the Figma step', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  calls.askAnswer = 'No, not now'
+  const r: any = await $.tool.call({ ...FIGMA, fileKey: 'otherKEY' })
+  expect(String(r.deny)).toMatch(/No, not now/)
+  calls.askAnswer = null
+  const r2: any = await $.tool.call({ ...FIGMA, fileKey: 'otherKEY' })
+  expect(String(r2.deny)).toMatch(/said no/)
+  expect(JSON.stringify(calls.asks[0])).toMatch(/a Figma file that isn’t this project’s own/)
+})
+
+test('a design system file is refused without asking', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  const r: any = await $.tool.call({ ...FIGMA, fileKey: 'dsKEY' })
+  expect(String(r.deny)).toMatch(/never changes a design system file \(Acme DS\)/)
+  expect(calls.asks.length).toBe(0)
+})
+
+test('Figma steps in the conversation read as what they do', async ($, on) => {
+  const seen: any[] = []
+  setup(on)
+  await start($)
+  const ui = await $.ui.mount({ plugin: 'studio', component: 'ToolUse', requestId: 't1', surface: 'desktop', viewport: { columns: 100, rows: 30 },
+    props: { name: 'mcp__plugin_figma_figma__search_design_system', input: { queries: [{ entity: 'component', query: 'text field' }] } } } as any)
+  expect(await ui.find({ type: 'Text', text: 'Searching the design system' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: '· for text field' })).toBeDefined()
 })

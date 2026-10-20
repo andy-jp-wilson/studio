@@ -3,8 +3,10 @@
 // both in with the story tool. Works in the terminal and the Desktop Code tab;
 // nothing draws in VS Code.
 import { describe } from './studio/narrate.js'
+import { MIST } from './studio/mist.js'
 import { drawBand, hintFor } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
+import { FIGMA_WRITE, keysIn, designSystemKeys, figmaQuestion, FIGMA_YES, friendlyFigma } from './studio/figma.js'
 import { LAB_PANE, drawLab, drawBandTest, drawBandMotion } from './studio/lab.js'
 
 const PANE = 'studio'
@@ -121,6 +123,29 @@ function projectNote() {
     ' If the person asks for design work, offer /setup (a short chat) or ask for the Figma file’s link. Only make HTML or CSS files if they ask for a coded prototype.' + (notes.dsName ? ds : '')
 }
 
+// Figma files the designer said yes to in this conversation (Studio's own question).
+let figmaYes = new Set()
+let sessionId = ''
+
+// Before Claude's first step in a Figma file in a conversation, Studio asks in
+// plain words. Design system files are refused without asking. Yes is
+// remembered here and passed to hooks/guard-figma.sh, so its "Allow?" prompt
+// doesn't appear as well.
+async function figmaGate($, e, next) {
+  const key = String(e.fileKey || '')
+  if (!key || e.agentId) return next(e)
+  const ds = designSystemKeys(await $.env.get('STUDIO_DESIGN_SYSTEMS'), notes.dsUrl, notes.dsName)
+  if (ds[key]) return { deny: 'Studio never changes a design system file (' + ds[key] + '), so this was stopped and nothing in it changed. Tell the designer in plain words, and offer to write a note for the design system team instead. Read it with get_metadata, get_design_context or search_design_system; work in the project’s own Figma file.' }
+  if (figmaYes.has(key)) return next(e)
+  const isProject = keysIn(notes.figmaUrl).includes(key)
+  let answer = ''
+  try { answer = await $.ui.ask(figmaQuestion({ fileName: notes.figmaName, isProject, description: e.description }), [FIGMA_YES, 'No, not now']) } catch { answer = '' }
+  if (answer !== FIGMA_YES) return { deny: answer ? 'The designer answered Studio’s question about working in this Figma file with: "' + answer + '". Nothing was changed. Follow what they said.' : 'The designer said no to working in this Figma file (or closed the question). Nothing was changed. Ask what they’d like instead.' }
+  figmaYes.add(key)
+  try { await $.process.run([$.plugin.root + '/hooks/guard-figma.sh', 'allow', sessionId, key], { timeoutMs: 5000 }) } catch {}
+  return next(e)
+}
+
 // Answers the designer is typing into the panel's questions, by question.
 let answers = {}
 
@@ -205,6 +230,7 @@ function actionsFor($) {
 
 export function register(on) {
   on('session.start', async ($, e, next) => {
+    try { sessionId = String(await $.session.id()) } catch {}
     try { storyKey = 'story:' + (await $.session.id()); const saved = await $.store.get(storyKey); storyCard = saved && typeof saved === 'object' ? saved : null } catch { storyCard = null }
     try { await $.tool.register(STORY_TOOL) } catch {}
     await readNotes($)
@@ -247,6 +273,17 @@ export function register(on) {
     $.ui.invalidate('ui.render')
     const st = storyCard
     return { result: 'Studio story card updated' + (st.step ? ': step ' + st.step + ' of 9' : '') + (st.needs ? ', waiting for: ' + st.needs : '') + '.' }
+  })
+
+  on('tool.call', { tool: FIGMA_WRITE }, async ($, e, next) => figmaGate($, e, next))
+    .catch(async ($, e, next) => next.called ? next(e) : { deny: 'Studio couldn’t ask the designer about this Figma step, so it wasn’t run. Tell them in plain words and try again.' })
+
+  // After a yes to Studio's own question, Claude Code doesn't ask again for that file.
+  on('tool.check', { tool: FIGMA_WRITE }, async ($, e, next) => {
+    const decided = await next(e)
+    const key = String((e.input && e.input.fileKey) || '')
+    if (decided && decided.decision === 'ask' && key && figmaYes.has(key)) return { decision: 'allow', reason: 'The designer said yes to Studio’s question for this Figma file' }
+    return decided
   })
 
   on('tool.call', async ($, e, next) => {
@@ -298,6 +335,19 @@ export function register(on) {
   on('ui.render', { component: 'PromptHint' }, async ($, e, next) => {
     if (e.props.isDraft) return next(e)
     return next({ ...e, props: { ...e.props, hint: hintFor(state()) } })
+  })
+
+  // Figma steps in the conversation read as what they do, not their tool names.
+  on('ui.render', { component: 'ToolUse' }, async ($, e, next) => {
+    const p = e.props || {}
+    const f = friendlyFigma(p.name || p.tool || p.toolName, p.input)
+    if (!f) return next(e)
+    const { Box, Text } = $.ui.resolve(e)
+    return Box({ key: 'figma-row', flexDirection: 'row', columnGap: 1, children: [
+      Text({ key: 'figma-row-dot', color: MIST.coral, children: ['●'] }),
+      Text({ key: 'figma-row-label', weight: 'semibold', children: [f.label] }),
+      ...(f.detail ? [Text({ key: 'figma-row-detail', color: MIST.muted, wrap: 'truncate-end', children: ['· ' + f.detail] })] : []),
+    ] })
   })
 
   on('ui.render', { component: 'Spinner' }, async ($, e, next) => {
