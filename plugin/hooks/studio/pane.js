@@ -53,7 +53,7 @@ function card(el, sec, i, color, actions, answers) {
     Button({ key: key + '-send-btn', label: 'Send answers', onPress: () => actions.sendAnswers(questions) }),
     Text({ key: key + '-send-or', color: MIST.muted, size: 'footnote', children: ['or answer in the chat'] }),
   ] }))
-  return Box({ key, flexDirection: 'column', rowGap: 0, paddingX: 2, paddingY: 1, backgroundColor: MIST.raised,
+  return Box({ key, flexDirection: 'column', rowGap: 0, paddingX: 2, paddingY: sec.ask ? 2 : 1, backgroundColor: MIST.raised,
     ...(needs ? { borderStyle: 'round', borderColor: MIST.needs } : {}), children })
 }
 
