@@ -40,10 +40,10 @@ function pixelWordmark(word) {
 }
 export const APP_WORDMARK = pixelWordmark('STUDIO')
 
-export const TAGLINE = 'Calm Claude Code for designers'
+export const TAGLINE = 'Clearer, calmer Claude Code for designers'
 export const TIP = 'Try: “make the heading softer”'
 
-// "Calm Claude Code for designers · v0.2.2 · /guide"
+// "Clearer, calmer Claude Code for designers · v0.2.2 · /guide"
 function tagline(s) {
   return TAGLINE + (s.studioVersion ? ' · v' + s.studioVersion : '') + ' · /guide'
 }

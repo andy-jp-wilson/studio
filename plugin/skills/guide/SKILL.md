@@ -10,7 +10,7 @@ If they named a topic ($ARGUMENTS), such as "save points", "panel" or "/handover
 
 ## What Studio is
 
-Studio makes Claude Code calmer for designers. You ask for changes in your own words, like "make the heading softer", and Claude says what it will do, does it one step at a time, shows what changed, and tells you how to go back.
+Studio makes Claude Code clearer and calmer for designers. You ask for changes in your own words, like "make the heading softer", and Claude says what it will do, does it one step at a time, shows what changed, and tells you how to go back.
 
 ## Your work is always safe
 
