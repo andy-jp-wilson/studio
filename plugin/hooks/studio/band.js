@@ -17,12 +17,17 @@ export function statusParts(s) {
   return { parts: ['Step ' + step + ' of 9', stageOf(step).name, detail].filter(Boolean), needs: Boolean(st.needs), step }
 }
 
-// A still progress bar of nine steps, made of text with a gap between each:
+// A still progress bar of nine steps, made of text with a thin gap between each:
 // done and current in colour, the current one twice as long, the rest grey.
 function progress(el, step, color) {
   const { Box, Text } = el
-  return Box({ key: 'band-progress', flexDirection: 'row', columnGap: 1, children: Array.from({ length: 9 }, (_, i) =>
-    Text({ key: 'band-progress-' + (i + 1), color: i + 1 <= step ? color : MIST.control, children: [i + 1 === step ? '▬▬' : '▬'] })) })
+  const parts = []
+  for (let i = 1; i <= 9; i++) {
+    // A thin space between steps (a whole cell was too wide)
+    if (i > 1) parts.push(Text({ key: 'band-progress-gap-' + i, children: ['\u2009'] }))
+    parts.push(Text({ key: 'band-progress-' + i, color: i <= step ? color : MIST.control, children: [i === step ? '▬▬' : '▬'] }))
+  }
+  return Box({ key: 'band-progress', flexDirection: 'row', children: parts })
 }
 
 export function drawBand(el, s, actions, columns) {
