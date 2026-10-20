@@ -1,6 +1,6 @@
 # Rebuilding Studio to match the approved design
 
-Status: **approved** (2026-10-20). **R1 done** (0.2.33). **R2 done** (0.2.36). **R3 done** (0.2.38, tested with SIGN-142). **R4 done** (0.2.39, tested): `hooks/guard-figma.sh`. **R5 built** (0.3.0): the rebuild is complete, waiting for the user to try `/setup` and `/guide` in the app. Then: add the final results to Figma as a new design page.
+Status: **approved** (2026-10-20). **R1 done** (0.2.33). **R2 done** (0.2.36). **R3 done** (0.2.38, tested with SIGN-142). **R4 done** (0.2.39, tested): `hooks/guard-figma.sh`. **R5 built** (0.3.0): the rebuild is complete, waiting for the user to try `/setup` and `/guide` in the app. The final results are on Figma page **14 As built · Studio 0.3.1** (`52:2`), 2026-10-20.
 
 ## Where we are (for the next session)
 

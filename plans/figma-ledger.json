@@ -14,14 +14,15 @@
     "10 Light concepts": "41:2",
     "11 Mixed concepts": "42:2",
     "12 Gallery, softened": "43:2",
-    "13 Full visuals \u00b7 D5 Mist": "47:2"
+    "13 Full visuals · D5 Mist": "47:2",
+    "14 As built · Studio 0.3.1": "52:2"
   },
   "collections": {
     "Primitives": "VariableCollectionId:3:6",
     "Color": "VariableCollectionId:3:39",
     "Space": "VariableCollectionId:3:57",
     "Radius": "VariableCollectionId:3:65",
-    "Studio \u00b7 Mist": "VariableCollectionId:47:3"
+    "Studio · Mist": "VariableCollectionId:47:3"
   },
   "modes": {
     "Light": "3:1",
@@ -118,7 +119,7 @@
     "01 Band/Unsaved": "19:77"
   },
   "notes": [
-    "Trailing spaces in hugging text get dropped \u2014 use U+00A0 non-breaking spaces.",
+    "Trailing spaces in hugging text get dropped — use U+00A0 non-breaking spaces.",
     "After switching an auto-layout frame's direction, re-set children to HUG height or they collapse.",
     "Connectors are FigJam-only; in design files draw flows as auto-layout rows with arrow text.",
     "Page 17:2 is a /handover test page made from the practice project; it's safe to delete when no longer needed."
