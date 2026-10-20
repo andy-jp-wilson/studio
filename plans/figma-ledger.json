@@ -130,6 +130,9 @@
   "components": {
     "Journey step": "33:3",
     "Studio mark / Small": "47:15",
-    "Studio mark / Large": "47:20"
+    "Studio mark / Large": "47:20",
+    "Studio logo / 16": "63:8",
+    "Studio logo / 32": "63:14",
+    "Studio logo / 96": "63:20"
   }
 }
