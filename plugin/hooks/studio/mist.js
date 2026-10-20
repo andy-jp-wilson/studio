@@ -5,7 +5,8 @@
 // nothing in Studio moves (see plans/ui-limits.md).
 
 export const MIST = {
-  raised: '#FFFFFF',       // cards and Studio's buttons
+  raised: '#FFFFFF',       // Studio's buttons
+  card: '#F6F6F8',         // the panel's cards: light grey, since the app's panel is white
   text: '#40404A',         // main text
   muted: '#7E7E88',        // secondary text
   line: '#9C9CA6',         // waiting grey

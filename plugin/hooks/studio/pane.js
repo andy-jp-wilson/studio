@@ -1,6 +1,6 @@
 // Studio: the panel beside the conversation (Figma page 15, "The panel at
 // five moments"). It follows the story: the story at the top with its
-// progress, then white cards for whatever matters at this step, with what
+// progress, then light grey cards for whatever matters at this step, with what
 // needs you first, outlined in ochre. Items can link straight to their frame
 // in Figma, questions can be answered here, and checklist items can ask Claude
 // for the next step. Claude fills it in with the story tool. No background of
@@ -53,7 +53,7 @@ function card(el, sec, i, color, actions, answers) {
     Button({ key: key + '-send-btn', label: 'Send answers', onPress: () => actions.sendAnswers(questions) }),
     Text({ key: key + '-send-or', color: MIST.muted, size: 'footnote', children: ['or answer in the chat'] }),
   ] }))
-  return Box({ key, flexDirection: 'column', rowGap: 0, paddingX: 2, paddingY: sec.ask ? 2 : 1, backgroundColor: MIST.raised,
+  return Box({ key, flexDirection: 'column', rowGap: 0, paddingX: 2, paddingY: sec.ask ? 2 : 1, backgroundColor: MIST.card,
     ...(needs ? { borderStyle: 'round', borderColor: MIST.needs } : {}), children })
 }
 
