@@ -9,7 +9,7 @@ export const LAB_PANE = 'studio-lab'
 
 export const LAB_PAGES = [
   ['1', 'Type'], ['2', 'Colour'], ['3', 'Borders'], ['4', 'Pictures'], ['5', 'Controls'],
-  ['6', 'Spacing'], ['7', 'Messages'], ['8', 'Hover'], ['9', 'Band and hint'], ['m', 'Motion'], ['p', 'Progress'],
+  ['6', 'Spacing'], ['7', 'Messages'], ['8', 'Hover'], ['9', 'Band and hint'], ['m', 'Motion'], ['p', 'Progress'], ['i', 'Inputs'],
 ]
 
 const DOT = (w, h, r) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><circle cx="${w / 2}" cy="${h / 2}" r="${r}" fill="${MIST.coral}"/></svg>`
@@ -175,8 +175,30 @@ function progressPage(el, lab) {
   return out
 }
 
+// Answer boxes: the app draws the field itself; Studio can only style the box around it.
+function inputsPage(el, lab) {
+  const { Box, Text, Input } = el
+  const field = (key, extra = {}) => Input({ key, placeholder: 'Format only, or more?', value: '', onSubmit: v => lab.say('Typed in ' + key + ': ' + v), ...extra })
+  const q = key => Text({ key: key + '-q', color: MIST.needsText, weight: 'medium', children: ['1. What counts as a valid email?'] })
+  const variant = (key, name, body) => Box({ key, flexDirection: 'column', rowGap: 0, paddingX: 2, paddingY: 1, backgroundColor: MIST.raised, children: [
+    Text({ key: key + '-name', size: 'caption', weight: 'semibold', color: MIST.muted, children: [name] }), q(key), body] })
+  return [
+    Text({ key: 'in-note', color: MIST.muted, children: ['Each answer box inside a white card, as in the panel. Type in each and press Enter.'] }),
+    variant('in-1', 'A · As now (plain)', field('in-1-f')),
+    variant('in-2', 'B · Grey rounded border', Box({ key: 'in-2-b', borderStyle: 'round', borderColor: MIST.control, paddingX: 1, children: [field('in-2-f')] })),
+    variant('in-3', 'C · Ochre rounded border (needs you)', Box({ key: 'in-3-b', borderStyle: 'round', borderColor: MIST.needs, paddingX: 1, children: [field('in-3-f')] })),
+    variant('in-4', 'D · Light grey background', Box({ key: 'in-4-b', backgroundColor: MIST.surface, paddingX: 1, children: [field('in-4-f')] })),
+    variant('in-5', 'E · Small label above, grey border', Box({ key: 'in-5-w', flexDirection: 'column', children: [
+      Text({ key: 'in-5-l', size: 'caption', color: MIST.muted, children: ['Your answer'] }),
+      Box({ key: 'in-5-b', borderStyle: 'round', borderColor: MIST.control, paddingX: 1, children: [field('in-5-f')] })] })),
+    variant('in-6', 'F · The field’s own label', field('in-6-f', { label: 'Answer', submitLabel: 'keep' })),
+    variant('in-7', 'G · Grey border, coral on hover', Box({ key: 'in-7-b', borderStyle: 'round', borderColor: MIST.control, paddingX: 1, hover: { borderColor: MIST.coral }, children: [field('in-7-f')] })),
+    Text({ key: 'said', color: MIST.muted, children: [lab.said || 'Nothing typed yet'] }),
+  ]
+}
+
 export function drawLab(el, lab, version) {
-  return el.Box({ key: 'lab', flexDirection: 'column', rowGap: 1, children: [header(el, lab, version), ...(lab.page === 'm' ? motion(el, lab) : lab.page === 'p' ? progressPage(el, lab) : page(el, lab))] })
+  return el.Box({ key: 'lab', flexDirection: 'column', rowGap: 1, children: [header(el, lab, version), ...(lab.page === 'm' ? motion(el, lab) : lab.page === 'p' ? progressPage(el, lab) : lab.page === 'i' ? inputsPage(el, lab) : page(el, lab))] })
 }
 
 // The band test row: dots at three sizes beside the word, to see which draw.
