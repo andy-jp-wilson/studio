@@ -68,7 +68,7 @@ function storyHead(el, st) {
     Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [[story.key, 'Jira story', 'step ' + step + ' of 9'].filter(Boolean).join(' · ')] }),
     Text({ key: 'story-title', size: 'title', weight: 'semibold', color: MIST.text, wrap: 'wrap', children: [String(story.title || 'Untitled story')] }),
     Text({ key: 'story-doc', size: 'footnote', color: MIST.muted, children: [story.hasDesignDoc ? 'Technical design in Confluence' : 'No technical design yet · optional, but encouraged'] }),
-    progress(el, step, color, 'bars', 'pane-progress'),
+    progress(el, step, color, 'pane-progress'),
     Text({ key: 'story-stage', size: 'footnote', weight: 'medium', color: st.needs ? MIST.needsText : color, wrap: 'wrap', children: [line] }),
   ] })
 }

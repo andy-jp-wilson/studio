@@ -7,7 +7,6 @@ import { MIST } from './studio/mist.js'
 import { drawBand, hintFor } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
 import { FIGMA_WRITE, keysIn, designSystemKeys, figmaQuestion, FIGMA_YES, friendlyFigma } from './studio/figma.js'
-import { LAB_PANE, drawLab, drawBandTest, drawBandMotion } from './studio/lab.js'
 
 const PANE = 'studio'
 
@@ -173,42 +172,6 @@ function wordsNote() {
     (words.known.length ? ' The person already knows these, so do not explain them: ' + words.known.join(', ') + '.' : '')
 }
 
-// The Studio lab (temporary): what the app really draws. See studio/lab.js.
-let labState = { page: '1', said: '', bandSvg: false, hint: false, bandMotion: false, running: false, frame: 0, progressStyle: 'bars' }
-let labTimer = null
-let ccVersion = ''
-
-function labFor($) {
-  const redraw = () => $.ui.invalidate('ui.render')
-  const say = text => { labState = { ...labState, said: text }; redraw() }
-  return {
-    ...labState,
-    go: k => { labState = { ...labState, page: k, said: '' }; redraw() },
-    say,
-    toast: async () => { try { await $.ui.toast('Studio lab: this is a toast'); say('Toast sent') } catch (err) { say('Toast failed: ' + err) } },
-    status: async on => { try { await $.ui.status(on ? 'Step 2 of 9 · 4 questions for you' : ''); say(on ? 'Status line set' : 'Status line cleared') } catch (err) { say('Status failed: ' + err) } },
-    log: async () => { try { await $.ui.log('Studio lab: a log line'); say('Log line added') } catch (err) { say('Log failed: ' + err) } },
-    ask: async () => { try { const a = await $.ui.ask('Work in Studio’s design file in Figma?', ['Yes, go ahead', 'No']); say('You picked: ' + a) } catch (err) { say('Question closed: ' + err) } },
-    toggleBand: () => { labState = { ...labState, bandSvg: !labState.bandSvg }; redraw() },
-    toggleHint: () => { labState = { ...labState, hint: !labState.hint }; redraw() },
-    setProgress: id => { labState = { ...labState, progressStyle: id }; redraw() },
-    toggleBandMotion: () => { labState = { ...labState, bandMotion: !labState.bandMotion }; redraw() },
-    toggleRun: async () => {
-      if (labTimer) { try { labTimer.cancel() } catch {} labTimer = null; labState = { ...labState, running: false }; return redraw() }
-      labState = { ...labState, running: true }
-      // Slow (4 a second) so buttons keep working, and it stops by itself after 10 seconds.
-      const startFrame = labState.frame
-      try {
-        labTimer = await $.clock.every(250, () => {
-          if (labState.frame - startFrame >= 40) { try { labTimer && labTimer.cancel() } catch {} labTimer = null; labState = { ...labState, running: false }; return $.ui.invalidate('ui.render') }
-          labState = { ...labState, frame: labState.frame + 1 }; $.ui.invalidate('ui.render')
-        })
-      } catch (err) { labState = { ...labState, running: false, said: 'Timer failed: ' + err } }
-      redraw()
-    },
-  }
-}
-
 function actionsFor($) {
   return {
     stop: () => { if (live.turnId) $.turn.abort({ turnId: live.turnId }).catch(() => {}) },
@@ -238,18 +201,11 @@ export function register(on) {
     await loadPrefs($)
     try { await $.ui.open({ id: PANE, title: 'Studio' }) } catch {}
     try { await $.command.register({ name: 'panel', description: 'Open the Studio panel', immediate: true }) } catch {}
-    try { await $.command.register({ name: 'studio-lab', description: 'Studio lab (temporary): test what the app draws', immediate: true }) } catch {}
-    try { ccVersion = String(await $.session.version()) } catch {}
     return next(e)
   })
 
   on('command.run', { command: 'panel' }, async ($) => {
     await $.ui.open({ id: PANE, title: 'Studio', focus: true })
-    return {}
-  })
-
-  on('command.run', { command: 'studio-lab' }, async ($) => {
-    await $.ui.open({ id: LAB_PANE, title: 'Studio lab', focus: true })
     return {}
   })
 
@@ -312,10 +268,7 @@ export function register(on) {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
-    const extra = labState.bandMotion && e.surface !== 'terminal' ? drawBandMotion(el, labState.frame) : []
-    const studioBand = drawBand(el, { ...state(), surface: e.surface, extra, progressStyle: labState.progressStyle }, actionsFor($), e.props.bodyColumns)
-    const extras = e.surface === 'terminal' ? [] : (labState.bandSvg ? [drawBandTest(el)] : [])
-    const band = extras.length ? el.Box({ key: 'lab-band-wrap', flexDirection: 'column', children: [studioBand, ...extras] }) : studioBand
+    const band = drawBand(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
     const rest = await next(e)
     return rest ? el.Box({ key: 'studio-band-wrap', flexDirection: 'column', children: [band, rest] }) : band
   })
@@ -324,11 +277,6 @@ export function register(on) {
     if (e.requestId !== PANE) return next(e)
     const el = $.ui.resolve(e)
     return drawPane(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
-  })
-
-  on('ui.render', { component: 'Pane' }, async ($, e, next) => {
-    if (e.requestId !== LAB_PANE) return next(e)
-    return drawLab($.ui.resolve(e), labFor($), ccVersion)
   })
 
   // The hint under the prompt says what to do at this step, while the prompt is empty.

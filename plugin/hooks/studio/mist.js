@@ -5,16 +5,12 @@
 // nothing in Studio moves (see plans/ui-limits.md).
 
 export const MIST = {
-  surface: '#F6F6F8',      // panel background
   raised: '#FFFFFF',       // cards and Studio's buttons
   text: '#40404A',         // main text
   muted: '#7E7E88',        // secondary text
-  rule: '#E6E6EA',         // faint rules
   line: '#9C9CA6',         // waiting grey
   control: '#D6D6DC',      // borders of controls; the progress bar's steps to do
   coral: '#E07A6E',        // Studio's colour; the design stage
-  tint: '#FBE9E6',         // (not used: no coral backgrounds)
-  tintText: '#A9483D',     // (not used since the stage colours)
   brief: '#4F6D8F',        // the brief stage (steps 1 to 3), dusk
   ready: '#5E7D5B',        // ready for developers (steps 7 to 9), sage
   needs: '#B8862B',        // something needs you, at any step, ochre
