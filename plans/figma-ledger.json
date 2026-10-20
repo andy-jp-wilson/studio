@@ -6,7 +6,8 @@
     "02 Desktop panel": "3:3",
     "03 Conversation examples": "3:4",
     "04 Journeys": "3:5",
-    "05 Handover": "14:2"
+    "05 Handover": "14:2",
+    "06 Designer journey": "33:2"
   },
   "collections": {
     "Primitives": "VariableCollectionId:3:6",
@@ -109,9 +110,12 @@
     "01 Band/Unsaved": "19:77"
   },
   "notes": [
-    "Trailing spaces in hugging text get dropped — use U+00A0 non-breaking spaces.",
+    "Trailing spaces in hugging text get dropped \u2014 use U+00A0 non-breaking spaces.",
     "After switching an auto-layout frame's direction, re-set children to HUG height or they collapse.",
     "Connectors are FigJam-only; in design files draw flows as auto-layout rows with arrow text.",
     "Page 17:2 is a /handover test page made from the practice project; it's safe to delete when no longer needed."
-  ]
+  ],
+  "components": {
+    "Journey step": "33:3"
+  }
 }
