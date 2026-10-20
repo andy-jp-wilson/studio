@@ -10,7 +10,7 @@ export const EMPTY = { teamName: '', uploadPlaces: '', projectsFolder: '', figma
 
 export const FIELDS = [
   { id: 'uploadPlaces', label: 'GitHub repository (optional)', placeholder: 'https://github.com/acme/design-work', hint: 'GitHub is a website where teams store and share project files. If your team uses it, paste the repository (or organisation) designers’ work may go to; Studio will never upload anywhere else. Leave it empty to keep all work on this computer.' },
-  { id: 'projectsFolder', label: 'Projects folder on this computer (optional)', placeholder: '~/Studio projects', hint: 'A folder on each designer’s own computer where Studio makes new projects, so everyone’s projects are in the same, easy-to-find place. Leave it empty to use ~/Studio projects.' },
+  { id: 'projectsFolder', label: 'Projects folder on this computer (optional)', placeholder: '~/Studio projects', hint: 'A folder on each designer’s own computer where Studio makes new projects, so everyone’s projects are in the same, easy-to-find place. Leave it empty to use ~/Studio projects. To use a folder you already have: in Finder, right-click it, hold Option, choose Copy as Pathname, and paste it here. ~ means your home folder, so ~/Documents/Design projects is a new or existing folder inside Documents.' },
   { id: 'figmaWritePlaces', label: 'Figma team folder (destination)', placeholder: 'https://www.figma.com/files/team/…/project/…', hint: 'The link to the Figma folder where Studio may create and change files, such as new project files and handover pages. Open the folder in Figma and copy the link from the address bar. Coming in a later version: Studio will then refuse to change files anywhere else.', figma: true },
 ]
 
