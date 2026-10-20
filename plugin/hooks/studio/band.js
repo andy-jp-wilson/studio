@@ -17,11 +17,11 @@ export function statusParts(s) {
   return { parts: ['Step ' + step + ' of 9', stageOf(step).name, detail].filter(Boolean), needs: Boolean(st.needs), step }
 }
 
-// A still progress bar of nine steps, made of text: done and current in colour,
-// the current one twice as long, the rest grey.
+// A still progress bar of nine steps, made of text with a gap between each:
+// done and current in colour, the current one twice as long, the rest grey.
 function progress(el, step, color) {
   const { Box, Text } = el
-  return Box({ key: 'band-progress', flexDirection: 'row', children: Array.from({ length: 9 }, (_, i) =>
+  return Box({ key: 'band-progress', flexDirection: 'row', columnGap: 1, children: Array.from({ length: 9 }, (_, i) =>
     Text({ key: 'band-progress-' + (i + 1), color: i + 1 <= step ? color : MIST.control, children: [i + 1 === step ? '▬▬' : '▬'] })) })
 }
 
