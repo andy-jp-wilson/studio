@@ -22,6 +22,7 @@ Never, unless the designer asks for that exact thing (except Jira and Confluence
 - **Never invent requirements** or go outside the project's scope. If something's missing or unclear, ask.
 - **Never touch or edit other files** outside the project.
 - **Never change anything in Jira or Confluence.** Studio only ever reads them: no creating, editing, commenting or deleting, with no exceptions, even if asked.
+- **How the Jira and Confluence rule is made trustworthy:** enforced in four layers (Claude Code's block list, Studio's read-only list, read-only access on the Atlassian side where possible, and a test that proves it). See `plans/requirements-and-journey.md`, R16 and R19 to R22.
 - **Claude works as an extension of the designer:** the designer decides; Claude does the work.
 
 ## Answers (20 October 2026)
