@@ -60,8 +60,8 @@ A designer picks up a piece of work. The journey below is the target; each step 
 R16 must be **enforced, not just instructed**, with four layers, each working even if another fails:
 
 - **R19. Claude Code's block list:** Claude Code itself refuses every Jira and Confluence action that creates, edits, comments or deletes.
-- **R20. Studio's read-only list:** Studio allows only a short list of known reading actions; anything else is refused, including actions Atlassian adds later.
-- **R21. Read-only access on the Atlassian side,** where possible, so Jira and Confluence themselves refuse any change. (Being researched.)
+- **R20. Studio's read-only list:** Studio allows only a short list of known reading actions; anything else is refused, including actions Atlassian adds later and its general "execute" actions that can reach hidden write tools.
+- **R21. Read-only access on the Atlassian side,** so Jira and Confluence themselves refuse any change. Possible: your Atlassian org admin can block **Write** for the connector, per app, and it only ever acts with each person's own permissions. Details in `plans/atlassian-read-only.md`.
 - **R22. Proof:** a test that tries to make a change and shows it refused, repeated after any update. Jira and Confluence's own history shows any change.
 - **Note:** layers R19 and R20 live on each designer's computer. To stop them being removed, the team's IT can put them in company-managed settings.
 
