@@ -28,7 +28,7 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma' }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
@@ -70,7 +70,7 @@ function setup(on: any, git: Record<string, string> = {}) {
   })
   on('clock.now', () => ({ value: NOW }))
   on('clock.every', () => ({ value: {} }))
-  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.open', ($: any, e: any) => { calls.opened.push(e); return { value: { isPlaced: true } } })
   on('command.register', () => ({ value: undefined }))
   on('store.get', ($: any, e: any) => ({ value: calls.store.get(e.key) }))
   on('store.set', ($: any, e: any) => { calls.store.set(e.key, e.value); return { value: undefined } })
@@ -488,4 +488,23 @@ test('Designs go to: Figma by default, and the panel can make prototypes the def
   expect(await band.find({ key: 'band-preview' })).toBeDefined()
   await pane.press({ key: 'pane-designs' })
   expect(calls.designs).toBe('figma')
+})
+
+test('the panel menu groups everything, and the band Menu opens it', async ($, on) => {
+  const calls = setup(on, { 'project-notes': NOTES })
+  await start($)
+  const pane = await $.ui.mount(PANE())
+  for (const t of ['Get ready', 'Work', 'Share', 'Help']) expect(await pane.find({ type: 'Text', text: t })).toBeDefined()
+  for (const k of ['menu-setup', 'menu-team', 'menu-explore', 'menu-go-back', 'menu-handover', 'menu-handoff', 'menu-guide', 'menu-glossary', 'menu-version']) expect(await pane.find({ key: k })).toBeDefined()
+  await pane.press({ key: 'menu-explore' })
+  await pane.press({ key: 'menu-handover' })
+  await pane.press({ key: 'menu-version' })
+  expect(calls.commands).toEqual(expect.arrayContaining(['explore', 'handover', 'version']))
+  await pane.press({ key: 'menu-glossary' })
+  expect(await pane.find({ key: 'search' })).toBeDefined()
+  const band = await $.ui.mount(BAND(120))
+  const before = calls.opened.length
+  await band.press({ key: 'band-menu' })
+  expect(calls.opened.length).toBe(before + 1)
+  expect(calls.opened.at(-1)).toMatchObject({ id: 'studio', focus: true })
 })

@@ -62,6 +62,8 @@ function buttons(el, s, actions) {
   // Save point appears only when there's something new worth keeping.
   if (s.unsaved && !s.working) list.push(Button({ key: 'band-save', label: 'Save point', hotkey: '2', plain: true, onPress: actions.save }))
   if (s.working) list.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
+  // Everything else lives in the Studio panel's menu.
+  list.push(Button({ key: 'band-menu', label: 'Menu', hotkey: '4', plain: true, onPress: actions.menu }))
   return Box({ key: 'buttons', flexDirection: 'row', columnGap: 2, children: list })
 }
 

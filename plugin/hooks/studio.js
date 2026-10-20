@@ -259,6 +259,8 @@ function actionsFor($) {
     $.command.run({ command: name }).catch(() => $.prompt.submit({ text: '/' + name, asUser: true }).catch(() => {}))
   }
   return {
+    run,
+    menu: () => { $.ui.open({ id: PANE, title: 'Studio', focus: true }).catch(() => {}) },
     show: () => run('preview'),
     save: () => run('save'),
     guide: () => run('guide'),

@@ -40,11 +40,11 @@ Claude comes in a few forms, and it's fair to wonder why a designer would use on
 
 - **Your journey:** Explore (trying ideas), Refine (polishing one), Build (handed over to the team).
 - **Now:** what Claude is doing, in plain words.
-- **Buttons:** 1 Open in Figma (or Preview, once there's a prototype), 2 Save point (only when needed), 3 Stop (while Claude works). Click, or type the number alone in an empty prompt.
+- **Buttons:** 1 Open in Figma (or Preview, once there's a prototype), 2 Save point (only when needed), 3 Stop (while Claude works), 4 Menu (opens the Studio panel's menu). Click, or type the number alone in an empty prompt.
 
 ## The Studio panel
 
-Beside the conversation in Desktop, or at the side of a wide terminal (type `/panel` to open it). It shows your journey, what's happening now with a "Did you know?" note, Preview, Save point and Send to Figma buttons, and a Glossary tab.
+Beside the conversation in Desktop, or at the side of a wide terminal (type `/panel` to open it). It shows your journey, what's happening now with a "Did you know?" note, and a **Menu** with everything Studio does, so you can click instead of typing commands: **Get ready** (Setup, Team settings), **Work** (Save point, Try an idea, Go back, Open in Figma, Preview), **Share** (Hand over to the team, Share for review) and **Help** (Guide, Glossary, Studio version). It also has a Glossary tab.
 
 ## Commands
 

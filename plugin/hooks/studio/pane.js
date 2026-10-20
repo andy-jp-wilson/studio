@@ -56,16 +56,42 @@ function journeyTab(el, s, actions) {
   ] }))
   out.push(Box({ key: 'now-card', flexDirection: 'column', borderStyle: 'round', paddingX: 1, children: now }))
 
-  // Actions
+  // Menu: everything Studio does, grouped by what you're doing, so nothing
+  // needs a / command.
   out.push(Text({ key: 'gap-2', children: [' '] }))
-  out.push(label(Text, 'h-actions', 'Actions'))
-  const row = []
-  if (s.previewUrl) row.push(Link({ key: 'preview-link', href: s.previewUrl, label: 'Open preview' }))
-  else row.push(Button({ key: 'pane-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }))
-  if (s.unsaved) row.push(Button({ key: 'pane-save', label: 'Save point', hotkey: 's', onPress: actions.save }))
-  row.push(Button({ key: 'pane-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }))
-  out.push(Box({ key: 'actions', flexDirection: 'row', columnGap: 2, children: row }))
-  out.push(Text({ key: 'actions-note', color: 'subtle', children: [s.previewUrl ? 'Your private preview is running at ' + s.previewUrl : 'Preview opens a private website only you can see.'] }))
+  out.push(label(Text, 'h-menu', 'Menu'))
+  const prototypeish = s.hasPrototype || s.previewUrl
+  const group = (key, title, items) => items.length ? [
+    Text({ key: 'g-' + key, color: 'subtle', children: [title] }),
+    Box({ key: 'row-' + key, flexDirection: 'row', flexWrap: 'wrap', columnGap: 2, children: items }),
+  ] : []
+  const run = name => () => actions.run(name)
+  const work = []
+  if (s.unsaved) work.push(Button({ key: 'pane-save', label: 'Save point', hotkey: 's', onPress: actions.save }))
+  work.push(Button({ key: 'menu-explore', label: 'Try an idea', hotkey: 'i', onPress: run('explore') }))
+  work.push(Button({ key: 'menu-go-back', label: 'Go back', hotkey: 'b', onPress: run('go-back') }))
+  if (s.figmaUrl) work.push(Link({ key: 'menu-figma-link', href: s.figmaUrl, label: 'Open in Figma' }))
+  if (s.previewUrl) work.push(Link({ key: 'preview-link', href: s.previewUrl, label: 'Open preview' }))
+  else if (prototypeish) work.push(Button({ key: 'pane-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }))
+  if (prototypeish) work.push(Button({ key: 'pane-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }))
+  const menu = [
+    ...group('ready', 'Get ready', [
+      Button({ key: 'menu-setup', label: 'Setup', hotkey: 'u', onPress: run('setup') }),
+      Button({ key: 'menu-team', label: 'Team settings', hotkey: 't', onPress: run('team-settings') }),
+    ]),
+    ...group('work', 'Work', work),
+    ...group('share', 'Share', [
+      Button({ key: 'menu-handover', label: 'Hand over to the team', hotkey: 'o', onPress: run('handover') }),
+      Button({ key: 'menu-handoff', label: 'Share for review', hotkey: 'r', onPress: run('handoff') }),
+    ]),
+    ...group('help', 'Help', [
+      Button({ key: 'menu-guide', label: 'Guide', onPress: actions.guide }),
+      Button({ key: 'menu-glossary', label: 'Glossary', onPress: () => actions.tab('glossary') }),
+      Button({ key: 'menu-version', label: 'Studio version', hotkey: 'v', onPress: run('version') }),
+    ]),
+  ]
+  out.push(Box({ key: 'menu', flexDirection: 'column', borderStyle: 'round', paddingX: 1, children: menu }))
+  if (s.previewUrl) out.push(Text({ key: 'actions-note', color: 'subtle', children: ['Your private preview is running at ' + s.previewUrl] }))
 
   // Footer
   out.push(Text({ key: 'gap-3', children: [' '] }))
