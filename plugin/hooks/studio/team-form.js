@@ -130,7 +130,7 @@ function edit(el, f, a) {
     Button({ key: 'save', label: f.saving ? 'Saving…' : 'Save', hotkey: 's', onPress: a.save }),
     Button({ key: 'edit-back', label: 'Back', hotkey: 'b', dimColor: true, onPress: a.back }),
   ] }))
-  out.push(note(Text, 'stays', 'Saved on this computer only. Nothing is uploaded.'))
+  out.push(note(Text, 'stays', 'Saved on this computer only. Nothing is uploaded, so nothing is sent to GitHub or anywhere online.'))
   return out
 }
 

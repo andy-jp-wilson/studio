@@ -7,6 +7,8 @@ export const GLOSSARY = [
   { friendly: 'Save point', real: 'commit', meaning: 'A snapshot of your work you can always go back to.' },
   { friendly: 'Handoff for review', real: 'pull request', meaning: 'Asking a teammate to look at an exploration before it joins the main design.' },
   { friendly: 'Upload place', real: 'remote', meaning: 'Where your save points can be uploaded, like your team’s GitHub. Work stays on this computer until you upload it.' },
+  { friendly: 'Upload', real: 'push', meaning: 'Sending your save points to an upload place such as GitHub, so they leave this computer. Studio only does it when you ask.' },
+  { friendly: 'Leave-out list', real: '.gitignore', meaning: 'A small file listing what save points should leave out, like Mac system files. Its name starts with a dot, so Finder hides it.' },
   { friendly: 'Working memory', real: 'context window', meaning: 'How much of your conversation Claude can hold in mind at once.' },
   { friendly: 'Workspace', real: 'terminal', meaning: 'The text window where you talk to Claude Code.' },
   { friendly: 'Private preview', real: 'localhost', meaning: 'A website running on your own computer that only you can see.' },

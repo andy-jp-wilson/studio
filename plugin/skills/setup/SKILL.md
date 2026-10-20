@@ -135,7 +135,7 @@ Finish with a tick list, e.g.
 ✓ Design system: Acme Design System
 ✓ Figma file: Onboarding
 
-Studio remembers these in the project's `.studio` folder, and the README now links to both Figma files. Nothing was uploaded.
+Studio remembers these in the project's `.studio` folder, and the README now links to both Figma files. Nothing was uploaded: nothing left this computer, apart from the Figma file if one was created.
 
 Then the next step:
 - If a **new folder** was made: it needs to be opened before Studio can work in it. In the Claude app: start a **New** session and choose the folder. In the terminal: `cd` into it and start `claude`. Then `/start` sets up save points there.

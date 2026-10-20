@@ -11,7 +11,7 @@ Studio works for one designer on their own, but it's better when everyone on a t
 | GitHub repository | GitHub is a website where teams store and share project files. If your team uses it, this is the repository (or organisation) designers' work may go to; Studio never uploads anywhere else. Leave it empty to keep all work on each designer's computer. |
 | Design systems | Every design system your team uses, each with its Figma library link. Designers choose one for each project. |
 
-None of them are required. They're saved on each designer's computer, in Claude Code's own settings, and nothing is uploaded.
+None of them are required. They're saved on each designer's computer, in Claude Code's own settings, and nothing is uploaded, so nothing is sent to GitHub or anywhere online.
 
 ## How it works
 

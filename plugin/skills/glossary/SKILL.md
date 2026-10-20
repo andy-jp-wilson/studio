@@ -13,6 +13,8 @@ If the person named a word ($ARGUMENTS), explain just that one. Otherwise show t
 | Project | repository (repo) | The folder that holds everything for one piece of work, with its history. |
 | Exploration | branch | A safe copy where you can try an idea without touching the original. |
 | Save point | commit | A snapshot of your work you can always go back to. |
+| Upload | push | Sending your save points to an upload place such as GitHub, so they leave this computer. Studio only does it when you ask. |
+| Leave-out list | .gitignore | A small file listing what save points should leave out, like Mac system files. Its name starts with a dot, so Finder hides it. |
 | Upload place | remote | Where your save points can be uploaded, like your team's GitHub. Work stays on this computer until you upload it. |
 | Handoff for review | pull request | Asking a teammate to look at an exploration before it joins the main design. |
 | Working memory | context window | How much of your conversation Claude can hold in mind at once. |

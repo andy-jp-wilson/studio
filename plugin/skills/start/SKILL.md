@@ -16,7 +16,7 @@ allowed-tools:
    - **If not**, explain in one sentence that save points aren't set up here yet, and what that would give them (undo for every step). Ask before setting up. If they agree:
      - `git init -b main`
      - if `git config --get user.name` is empty, ask for the name to put on save points and set it for this project only with `git config user.name` / `git config user.email`
-     - add a `.gitignore` with `.DS_Store` and `node_modules/`
+     - add a `.gitignore` with `.DS_Store` and `node_modules/`; if you mention it, say it's a small list of files save points leave out, like Mac system files
      - make the first save point, "Starting point"
 
      Then continue below.
