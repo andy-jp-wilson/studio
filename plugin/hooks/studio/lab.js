@@ -116,7 +116,7 @@ function motion(el, lab) {
   const rowOf = (key, picEl, label) => Box({ key, flexDirection: 'row', columnGap: 2, alignItems: 'center', children: [picEl, Text({ key: key + '-t', children: [label] })] })
   return [
     Button({ key: 'motion-run', label: lab.running ? 'Stop the redraws' : 'Start the redraws (for A)', onPress: () => lab.toggleRun() }),
-    Text({ key: 'motion-frame', color: MIST.muted, children: ['Frame ' + lab.frame + (lab.running ? ' · redrawing about 10 times a second' : ' · not redrawing') ] }),
+    Text({ key: 'motion-frame', color: MIST.muted, children: ['Frame ' + lab.frame + (lab.running ? ' · redrawing 4 times a second, stops by itself after 10 seconds' : ' · not redrawing') ] }),
     rowOf('m-a1', pic('m-a1-svg', pulseFrame(lab.frame), 2, 1), 'A · pulse, redrawn by Studio'),
     rowOf('m-a3', pic('m-a3-svg-' + lab.frame, pulseFrame(lab.frame), 4, 2), 'A2 · pulse, a new picture every frame'),
     rowOf('m-a2', pic('m-a2-svg-' + lab.frame, barFrame(lab.frame), 14, 1), 'A2 · progress shimmer, a new picture every frame'),

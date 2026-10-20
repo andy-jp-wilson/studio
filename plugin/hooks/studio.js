@@ -152,7 +152,14 @@ function labFor($) {
     toggleRun: async () => {
       if (labTimer) { try { labTimer.cancel() } catch {} labTimer = null; labState = { ...labState, running: false }; return redraw() }
       labState = { ...labState, running: true }
-      try { labTimer = await $.clock.every(100, () => { labState = { ...labState, frame: labState.frame + 1 }; $.ui.invalidate('ui.render') }) } catch (err) { labState = { ...labState, running: false, said: 'Timer failed: ' + err } }
+      // Slow (4 a second) so buttons keep working, and it stops by itself after 10 seconds.
+      const startFrame = labState.frame
+      try {
+        labTimer = await $.clock.every(250, () => {
+          if (labState.frame - startFrame >= 40) { try { labTimer && labTimer.cancel() } catch {} labTimer = null; labState = { ...labState, running: false }; return $.ui.invalidate('ui.render') }
+          labState = { ...labState, frame: labState.frame + 1 }; $.ui.invalidate('ui.render')
+        })
+      } catch (err) { labState = { ...labState, running: false, said: 'Timer failed: ' + err } }
       redraw()
     },
   }
