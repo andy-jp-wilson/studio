@@ -4,7 +4,8 @@
 // the handover checklist). Claude fills it in with the story tool.
 // No background of its own: like the band, the app draws the panel's box, and
 // a second colour wouldn't line up with its edges. Pure drawing.
-import { MIST, mark } from './mist.js'
+// No Studio mark: the app's own panel header already says "Studio" (2026-10-20).
+import { MIST } from './mist.js'
 
 const GLYPH = { done: '✓  ', now: '●  ', todo: '○  ', none: '—  ' }
 
@@ -51,7 +52,6 @@ export function drawPane(el, s, actions, columns) {
     for (const sec of [...list.filter(x => x && x.needs), ...list.filter(x => x && !x.needs)]) sections.push(sec)
   }
   return Box({ key: 'studio-pane', flexDirection: 'column', rowGap: 1, width: Math.max(20, columns || 40), children: [
-    mark(el, s.surface, 'pane-mark'),
     ...sections.map((sec, i) => section(el, sec, i)),
   ] })
 }
