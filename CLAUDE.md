@@ -5,7 +5,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 ## Working with the user
 - The user is a designer, not an engineer. Use plain language and define any jargon the first time it appears.
 - Plan each phase and get approval before starting it. Pause at the end of every phase.
-- Never delete or overwrite anything without asking.
+- **Deleting and overwriting while building Studio** (2026-10-20): fine without asking inside this project folder and Claude's scratch folder, since Studio is being used to build itself. Still ask before deleting or overwriting anything outside them (e.g. `~/.claude`, other projects, the practice project's own history) or anything that can't be got back from a save point. Studio's own delete guardrails are for the designers who'll use it, not for this work.
 - If a feature doesn't exist or works differently from the brief, say so plainly and suggest the closest alternative.
 
 ## Decisions
