@@ -1,6 +1,6 @@
 # Rebuilding Studio to match the approved design
 
-Status: **draft for approval** (2026-10-20). Nothing is rebuilt yet.
+Status: **approved** (2026-10-20). R1 in progress.
 
 Built from what's agreed: the core and jobs (`plans/core-jobs.md`), the requirements and journey (`plans/requirements-and-journey.md`), your keep/cut calls (`plans/studio-today.md`), and the approved visuals (Figma page 13, D5 Mist). Nothing new is added; anything unclear is a question at the end.
 
@@ -54,9 +54,9 @@ Each phase ends with you trying it in the app, and a pause.
 - Keep: undo ("go back"), the upload check, `/guide` (updated), `/glossary`.
 - Tests for each phase, and Studio version 0.3.0.
 
-## Questions to decide
+## Decided (2026-10-20)
 
-1. **Save points** ("might need tweaking"): for Figma work they don't do anything. Suggestion: keep the automatic snapshots and "go back" quietly for files on the computer, and remove save points from the band, panel and Claude's replies. Or would you rather keep `/save`?
-2. **`/handover` and `/handoff`**: both are file-based today. Suggestion: remove both for now, since step 9's checklist covers getting ready to hand over in Figma, and rebuild the developer handover later, with your developers' input. Or keep them as they are for now?
-3. **Coded prototypes and `/preview`**: keep `/preview` for when a designer asks for a coded prototype, or remove it until prototypes are worked on properly?
-4. **Team settings**: the design systems list is useful for every designer. Keep it as one thing setup asks for or loads from a team file, and drop the rest of the form (projects folder, GitHub, Figma folder)?
+1. **Save points: removed** from the band, panel, Claude's replies and commands (`/save` goes). The automatic snapshots stay, quietly, so "go back" still undoes changes to files.
+2. **`/handover` and `/handoff`: removed** for now. Step 9's checklist covers getting ready in Figma; the developer handover is rebuilt later with developers' input.
+3. **`/preview`: removed** until coded prototypes are worked on properly.
+4. **Team settings: keep only the design systems list,** asked for in setup or loaded from a team file. The projects folder, GitHub and Figma folder settings go from the form.
