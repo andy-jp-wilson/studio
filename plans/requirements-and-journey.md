@@ -18,7 +18,7 @@ A designer picks up a piece of work. The journey below is the target; each step 
 6. **The designer reviews and asks for changes.** A change made once is carried across every affected screen. *(R11)*
 7. **Claude checks the work** against the story's requirements and the design system, and flags anything that doesn't match as notes in Figma. *(R12)*
 8. **Claude makes the interactions clear for developers:** ideally as a coded prototype (the design built in HTML and CSS), otherwise as annotations or state pages in Figma. *(R13)*
-9. **The work is ready to hand over:** marked ready for development, annotations and developer notes done, the presentation prototype ready, and any coded prototype zipped up to send. *(R14)*
+9. **The work is ready to hand over:** marked ready for development, annotations and developer notes done, the Figma presentation for stakeholders ready, and any coded prototype zipped up to send. *(R14)*
 
 ## Requirements
 
@@ -43,13 +43,17 @@ A designer picks up a piece of work. The journey below is the target; each step 
 - **R11. Change once, everywhere.** A change the designer asks for is applied to every screen it affects.
 - **R12. Check accuracy and consistency** against the story's requirements and the design system, and flag anything that doesn't match as **notes in Figma**, next to what they refer to.
 
+### Coded prototypes (optional, after Figma)
+
+- **R28. A coded prototype is an optional step after the Figma design,** never instead of it: the design built in HTML and CSS, from the Figma frames, with the design system. The designer asks for it; Claude doesn't start one unasked.
+
 ### For developers
 
 - **R13. Make the interaction design clear,** so the coded version can match it: ideally as a **coded prototype**, the design built in HTML and CSS; if the designer isn't prototyping, as **annotations** or **state pages** in Figma.
 - **R14. Ready to hand over,** meaning:
   - the design files are marked ready for development in Figma
   - all annotations, and any extra notes for developers, are done
-  - the presentation prototype is mocked up and ready to use
+  - the presentation for stakeholders is mocked up in Figma and ready to use
   - if there's a coded prototype, its files are zipped up, ready to send to developers
 
 ### Never (protections)
@@ -84,7 +88,7 @@ The same approach should be used for R15 and R17 where Studio can check Figma ac
 
 ## Not in scope for now
 
-- Coded prototypes, project folders, save points and other file-based tools (later, if the team moves to coded prototypes).
+- Project folders, save points and other file-based tools, beyond what a coded prototype needs.
 - Team feedback and discovery questions (after it's built).
 - Accessibility checks, screen sizes, learning HTML and CSS (separate or later).
 
@@ -93,6 +97,6 @@ The same approach should be used for R15 and R17 where Studio can check Figma ac
 1. **Picking up a story:** paste it in for now. Claude finding the files itself is a possible later approach.
 2. **Mismatches:** flagged as notes in Figma.
 3. **Interactions:** ideally a coded prototype (HTML and CSS); otherwise annotations or state pages in Figma. ("Prototyping" always means building the design in HTML and CSS, not a Figma prototype.)
-4. **Ready to hand over:** marked for dev, all annotations and dev notes done, the presentation prototype ready, and any coded prototype zipped up to send.
+4. **Ready to hand over:** marked for dev, all annotations and dev notes done, the Figma presentation for stakeholders ready, and any coded prototype zipped up to send.
 5. **Placement:** chosen each time. A team Figma template could make this better later.
 6. **Figma branches:** preferred, but asked each time.
