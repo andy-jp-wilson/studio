@@ -248,7 +248,7 @@ test('the Studio lab draws every page in the app', async ($, on) => {
   on('session.version', () => ({ value: '2.1.300' }))
   await start($)
   await $.command.run({ command: 'studio-lab', args: '' })
-  const firsts: Record<string, string> = { '1': 'Size caption: Faster sign-up', '2': 'Hex text #E07A6E', '3': 'borderStyle round', '4': '8 × 16', '5': 'Nothing pressed yet', '6': 'padding md on a white box', '7': 'Nothing pressed yet', '8': 'Hover over me: I should turn pale coral', '9': 'Show test dots in the band' }
+  const firsts: Record<string, string> = { '1': 'Size caption: Faster sign-up', '2': 'Hex text #E07A6E', '3': 'borderStyle round', '4': '8 × 16', '5': 'Nothing pressed yet', '6': 'padding md on a white box', '7': 'Nothing pressed yet', '8': 'Hover over me: I should turn pale coral', '9': 'Show test dots in the band', 'm': 'A · pulse, redrawn by Studio' }
   for (const k of Object.keys(firsts)) {
     const ui = await $.ui.mount(LAB('desktop'))
     await ui.press({ key: 'lab-tab-' + k })

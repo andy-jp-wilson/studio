@@ -5,7 +5,7 @@
 import { describe } from './studio/narrate.js'
 import { drawBand } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
-import { LAB_PANE, drawLab, drawBandTest } from './studio/lab.js'
+import { LAB_PANE, drawLab, drawBandTest, drawBandMotion } from './studio/lab.js'
 
 const PANE = 'studio'
 
@@ -131,7 +131,8 @@ function wordsNote() {
 }
 
 // The Studio lab (temporary): what the app really draws. See studio/lab.js.
-let labState = { page: '1', said: '', bandSvg: false, hint: false }
+let labState = { page: '1', said: '', bandSvg: false, hint: false, bandMotion: false, running: false, frame: 0 }
+let labTimer = null
 let ccVersion = ''
 
 function labFor($) {
@@ -147,6 +148,13 @@ function labFor($) {
     ask: async () => { try { const a = await $.ui.ask('Work in Studio’s design file in Figma?', ['Yes, go ahead', 'No']); say('You picked: ' + a) } catch (err) { say('Question closed: ' + err) } },
     toggleBand: () => { labState = { ...labState, bandSvg: !labState.bandSvg }; redraw() },
     toggleHint: () => { labState = { ...labState, hint: !labState.hint }; redraw() },
+    toggleBandMotion: () => { labState = { ...labState, bandMotion: !labState.bandMotion }; redraw() },
+    toggleRun: async () => {
+      if (labTimer) { try { labTimer.cancel() } catch {} labTimer = null; labState = { ...labState, running: false }; return redraw() }
+      labState = { ...labState, running: true }
+      try { labTimer = await $.clock.every(100, () => { labState = { ...labState, frame: labState.frame + 1 }; $.ui.invalidate('ui.render') }) } catch (err) { labState = { ...labState, running: false, said: 'Timer failed: ' + err } }
+      redraw()
+    },
   }
 }
 
@@ -228,7 +236,8 @@ export function register(on) {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
     const studioBand = drawBand(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
-    const band = labState.bandSvg && e.surface !== 'terminal' ? el.Box({ key: 'lab-band-wrap', flexDirection: 'column', children: [studioBand, drawBandTest(el)] }) : studioBand
+    const extras = e.surface === 'terminal' ? [] : [...(labState.bandSvg ? [drawBandTest(el)] : []), ...(labState.bandMotion ? [drawBandMotion(el, labState.frame)] : [])]
+    const band = extras.length ? el.Box({ key: 'lab-band-wrap', flexDirection: 'column', children: [studioBand, ...extras] }) : studioBand
     const rest = await next(e)
     return rest ? el.Box({ key: 'studio-band-wrap', flexDirection: 'column', children: [band, rest] }) : band
   })

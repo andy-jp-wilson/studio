@@ -8,7 +8,7 @@ export const LAB_PANE = 'studio-lab'
 
 export const LAB_PAGES = [
   ['1', 'Type'], ['2', 'Colour'], ['3', 'Borders'], ['4', 'Pictures'], ['5', 'Controls'],
-  ['6', 'Spacing'], ['7', 'Messages'], ['8', 'Hover'], ['9', 'Band and hint'],
+  ['6', 'Spacing'], ['7', 'Messages'], ['8', 'Hover'], ['9', 'Band and hint'], ['m', 'Motion'],
 ]
 
 const DOT = (w, h, r) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><circle cx="${w / 2}" cy="${h / 2}" r="${r}" fill="${MIST.coral}"/></svg>`
@@ -17,7 +17,7 @@ export const LAB_DOTS = [[1, 1, 0.4], [2, 1, 0.4], [8, 16, 3.5], [16, 16, 6], [2
 function header(el, lab, version) {
   const { Box, Text, Button } = el
   return Box({ key: 'lab-head', flexDirection: 'column', rowGap: 1, children: [
-    Text({ key: 'lab-title', bold: true, children: ['Studio lab · page ' + lab.page + ' of 9 · Claude Code ' + (version || '?')] }),
+    Text({ key: 'lab-title', bold: true, children: ['Studio lab · page ' + lab.page + ' · Claude Code ' + (version || '?')] }),
     Box({ key: 'lab-tabs', flexDirection: 'row', columnGap: 2, flexWrap: 'wrap', children: LAB_PAGES.map(([k, name]) =>
       Button({ key: 'lab-tab-' + k, label: name, hotkey: k, plain: true, dimColor: lab.page !== k, onPress: () => lab.go(k) })) }),
   ] })
@@ -94,8 +94,47 @@ function page(el, lab) {
   return []
 }
 
+// Motion A: Studio redraws a still picture, frame by frame (lab.frame counts up).
+export function pulseFrame(frame) {
+  const t = (frame % 10) / 10, k = Math.sin(t * Math.PI)
+  const ring = 4 + k * 4, op = (0.45 * (1 - k) + 0.1).toFixed(2)
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="${ring.toFixed(2)}" fill="${MIST.coral}" opacity="${op}"/><circle cx="9" cy="9" r="4" fill="${MIST.coral}"/></svg>`
+}
+export function barFrame(frame, step = 5) {
+  const t = (frame % 12) / 12, k = 0.35 + 0.65 * Math.abs(Math.sin(t * Math.PI))
+  let x = 0, rects = ''
+  for (let i = 1; i <= 9; i++) { const w = i === step ? 22 : 12; rects += `<rect x="${x}" y="0" width="${w}" height="5" rx="2.5" fill="${i <= step ? MIST.coral : MIST.control}"${i === step ? ` opacity="${k.toFixed(2)}"` : ''}/>`; x += w + 3 }
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${x}" height="5" viewBox="0 0 ${x} 5">${rects}</svg>`
+}
+// Motion B: the picture animates itself (SVG's own animation, then CSS inside the SVG).
+export const PULSE_SMIL = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="4" fill="${MIST.coral}"><animate attributeName="r" values="4;8;4" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0.1;0.5" dur="1s" repeatCount="indefinite"/></circle><circle cx="9" cy="9" r="4" fill="${MIST.coral}"/></svg>`
+export const PULSE_CSS = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><style>@keyframes p{0%,100%{r:4px;opacity:.5}50%{r:8px;opacity:.1}}.r{animation:p 1s ease-in-out infinite}</style><circle class="r" cx="9" cy="9" r="4" fill="${MIST.coral}"/><circle cx="9" cy="9" r="4" fill="${MIST.coral}"/></svg>`
+
+function motion(el, lab) {
+  const { Box, Text, Button, Svg } = el
+  const pic = (key, source, w, h) => Svg({ key, source, alt: 'animation', width: w, height: h })
+  const rowOf = (key, picEl, label) => Box({ key, flexDirection: 'row', columnGap: 2, alignItems: 'center', children: [picEl, Text({ key: key + '-t', children: [label] })] })
+  return [
+    Button({ key: 'motion-run', label: lab.running ? 'Stop the redraws' : 'Start the redraws (for A)', onPress: () => lab.toggleRun() }),
+    Text({ key: 'motion-frame', color: MIST.muted, children: ['Frame ' + lab.frame + (lab.running ? ' · redrawing about 10 times a second' : ' · not redrawing') ] }),
+    rowOf('m-a1', pic('m-a1-svg', pulseFrame(lab.frame), 2, 1), 'A · pulse, redrawn by Studio'),
+    rowOf('m-a2', pic('m-a2-svg', barFrame(lab.frame), 14, 1), 'A · progress shimmer, redrawn by Studio'),
+    rowOf('m-b1', pic('m-b1-svg', PULSE_SMIL, 2, 1), 'B1 · pulse, the picture animates itself (SVG)'),
+    rowOf('m-b2', pic('m-b2-svg', PULSE_CSS, 2, 1), 'B2 · pulse, the picture animates itself (CSS)'),
+    Button({ key: 'motion-band', label: lab.bandMotion ? 'Take the moving dots out of the band' : 'Put the moving dots in the band', onPress: () => lab.toggleBandMotion() }),
+    Text({ key: 'motion-note', color: MIST.muted, children: ['Look for: does each dot move, and is it smooth or jumpy? Then try the band.'] }),
+  ]
+}
+
+// The band's motion test row: A, B1 and B2 side by side.
+export function drawBandMotion(el, frame) {
+  const { Box, Svg, Text } = el
+  const item = (key, source, label) => Box({ key, flexDirection: 'row', columnGap: 1, alignItems: 'center', children: [Svg({ key: key + '-svg', source, alt: 'animation', width: 2, height: 1 }), Text({ key: key + '-t', children: [label] })] })
+  return Box({ key: 'lab-band-motion', flexDirection: 'row', columnGap: 3, alignItems: 'center', children: [item('lbm-a', pulseFrame(frame), 'A'), item('lbm-b1', PULSE_SMIL, 'B1'), item('lbm-b2', PULSE_CSS, 'B2')] })
+}
+
 export function drawLab(el, lab, version) {
-  return el.Box({ key: 'lab', flexDirection: 'column', rowGap: 1, children: [header(el, lab, version), ...page(el, lab)] })
+  return el.Box({ key: 'lab', flexDirection: 'column', rowGap: 1, children: [header(el, lab, version), ...(lab.page === 'm' ? motion(el, lab) : page(el, lab))] })
 }
 
 // The band test row: dots at three sizes beside the word, to see which draw.
