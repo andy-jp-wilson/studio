@@ -18,14 +18,14 @@ Claude comes in a few forms, and it's fair to wonder why a designer would use on
 
 - **Claude (chat)**, for thinking it through: research, writing and checking copy, critique, summaries. It doesn't touch your files.
 - **Claude Design**, for exploring ideas fast: wireframes, quick prototypes, decks and one-pagers, to try directions and get people aligned early. You'll find it in Claude itself.
-- **Claude Code, where Studio lives**, for real work: it works on the files on your computer, runs a private preview, and connects to Figma and your design system. That's what lets it check designs, write handovers developers can rely on, and turn a design into a working prototype.
+- **Claude Code, where Studio lives** · *Recommended*. For real work: it works on the files on your computer, runs a private preview, and connects to Figma and your design system. That's what lets it check designs, write handovers developers can rely on, and turn a design into a working prototype.
 
 | I want to… | Use |
 |---|---|
 | Think through a problem, write copy, summarise research | Claude (chat) |
 | Try a few directions quickly, or show an early idea | Claude Design |
-| Check a Figma flow against the design system, or hand it over to developers | Claude Code, with Studio |
-| Turn a design into a working prototype | Claude Code, with Studio (you can start in Claude Design and bring it here) |
+| Check a Figma flow against the design system, or hand it over to developers | Claude Code, with Studio · *Recommended* |
+| Turn a design into a working prototype | Claude Code, with Studio · *Recommended* (you can start in Claude Design and bring it here) |
 
 **Why Claude Code?** It sounds like a tool for developers, and it is one; that's the point. It works where developers work, so what you make arrives in a form they can use. Studio makes it clearer, calmer and safer: friendly words, a snapshot before every change, and nothing uploaded unless you ask.
 
