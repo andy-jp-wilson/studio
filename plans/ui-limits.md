@@ -56,3 +56,15 @@ After further testing the user confirmed every lab test worked. What this change
 ## Redesign proposal
 
 Figma page **15 Redesign · proposal** (`54:2`), 20 October 2026: the band with the Studio mark as a picture and a hint per step; the panel at five moments (before a story, the brief with answers in the panel, building with links to each screen, checking with requirements ticking off, ready to hand over); a dot whose colour follows the state, with a pulse and a progress bar in the band while Claude works (animation still to test in the app); Studio's own Figma question and friendlier tool rows. Waiting for the user's review before building.
+
+## Motion test (Studio lab, 20 October 2026)
+
+| Test | Result |
+|---|---|
+| A · picture redrawn by Studio (same name) | Doesn't move |
+| A2 · picture with a new name every frame | Doesn't move, or too small to see |
+| B1, B2 · picture that animates itself (SVG, CSS) | Doesn't move: the app draws pictures as still images |
+| **C · pulse and progress made of text** (● ◉ ◎ and ▬, changing colour) | **Moves** |
+| Buttons while redrawing 10 times a second | **Stop working** after the first press |
+
+What this means: movement has to be made of text characters, redrawn by Studio. Keep it slow (a few times a second, not ten), and only while Claude is working, when the designer isn't clicking in the panel; stop it the moment Claude stops. Pictures stay still. /reload-plugins stops a lab timer that's still running.
