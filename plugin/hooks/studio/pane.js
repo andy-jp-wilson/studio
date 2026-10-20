@@ -40,7 +40,7 @@ function itemRow(el, it, i, key, ctx) {
   const rows = [Box({ key: k, flexDirection: 'row', columnGap: 1, children: [
     ...(drawn
       // A new name for each look, so the app never shows an old picture
-      ? [Svg({ key: k + '-box-' + (state === 'todo' || state === 'now' ? 'todo' : state) + '-' + ctx.color.slice(1), source: checkbox(state, ctx.color), alt: state === 'done' ? 'Done' : state === 'none' ? 'Not needed' : 'To do', width: 2, height: 1 })]
+      ? [Svg({ key: k + '-box-' + (state === 'todo' || state === 'now' ? 'todo' : state) + '-' + ctx.color.slice(1), source: checkbox(state, ctx.color), alt: state === 'done' ? 'Done' : state === 'none' ? 'Not needed' : 'To do', width: 16, height: 16 })]
       : glyph ? [Text({ key: k + '-g', color: glyphColor, weight: 'semibold', children: [glyph] })] : []),
     Box({ key: k + '-body', flexDirection: 'column', flexGrow: 1, flexShrink: 1, children: body }),
     ...right,

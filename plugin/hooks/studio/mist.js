@@ -39,7 +39,7 @@ export function mark(el, surface, key = 'mark', dotColor = null) {
     ? Text({ key: key + '-dot', color: dotColor, children: ['●'] })
     : surface === 'terminal'
       ? Text({ key: key + '-dot', color: MIST.coral, children: ['●'] })
-      : Svg({ key: key + '-logo', source: LOGO_SVG, alt: 'Studio', width: 2, height: 1 })
+      : Svg({ key: key + '-logo', source: LOGO_SVG, alt: 'Studio', width: 16, height: 16 })
   return Box({ key, flexDirection: 'row', columnGap: 1, alignItems: 'center', children: [
     symbol,
     Text({ key: key + '-word', color: MIST.text, bold: true, children: ['studio'] }),
