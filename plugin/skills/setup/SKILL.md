@@ -12,6 +12,8 @@ allowed-tools:
 
 Walk the person through seven steps, **one at a time**, in the Studio voice. Before each step say in one line what it's for. After each step show a tick and move on. Never rush several questions into one message.
 
+**Figma tools.** Figma may be connected through the Figma plugin or through Claude's own Figma connector; use whichever has the tools (`whoami`, `get_metadata`, `get_libraries`, `get_screenshot`, `create_new_file`). If the Figma plugin's tools are the ones connected and it offers `create_session`, call it with the file key before that file's other tools, as its instructions say.
+
 Use the helper `studio-project` (already allowed) for all reading and writing of setup notes and folders. It never moves, overwrites or deletes anything.
 
 ## 0. Where things stand
@@ -31,11 +33,11 @@ Say: "First, your team's settings: your design systems, where projects go, and w
 - **Already set** (`studio-team show` listed some): show them as a short list in plain words and ask "Keep these, or change them?" Keep: a tick, move on. Change: open the form, below.
 - **Not set:** open the form.
 
-**Opening the form:** run `studio-team form`. It opens the **Team settings** form in the Studio panel. Say: "I've opened the team settings form in the Studio panel. If someone on your team shared a team file, choose **Load a team file** (recommended); otherwise choose **Type them in**." Then wait. When a message says the settings were saved or kept, run `studio-team show`, show a tick, and move on.
+**Opening the form:** run `studio-team form`. It opens the **Team settings** form in the Studio panel. Say: "I've opened the team settings form in the Studio panel. If someone on your team shared a team file, choose **Load a team file** (recommended); otherwise choose **Type them in**." Then wait. When a message says the settings were saved or kept (or the person says so), run `studio-team show`, show a tick, and move on. If it still shows nothing, the form hasn't been saved yet: say so gently and wait.
 
 **Without the panel** (for example in VS Code), or if they'd rather do it here:
 - Ask whether they have a team file (recommended). If so, they drag it into the conversation; run `studio-team read <path>`, show what's in it in plain words, and ask before saving.
-- Otherwise ask for each setting in turn, each optional: projects folder on this computer (if they're unsure how to give one: leave it empty for `~/studio-projects`, type one starting with `~/`, or in Finder right-click the folder, hold Option and choose Copy as Pathname), Figma team folder (destination), as a Figma link (recorded, not enforced yet), GitHub repository (or organisation) work may be uploaded to, with a one-line explanation of GitHub, and each design system's name and Figma link.
+- Otherwise ask for each setting in turn, each optional: projects folder on this computer (if they're unsure how to give one: leave it empty for `~/studio-projects`, type one starting with `~/`, or in Finder right-click the folder, hold Option and choose Copy as Pathname), Figma project folder (destination), as a Figma folder link, GitHub repository (or organisation) work may be uploaded to, with a one-line explanation of GitHub, and each design system's name and Figma link.
 - Save each with `studio-team set <KEY> "<value>"` (keys: `STUDIO_ALLOWED_ORGS`, `STUDIO_PROJECTS_FOLDER`, `STUDIO_FIGMA_WRITE_PLACES`, `STUDIO_DESIGN_SYSTEMS` as `Name | link` joined with `; `).
 
 No team settings at all is fine: say Studio works without them, and move on. They're saved on this computer only; nothing is uploaded.
@@ -44,9 +46,9 @@ No team settings at all is fine: say Studio works without them, and move on. The
 
 Say: "Next, checking that Studio can reach Figma."
 
-Call the Figma `whoami` tool.
+Call the Figma `whoami` tool (from either Figma connection).
 - It works: "✓ Figma is connected." Run `studio-project done connection`.
-- It fails, or there's no Figma tool: "Figma isn't connected yet." Then:
+- It fails, or there's no Figma tool in either connection: "Figma isn't connected yet." Then:
   1. Type `/mcp`
   2. Choose **figma**, then **Authenticate**, and sign in in the browser
   3. Come back and say "done"
@@ -106,11 +108,17 @@ Check it:
 
 Say: "Last Figma step: the file where this project's designs live."
 
-Ask: "Paste a link to the file, or shall I **create a new one**?"
+Ask, as a short list:
+- **Use a file that already exists:** paste its link.
+- **Create a new file in <folder name>:** only if the team set a Figma project folder (`STUDIO_FIGMA_WRITE_PLACES`).
+- **Create a new file in your Drafts:** quickest; it can be moved into a project folder in Figma later.
 
-**A link**: check it as in step 5. Show the file name and its pages. If the first page has something on it, also show a small picture of it (Figma `get_screenshot` on that page's id; skip quietly if it fails). Ask: "Is this the right file?"
+**An existing file**: check it as in step 5. Show the file name and its pages. If the first page has something on it, also show a small picture of it (Figma `get_screenshot` on that page's id; skip quietly if it fails). Ask: "Is this the right file?"
 
-**Create a new one**: load the `figma:figma-create-new-file` skill first and follow it. Name the file after the project (e.g. "Onboarding"). If the team set a Figma team folder (`STUDIO_FIGMA_WRITE_PLACES`, a link like `figma.com/files/…/project/<id>`), create it in that folder (its project id). Otherwise use `whoami`'s plans; if there's more than one, ask which team or organisation it belongs in. Creating a file is a change in Figma, so confirm before creating it. Then show the new file's link.
+**A new file**: load the `figma:figma-create-new-file` skill first and follow it. Name the file after the project (e.g. "Onboarding"). For the plan, use the organisation in the folder link (`figma.com/files/<org id>/…` is `organization::<org id>`), else `whoami`'s plans, asking which if there's more than one.
+- In the team's folder: pass the folder's id as `projectId` (the number after `/folder/` or `/project/` in the link). If Figma refuses it, say so plainly and offer Drafts instead.
+- In Drafts: no `projectId`.
+The person's choice is their yes; then show the new file's link.
 
 Then:
 - `studio-project set targetFileUrl "<link>"`, `studio-project set targetFileName "<name>"`, `studio-project done targetFile`.

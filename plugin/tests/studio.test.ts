@@ -338,7 +338,7 @@ test('the team form offers a team file (recommended) or typing, and typing saves
   expect(sets).toContainEqual(['set', 'STUDIO_ALLOWED_ORGS', 'acme,acme-labs'])
   expect(sets).toContainEqual(['set', 'STUDIO_DESIGN_SYSTEMS', 'Acme DS | https://www.figma.com/design/aaa/Acme'])
   expect(await ui.find({ type: 'Text', text: '✓ Team settings saved on this computer' })).toBeDefined()
-  expect(calls.prompts.length).toBe(0)
+  expect(calls.prompts.at(-1)).toMatch(/saved their team settings/)
   await ui.press({ key: 'export' })
   expect(await ui.find({ type: 'Text', text: '✓ Team file saved: /Users/sam/Desktop/acme-design.studio-team.json' })).toBeDefined()
 })
@@ -372,7 +372,7 @@ test('/setup opens the form by running studio-team form, and saving tells Claude
   await ui.press({ key: 'load' })
   await ui.input({ key: 'file-path', text: '~/Desktop/acme-design.studio-team.json' })
   await ui.press({ key: 'save' })
-  expect(calls.prompts.at(-1)).toMatch(/saved their team settings.*Acme DS, Acme Classic.*Carry on with \/setup/)
+  expect(calls.prompts.at(-1)).toMatch(/saved their team settings.*Acme DS, Acme Classic.*carry on with it/)
 })
 
 test('Choose a folder and Choose the file use the Mac pickers', async ($, on) => {

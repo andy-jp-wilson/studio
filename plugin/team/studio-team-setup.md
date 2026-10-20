@@ -7,7 +7,7 @@ Studio works for one designer on their own, but it's better when everyone on a t
 | Setting | What it does |
 |---|---|
 | Projects folder on this computer | A folder on each designer's own computer where Studio makes new projects, so everyone's are in the same, easy-to-find place. Defaults to `~/studio-projects`; **Choose a folder…** in the form opens the Mac's folder picker. |
-| Figma team folder (destination) | A link to the Figma folder where Studio may create and change files, such as new project files and handover pages. Open the folder in Figma and copy the link from the address bar. Recorded now; in a later version Studio will refuse to change files anywhere else. |
+| Figma project folder (destination) | A link to the team's Figma folder where new project files go. Open the folder in Figma and copy the link from the address bar. When Studio makes a project's Figma file, it offers this folder or the designer's Drafts. In a later version Studio will refuse to change files anywhere else. |
 | GitHub repository | GitHub is a website where teams store and share project files. If your team uses it, this is the repository (or organisation) designers' work may go to; Studio never uploads anywhere else. Leave it empty to keep all work on each designer's computer. |
 | Design systems | Every design system your team uses, each with its Figma library link. Designers choose one for each project. |
 
@@ -29,7 +29,7 @@ The form can be opened again any time with `/team-settings`.
 - [ ] Studio is installed on your computer
 - [ ] You know your team's GitHub repository, if work should be shared there
 - [ ] You have the Figma library link for each design system your team uses
-- [ ] You've decided where new projects should go on each computer, and copied the link to the Figma team folder Studio may use
+- [ ] You've decided where new projects should go on each computer, and copied the link to the Figma project folder where new project files should go
 - [ ] You've run `/setup`, chosen **Type them in**, and saved the team settings
 - [ ] You've clicked **Save a copy for the team** and found the file on your Desktop
 - [ ] You've shared the file with your designers, along with this guide

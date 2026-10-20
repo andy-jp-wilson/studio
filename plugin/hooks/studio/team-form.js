@@ -10,7 +10,7 @@ export const EMPTY = { teamName: '', uploadPlaces: '', projectsFolder: '', figma
 
 export const FIELDS = [
   { id: 'projectsFolder', label: 'Projects folder on this computer (optional)', placeholder: '~/studio-projects', hint: 'A folder on each designer’s own computer where Studio makes new projects, so everyone’s projects are in the same, easy-to-find place. Leave it empty to use ~/studio-projects, or choose one below. You can also type one: ~ means your home folder, so ~/Documents/Design projects is a folder inside Documents.' },
-  { id: 'figmaWritePlaces', label: 'Figma team folder (destination)', placeholder: 'https://www.figma.com/files/team/…/project/…', hint: 'The link to the Figma folder where Studio may create and change files, such as new project files and handover pages. Open the folder in Figma and copy the link from the address bar. Coming in a later version: Studio will then refuse to change files anywhere else.', figma: true },
+  { id: 'figmaWritePlaces', label: 'Figma project folder (destination)', placeholder: 'https://www.figma.com/files/…/folder/…', hint: 'The team’s Figma folder where new project files go. Open the folder in Figma and copy the link from the address bar. When Studio makes a project’s Figma file, it offers this folder or the designer’s Drafts. Coming in a later version: Studio will refuse to change files anywhere else.', figma: true },
   { id: 'uploadPlaces', label: 'GitHub repository (optional)', placeholder: 'https://github.com/acme/design-work', hint: 'GitHub is a website where teams store and share project files. If your team uses it, paste the repository (or organisation) designers’ work may go to; Studio will never upload anywhere else. Leave it empty to keep all work on this computer.' },
 ]
 
@@ -41,7 +41,7 @@ const gap = (Text, key) => Text({ key, children: [' '] })
 function summary(el, v, prefix) {
   const { Box, Text } = el
   const rows = [
-    ['Projects folder', v.projectsFolder], ['Figma team folder', v.figmaWritePlaces],
+    ['Projects folder', v.projectsFolder], ['Figma project folder', v.figmaWritePlaces],
     ['GitHub repository', v.uploadPlaces],
     ['Design systems', (v.designSystems || []).map(d => d.name || d.link).join(', ')],
   ]

@@ -115,7 +115,8 @@ async function openTeam($, fromSetup) {
 
 function teamActions($) {
   const redraw = () => $.ui.invalidate('ui.render')
-  const tell = text => { if (team.fromSetup) $.prompt.submit({ text }).catch(() => {}) }
+  // Always tell Claude, so a /setup in progress carries on however the form was opened.
+  const tell = text => { $.prompt.submit({ text }).catch(() => {}) }
   return {
     file: () => { team = { ...team, step: 'file', error: '' }; redraw() },
     manual: () => { team = { ...team, step: 'edit', error: '', loadedFrom: '', values: copy(team.step === 'saved' ? team.values : team.current) }; redraw() },
@@ -160,7 +161,7 @@ function teamActions($) {
       team = { ...team, values: { ...team.values, designSystems: [...ds, { name: '', link: '' }] } }; redraw()
     },
     removeDs: i => { team = { ...team, values: { ...team.values, designSystems: team.values.designSystems.filter((_, j) => j !== i) } }; redraw() },
-    keep: () => { tell('The person kept the team settings already saved on this computer. Carry on with /setup.'); team = { ...team, step: 'saved', values: copy(team.current) }; redraw() },
+    keep: () => { tell('The person kept the team settings already saved on this computer. If /setup is in progress, carry on with it.'); team = { ...team, step: 'saved', values: copy(team.current) }; redraw() },
     save: async () => {
       team = { ...team, saving: true, error: '' }; redraw()
       try {
@@ -171,7 +172,7 @@ function teamActions($) {
         const values = copy({ ...team.values, designSystems: team.values.designSystems.filter(d => d.name || d.link) })
         team = { ...team, saving: false, step: 'saved', current: values, values }
         const names = values.designSystems.map(d => d.name || d.link).join(', ')
-        tell('The person saved their team settings in the Studio form' + (names ? ', with design systems: ' + names : '') + '. Carry on with /setup.')
+        tell('The person saved their team settings in the Studio form' + (names ? ', with design systems: ' + names : '') + '. If /setup is in progress, carry on with it.')
       } catch {
         team = { ...team, saving: false, error: 'The settings couldn’t be saved. Nothing has changed; try again.' }
       }
