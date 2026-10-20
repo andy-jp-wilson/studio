@@ -35,10 +35,18 @@ const STORY_TOOL = {
       needs: { type: 'string', description: 'What is waiting for the designer, a few words, e.g. "2 questions for you". Empty string when nothing is.' },
       sections: { type: 'array', description: 'The panel sections for this step, in order (do not repeat the story itself).', items: { type: 'object', properties: {
         title: { type: 'string' },
-        needs: { type: 'boolean', description: 'True if this section is waiting for the designer (shown first, in coral text).' },
+        needs: { type: 'boolean', description: 'True if this section is waiting for the designer (shown first, outlined in ochre).' },
+        ask: { type: 'boolean', description: 'True for questions the designer can answer in the panel: each item gets a text box, and their answers come back to you as a message.' },
+        checklist: { type: 'boolean', description: 'True for a checklist, such as the handover checklist (items shown with ☑ for done and ☐ for to do).' },
         items: { type: 'array', items: { type: 'object', properties: {
           text: { type: 'string' },
-          state: { type: 'string', enum: STATES, description: 'done ✓, now ●, todo ○, need (waiting for the designer), muted, none (—, not applicable), plain, strong.' },
+          state: { type: 'string', enum: STATES, description: 'done ✓, now ●, todo ○, need ! (waiting for the designer, or something that doesn’t match), muted, none (—, not applicable), plain, strong.' },
+          sub: { type: 'string', description: 'A short second line in small grey type, e.g. "Note left in Figma beside the screen".' },
+          link: { type: 'string', description: 'An https link, shown as "Open ↗": for a screen, the link to its frame in Figma (with node-id); for a note, the link to the note.' },
+          linkLabel: { type: 'string', description: 'The link’s word, default "Open", e.g. "Show".' },
+          action: { type: 'string', description: 'What the designer is asking for if they press this item’s button, in their words, e.g. "Mock up the presentation for stakeholders in Figma". Sent to you as their message.' },
+          actionLabel: { type: 'string', description: 'The button’s word, default "Start".' },
+          placeholder: { type: 'string', description: 'For a question: the hint in its answer box, e.g. "Format only, or more?".' },
         }, required: ['text'] } },
       }, required: ['title'] } },
     },
@@ -52,8 +60,15 @@ function applyStory(card, e) {
   if (typeof e.status === 'string') next.status = e.status.slice(0, 80)
   if (typeof e.needs === 'string') next.needs = e.needs.slice(0, 80)
   if (Array.isArray(e.sections)) next.sections = e.sections.slice(0, 12).map(sec => ({
-    title: String(sec?.title || '').slice(0, 60), needs: Boolean(sec?.needs),
-    items: (Array.isArray(sec?.items) ? sec.items : []).slice(0, 12).map(it => ({ text: String(it?.text ?? it ?? '').slice(0, 120), state: STATES.includes(it?.state) ? it.state : 'plain' })),
+    title: String(sec?.title || '').slice(0, 60), needs: Boolean(sec?.needs), ask: Boolean(sec?.ask), checklist: Boolean(sec?.checklist),
+    items: (Array.isArray(sec?.items) ? sec.items : []).slice(0, 12).map(it => ({
+      text: String(it?.text ?? it ?? '').slice(0, 120), state: STATES.includes(it?.state) ? it.state : 'plain',
+      ...(it?.sub ? { sub: String(it.sub).slice(0, 120) } : {}),
+      // Links must be https (the app draws anything else as plain text), with no raw @
+      ...(typeof it?.link === 'string' && /^https:\/\/[^\s@]+$/.test(it.link) && it.link.length <= 2048 ? { link: it.link, linkLabel: String(it.linkLabel || 'Open').slice(0, 20) } : {}),
+      ...(it?.action ? { action: String(it.action).slice(0, 300), actionLabel: String(it.actionLabel || 'Start').slice(0, 20) } : {}),
+      ...(it?.placeholder ? { placeholder: String(it.placeholder).slice(0, 60) } : {}),
+    })),
   }))
   return next
 }
@@ -106,8 +121,11 @@ function projectNote() {
     ' If the person asks for design work, offer /setup (a short chat) or ask for the Figma file’s link. Only make HTML or CSS files if they ask for a coded prototype.' + (notes.dsName ? ds : '')
 }
 
+// Answers the designer is typing into the panel's questions, by question.
+let answers = {}
+
 function state() {
-  return { ...live, story: storyCard, dsName: notes.dsName, figmaName: notes.figmaName }
+  return { ...live, story: storyCard, dsName: notes.dsName, figmaName: notes.figmaName, figmaUrl: notes.figmaUrl, answers }
 }
 
 // Word explanations: on or off, and the words the person already knows
@@ -169,6 +187,19 @@ function labFor($) {
 function actionsFor($) {
   return {
     stop: () => { if (live.turnId) $.turn.abort({ turnId: live.turnId }).catch(() => {}) },
+    // Typing in a question's answer box, or pressing Enter in it: keep it, without
+    // redrawing (so typing isn't interrupted). Send answers sends them all.
+    setAnswer: (k, v) => { answers = { ...answers, [k]: String(v || '') } },
+    // Send answers: they go to Claude as the designer's own message.
+    sendAnswers: async questions => {
+      const lines = questions.map((q, i) => (i + 1) + '. ' + q.text + ' ' + ((answers[q.key] || '').trim() || '(no answer yet)'))
+      if (!questions.some(q => (answers[q.key] || '').trim())) { try { await $.ui.toast('Type an answer first') } catch {} return }
+      $.prompt.submit({ text: 'My answers:\n' + lines.join('\n'), asUser: true }).catch(() => {})
+      answers = {}
+      $.ui.invalidate('ui.render')
+    },
+    // A checklist item's button: the designer asks Claude for that next step.
+    ask: text => { $.prompt.submit({ text: String(text), asUser: true }).catch(() => {}) },
   }
 }
 
@@ -210,6 +241,7 @@ export function register(on) {
   })
 
   on('tool.call', { tool: 'mcp__studio__story' }, async ($, e) => {
+    if (e.clear) answers = {}
     storyCard = applyStory(storyCard, e)
     try { if (storyKey) await $.store.set(storyKey, storyCard) } catch {}
     $.ui.invalidate('ui.render')

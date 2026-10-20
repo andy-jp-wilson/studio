@@ -1,57 +1,92 @@
-// Studio: the panel beside the conversation (Figma page 13, D5 Mist).
-// It follows the story: the story itself, then whatever matters at this step
-// (questions for you, requirements, paths, needs you, changes, notes in Figma,
-// the handover checklist). Claude fills it in with the story tool.
-// No background of its own: like the band, the app draws the panel's box, and
-// a second colour wouldn't line up with its edges. Pure drawing.
-// No Studio mark: the app's own panel header already says "Studio" (2026-10-20).
-import { MIST } from './mist.js'
+// Studio: the panel beside the conversation (Figma page 15, "The panel at
+// five moments"). It follows the story: the story at the top with its
+// progress, then white cards for whatever matters at this step, with what
+// needs you first, outlined in ochre. Items can link straight to their frame
+// in Figma, questions can be answered here, and checklist items can ask Claude
+// for the next step. Claude fills it in with the story tool. No background of
+// its own: the app draws the panel's box and its "Studio" header.
+import { MIST, stageOf } from './mist.js'
+import { progress } from './band.js'
 
-const GLYPH = { done: '✓  ', now: '●  ', todo: '○  ', none: '—  ' }
+const GLYPH = { done: '✓', now: '●', todo: '○', need: '!', none: '—' }
+const CHECK = { done: '☑', todo: '☐', now: '☐', need: '☐', none: '—' }
 
-function item(el, it, i, key, inNeeds) {
-  const { Box, Text } = el
+function itemRow(el, it, i, key, ctx) {
+  const { Box, Text, Link, Button } = el
   const state = it.state || 'plain'
-  const glyph = GLYPH[state] || ''
-  const color = state === 'need' || inNeeds ? MIST.tintText : state === 'muted' || state === 'none' ? MIST.muted : state === 'todo' ? MIST.text : MIST.text
-  return Box({ key: key + '-i' + i, flexDirection: 'row', children: [
-    ...(glyph ? [Text({ key: key + '-g' + i, color: state === 'now' ? MIST.coral : color, children: [glyph] })] : []),
-    Text({ key: key + '-t' + i, color, bold: state === 'now' || state === 'strong', wrap: 'wrap', children: [String(it.text || '')] }),
-  ] })
+  const glyph = (ctx.checklist ? CHECK : GLYPH)[state] || ''
+  const glyphColor = state === 'need' ? MIST.needs : state === 'todo' || state === 'none' || state === 'muted' ? MIST.line : ctx.color
+  const textColor = state === 'need' || ctx.needs ? MIST.needsText : state === 'muted' || state === 'none' ? MIST.muted : MIST.text
+  const weight = state === 'now' || state === 'strong' ? 'semibold' : ctx.needs && ctx.ask ? 'medium' : 'regular'
+  const k = key + '-i' + i
+  const right = []
+  if (it.link) right.push(Link({ key: k + '-link', href: it.link, label: (it.linkLabel || 'Open') + ' ↗' }))
+  if (it.action) right.push(Button({ key: k + '-act', label: it.actionLabel || 'Start', plain: true, onPress: () => ctx.actions.ask(it.action) }))
+  const body = [Text({ key: k + '-t', color: textColor, weight, wrap: 'wrap', children: [String(it.text || '')] })]
+  if (it.sub) body.push(Text({ key: k + '-s', color: MIST.muted, size: 'footnote', wrap: 'wrap', children: [String(it.sub)] }))
+  const rows = [Box({ key: k, flexDirection: 'row', columnGap: 1, children: [
+    ...(glyph ? [Text({ key: k + '-g', color: glyphColor, weight: 'semibold', children: [glyph] })] : []),
+    Box({ key: k + '-body', flexDirection: 'column', flexGrow: 1, flexShrink: 1, children: body }),
+    ...right,
+  ] })]
+  // A question you can answer here: a text box under it.
+  if (ctx.ask) rows.push(el.Input({ key: k + '-answer', placeholder: it.placeholder || 'Your answer', value: ctx.answers[k] || '', onInput: v => ctx.actions.setAnswer(k, v), onSubmit: v => ctx.actions.setAnswer(k, v) }))
+  return rows
 }
 
-function section(el, sec, i) {
-  const { Box, Text } = el
+function card(el, sec, i, color, actions, answers) {
+  const { Box, Text, Button } = el
   const key = 'sec-' + i
   const needs = Boolean(sec.needs)
-  // What needs the designer is in coral text, with no background (2026-10-20).
-  return Box({ key, flexDirection: 'column', children: [
-    Text({ key: key + '-title', color: needs ? MIST.tintText : MIST.text, bold: true, children: [String(sec.title || '')] }),
-    ...(sec.items || []).map((it, j) => item(el, typeof it === 'string' ? { text: it } : it, j, key, needs)),
+  const items = (sec.items || []).map(it => typeof it === 'string' ? { text: it } : it)
+  const questions = sec.ask ? items.map((it, j) => ({ text: it.text, key: key + '-i' + j })) : []
+  const ctx = { needs, ask: Boolean(sec.ask), checklist: Boolean(sec.checklist), color, actions, answers, questions }
+  const children = [
+    Text({ key: key + '-title', size: 'heading', weight: 'semibold', color: needs ? MIST.needsText : MIST.text, children: [String(sec.title || '')] }),
+    ...items.flatMap((it, j) => itemRow(el, it, j, key, ctx)),
+  ]
+  if (sec.ask && items.length) children.push(Box({ key: key + '-send', flexDirection: 'row', columnGap: 2, alignItems: 'center', children: [
+    Button({ key: key + '-send-btn', label: 'Send answers', onPress: () => actions.sendAnswers(questions) }),
+    Text({ key: key + '-send-or', color: MIST.muted, size: 'footnote', children: ['or answer in the chat'] }),
+  ] }))
+  return Box({ key, flexDirection: 'column', rowGap: 0, paddingX: 2, paddingY: 1, backgroundColor: MIST.raised,
+    ...(needs ? { borderStyle: 'round', borderColor: MIST.needs } : {}), children })
+}
+
+function storyHead(el, st) {
+  const { Box, Text } = el
+  const story = st.story || {}
+  const step = Math.min(9, Math.max(1, Number(st.step) || 1))
+  const stage = stageOf(step)
+  const color = st.needs ? MIST.needs : stage.color
+  const line = [stage.name, st.needs || st.status].filter(Boolean).join(' · ')
+  return Box({ key: 'story', flexDirection: 'column', paddingX: 1, children: [
+    Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [[story.key, 'Jira story', 'step ' + step + ' of 9'].filter(Boolean).join(' · ')] }),
+    Text({ key: 'story-title', size: 'title', weight: 'semibold', color: MIST.text, wrap: 'wrap', children: [String(story.title || 'Untitled story')] }),
+    Text({ key: 'story-doc', size: 'footnote', color: MIST.muted, children: [story.hasDesignDoc ? 'Technical design in Confluence' : 'No technical design yet · optional, but encouraged'] }),
+    progress(el, step, color, 'bars', 'pane-progress'),
+    Text({ key: 'story-stage', size: 'footnote', weight: 'medium', color: st.needs ? MIST.needsText : color, wrap: 'wrap', children: [line] }),
   ] })
 }
 
 export function drawPane(el, s, actions, columns) {
   const { Box } = el
   const st = s.story
-  const sections = []
+  const children = []
   if (!st || !st.story) {
-    sections.push({ title: 'Start with a story', items: [{ text: 'Paste a Jira story into the conversation.' }, { text: 'Adding its Confluence technical design is optional, but encouraged.', state: 'muted' }] })
-    sections.push({ title: 'Project', items: [
-      { text: 'Design system · ' + (s.dsName || 'not chosen yet'), state: s.dsName ? 'plain' : 'muted' },
-      { text: 'Figma file · ' + (s.figmaName || 'not chosen yet'), state: s.figmaName ? 'plain' : 'muted' },
-    ] })
+    children.push(card(el, { title: 'Start with a story', items: [{ text: 'Paste a Jira story into the conversation.' }, { text: 'Adding its Confluence technical design is optional, but encouraged.', state: 'muted' }] }, 0, MIST.coral, actions, {}))
+    children.push(card(el, { title: 'This project', items: [
+      { text: s.dsName || 'No design system chosen yet', state: s.dsName ? 'plain' : 'muted', sub: s.dsName ? 'Design system · never changed by Studio' : 'Choose one with /setup' },
+      { text: s.figmaName || 'No Figma file chosen yet', state: s.figmaName ? 'plain' : 'muted', sub: s.figmaName ? 'Figma file' : 'Choose one with /setup', ...(s.figmaUrl ? { link: s.figmaUrl } : {}) },
+    ] }, 1, MIST.coral, actions, {}))
   } else {
-    const story = st.story
-    sections.push({ title: 'Story', items: [
-      { text: [story.key, story.title].filter(Boolean).join(' · '), state: 'strong' },
-      { text: story.hasDesignDoc ? 'Jira · technical design in Confluence' : 'Jira', state: 'muted' },
-    ] })
+    const step = Math.min(9, Math.max(1, Number(st.step) || 1))
+    const color = stageOf(step).color
+    children.push(storyHead(el, st))
     const list = Array.isArray(st.sections) ? st.sections : []
     // What needs the designer comes first.
-    for (const sec of [...list.filter(x => x && x.needs), ...list.filter(x => x && !x.needs)]) sections.push(sec)
+    const ordered = [...list.filter(x => x && x.needs), ...list.filter(x => x && !x.needs)]
+    ordered.forEach((sec, i) => children.push(card(el, sec, i, color, actions, s.answers || {})))
   }
-  return Box({ key: 'studio-pane', flexDirection: 'column', rowGap: 1, width: Math.max(20, columns || 40), children: [
-    ...sections.map((sec, i) => section(el, sec, i)),
-  ] })
+  return Box({ key: 'studio-pane', flexDirection: 'column', rowGap: 1, width: Math.max(20, columns || 40), children })
 }

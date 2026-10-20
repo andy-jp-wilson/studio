@@ -197,38 +197,67 @@ test('Studio gives Claude a story tool, and the panel starts with “Start with 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount(PANE(surface))
     expect(await ui.find({ type: 'Text', text: 'Start with a story' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: 'Design system · Acme DS' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: 'Figma file · Onboarding' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Acme DS' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Design system · never changed by Studio' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Onboarding' })).toBeDefined()
+    expect(await ui.find({ type: 'Link' })).toBeDefined()
     for (const gone of ['tab-journey', 'tab-menu', 'tab-glossary', 'pane-designs', 'pane-words']) expect(await ui.find({ key: gone })).toBeUndefined()
     await ui.unmount()
   }
 })
 
-test('Claude’s story updates fill the band and panel, with what needs you first', async ($, on) => {
+test('Claude’s story updates fill the panel: the story, its progress, and what needs you first in ochre', async ($, on) => {
   setup(on)
   await start($)
   const r: any = await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up', hasDesignDoc: true }, step: 2, status: 'playing the brief back', needs: '2 questions for you',
-    sections: [{ title: 'Requirements', items: [{ text: 'Sign up with email or Google', state: 'todo' }] }, { title: 'Questions for you', needs: true, items: [{ text: 'Password rules up front?', state: 'need' }] }] })
+    sections: [{ title: 'Requirements', items: [{ text: 'Email field with validation', state: 'todo' }] }, { title: 'Questions for you', needs: true, ask: true, items: [{ text: '1. What counts as a valid email?', state: 'need', placeholder: 'Format only, or more?' }] }] })
   expect(String(r.result)).toMatch(/step 2 of 9.*2 questions for you/)
   const band = await $.ui.mount(BAND(120))
-  expect(await band.find({ type: 'Text', text: 'Step 2 of 9' })).toBeDefined()
   expect(await band.find({ type: 'Text', text: '2 questions for you' })).toBeDefined()
-  expect(await band.find({ key: 'status-needs' })).toBeDefined()
   await band.unmount()
   const pane = await $.ui.mount(PANE())
-  expect(await pane.find({ type: 'Text', text: 'SIGN-142 · Faster sign-up' })).toBeDefined()
-  expect(await pane.find({ type: 'Text', text: 'Jira · technical design in Confluence' })).toBeDefined()
-  expect(await pane.find({ type: 'Text', text: 'Questions for you' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'SIGN-142 · Jira story · step 2 of 9' })).toBeDefined()
+  expect((await pane.find({ type: 'Text', text: 'Faster sign-up' }) as any)?.props.size).toBe('title')
+  expect(await pane.find({ type: 'Text', text: 'Technical design in Confluence' })).toBeDefined()
+  expect((await pane.find({ type: 'Text', text: 'Questions for you' }) as any)?.props.color).toBe('#8E6516')
   expect(await pane.find({ type: 'Text', text: 'Start with a story' })).toBeUndefined()
+  // What needs you comes before Requirements
+  const texts: any[] = await pane.findAll({ type: 'Text' }) as any
+  const order = texts.map(t => t.text)
+  expect(order.indexOf('Questions for you')).toBeLessThan(order.indexOf('Requirements'))
   await pane.unmount()
-  // Later: fields left out stay; needs cleared
+  // Later: fields left out stay
   await $.tool.call({ tool: 'mcp__studio__story', step: 5, status: 'building screen 3 of 6', needs: '' })
-  const band2 = await $.ui.mount(BAND(120))
-  expect(await band2.find({ type: 'Text', text: 'building screen 3 of 6' })).toBeDefined()
-  expect(await band2.find({ key: 'status-needs' })).toBeUndefined()
-  await band2.unmount()
   const pane2 = await $.ui.mount(PANE())
-  expect(await pane2.find({ type: 'Text', text: 'SIGN-142 · Faster sign-up' })).toBeDefined()
+  expect(await pane2.find({ type: 'Text', text: 'Faster sign-up' })).toBeDefined()
+  expect(await pane2.find({ type: 'Text', text: 'The design · building screen 3 of 6' })).toBeDefined()
+})
+
+test('questions can be answered in the panel, and the answers go to Claude as the designer’s message', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 2, needs: '2 questions for you',
+    sections: [{ title: 'Questions for you', needs: true, ask: true, items: [{ text: 'What counts as a valid email?', state: 'need' }, { text: 'Can people resend the email?', state: 'need' }] }] })
+  const pane = await $.ui.mount(PANE())
+  await pane.input({ key: 'sec-0-i0-answer', text: 'Format only' })
+  await pane.input({ key: 'sec-0-i1-answer', text: 'Yes' })
+  await pane.press({ key: 'sec-0-send-btn' })
+  expect(calls.prompts.at(-1)).toBe('My answers:\n1. What counts as a valid email? Format only\n2. Can people resend the email? Yes')
+})
+
+test('items can link to their frame in Figma, and checklist items can ask Claude for the next step', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 9, sections: [
+    { title: 'Screens', items: [{ text: 'Sign up', state: 'done', link: 'https://www.figma.com/design/abc/File?node-id=5-1382' }, { text: 'Not a real link', state: 'done', link: 'javascript:alert(1)' }] },
+    { title: 'Handover checklist', checklist: true, items: [{ text: 'Presentation for stakeholders', state: 'todo', action: 'Mock up the presentation for stakeholders in Figma', actionLabel: 'Start' }] },
+  ] })
+  const pane = await $.ui.mount(PANE())
+  const links: any[] = await pane.findAll({ type: 'Link' }) as any
+  expect(links.length).toBe(1)
+  expect(await pane.find({ type: 'Text', text: '☐' })).toBeDefined()
+  await pane.press({ key: 'sec-1-i0-act' })
+  expect(calls.prompts.at(-1)).toBe('Mock up the presentation for stakeholders in Figma')
 })
 
 test('the story card is kept by Claude Code, so it comes back after a reload', async ($, on) => {
@@ -241,11 +270,11 @@ test('the story card is kept by Claude Code, so it comes back after a reload', a
 test('clear starts a new story', async ($, on) => {
   setup(on)
   await start($)
-  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 6 })
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up', hasDesignDoc: true }, step: 6 })
   await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SET-9', title: 'Settings' }, step: 1 })
   const pane = await $.ui.mount(PANE())
-  expect(await pane.find({ type: 'Text', text: 'SET-9 · Settings' })).toBeDefined()
-  expect(await pane.find({ type: 'Text', text: 'Jira' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Settings' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'No technical design yet · optional, but encouraged' })).toBeDefined()
 })
 
 test('Claude is still told the word and project notes before each reply', async ($, on) => {
