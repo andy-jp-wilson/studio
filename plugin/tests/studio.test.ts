@@ -28,7 +28,7 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[], tools: [] as string[], registered: [] as string[] }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[], tools: [] as string[], registered: [] as string[], hints: [] as any[] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
@@ -85,7 +85,7 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('turn.start', ($: any, e: any) => ({ turnId: e.turnId }))
   on('turn.complete', () => ({ text: '' }))
   on('tool.call', () => ({ result: 'ok' }))
-  on('ui.render', ($: any, e: any) => { if (e.component === 'Spinner') calls.spinner.push(e.props); return { type: 'Text', props: {}, children: ['drawn by Claude Code'] } })
+  on('ui.render', ($: any, e: any) => { if (e.component === 'Spinner') calls.spinner.push(e.props); if (e.component === 'PromptHint') calls.hints.push(e.props); return { type: 'Text', props: {}, children: ['drawn by Claude Code'] } })
   return calls
 }
 
@@ -123,20 +123,57 @@ test('without Studio notes, Claude is told to offer /setup and not to make HTML 
   expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/hasn’t been set up yet.*offer \/setup.*Only make HTML or CSS files if they ask for a coded prototype/)
 })
 
-test('the band is status only: waiting for a Jira story, in Mist, with the Studio mark', async ($, on) => {
+test('before any work, the band shows the logo and how to start', async ($, on) => {
   setup(on)
   await start($)
-  for (const surface of ['terminal', 'desktop'] as const) {
-    const ui = await $.ui.mount(BAND(120, surface))
-    expect(await ui.find({ type: 'Text', text: 'studio' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: 'Step 1 of 9' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: 'waiting for a Jira story' })).toBeDefined()
-    for (const gone of ['band-preview', 'band-save', 'band-menu', 'studio-welcome']) expect(await ui.find({ key: gone })).toBeUndefined()
-    expect(await ui.find({ key: 'band-stop' })).toBeUndefined()
-    await ui.unmount()
-  }
   const app = await $.ui.mount(BAND(120, 'desktop'))
-  expect(await app.find({ type: 'Text', text: '●' })).toBeDefined()
+  expect(await app.find({ type: 'Svg' })).toBeDefined()
+  expect(await app.find({ type: 'Text', text: 'studio' })).toBeDefined()
+  expect(await app.find({ type: 'Text', text: 'Paste a Jira story to start' })).toBeDefined()
+  expect(await app.find({ type: 'Text', text: '▬' })).toBeUndefined()
+  for (const gone of ['band-preview', 'band-save', 'band-menu', 'studio-welcome', 'band-stop']) expect(await app.find({ key: gone })).toBeUndefined()
+  await app.unmount()
+  // The terminal has no pictures, so the logo is a coral dot there
+  const term = await $.ui.mount(BAND(120, 'terminal'))
+  expect(await term.find({ type: 'Svg' })).toBeUndefined()
+  expect(await term.find({ type: 'Text', text: '●' })).toBeDefined()
+})
+
+test('once work starts, the dot and progress take the stage colour, or ochre when something needs you', async ($, on) => {
+  setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 5, status: 'building screen 3 of 5' })
+  let band = await $.ui.mount(BAND(120, 'desktop'))
+  expect(await band.find({ type: 'Svg' })).toBeUndefined()
+  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#E07A6E')
+  expect((await band.find({ type: 'Text', text: '▬▬' }) as any)?.props.color).toBe('#E07A6E')
+  const bars: any[] = await band.findAll({ type: 'Text', text: '▬' }) as any
+  // nine steps (find matches the long current one too): five done or current in coral, four still to do in grey
+  expect(bars.map(b => b.props.color)).toEqual(['#E07A6E', '#E07A6E', '#E07A6E', '#E07A6E', '#E07A6E', '#D6D6DC', '#D6D6DC', '#D6D6DC', '#D6D6DC'])
+  expect(await band.find({ type: 'Text', text: 'The design' })).toBeDefined()
+  await band.unmount()
+  await $.tool.call({ tool: 'mcp__studio__story', step: 2, needs: '3 questions for you' })
+  band = await $.ui.mount(BAND(120, 'desktop'))
+  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#B8862B')
+  expect((await band.find({ type: 'Text', text: '3 questions for you' }) as any)?.props.color).toBe('#8E6516')
+  await band.unmount()
+  await $.tool.call({ tool: 'mcp__studio__story', step: 8, needs: '' })
+  band = await $.ui.mount(BAND(120, 'desktop'))
+  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#5E7D5B')
+})
+
+test('the hint under the prompt follows the step, and steps aside while typing', async ($, on) => {
+  const calls = setup(on)
+  const seen = calls.hints
+  await start($)
+  const HINT = (isDraft: boolean) => ({ plugin: 'studio', component: 'PromptHint', requestId: 'hint', surface: 'desktop', viewport: { columns: 120, rows: 40 }, props: { isDraft, isWorking: false, hint: 'Claude’s own hint' } }) as any
+  await (await $.ui.mount(HINT(false))).unmount()
+  expect(seen.at(-1).hint).toBe('Paste a Jira story to start. Adding its Confluence technical design helps.')
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 2 })
+  await (await $.ui.mount(HINT(false))).unmount()
+  expect(seen.at(-1).hint).toBe('Answer the questions here or in the panel.')
+  await (await $.ui.mount(HINT(true))).unmount()
+  expect(seen.at(-1).hint).toBe('Claude’s own hint')
 })
 
 test('while Claude works, the band offers Stop, and Stop stops the turn', async ($, on) => {

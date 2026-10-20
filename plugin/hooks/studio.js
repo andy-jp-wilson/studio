@@ -3,7 +3,7 @@
 // both in with the story tool. Works in the terminal and the Desktop Code tab;
 // nothing draws in VS Code.
 import { describe } from './studio/narrate.js'
-import { drawBand } from './studio/band.js'
+import { drawBand, hintFor } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
 import { LAB_PANE, drawLab, drawBandTest, drawBandMotion } from './studio/lab.js'
 
@@ -261,9 +261,10 @@ export function register(on) {
     return drawLab($.ui.resolve(e), labFor($), ccVersion)
   })
 
+  // The hint under the prompt says what to do at this step, while the prompt is empty.
   on('ui.render', { component: 'PromptHint' }, async ($, e, next) => {
-    if (!labState.hint) return next(e)
-    return next({ ...e, props: { ...e.props, hint: 'Paste a Jira story to start' } })
+    if (e.props.isDraft) return next(e)
+    return next({ ...e, props: { ...e.props, hint: hintFor(state()) } })
   })
 
   on('ui.render', { component: 'Spinner' }, async ($, e, next) => {
