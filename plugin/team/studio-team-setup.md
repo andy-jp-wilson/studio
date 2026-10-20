@@ -7,7 +7,7 @@ Studio works for one designer on their own, but it's better when everyone on a t
 | Setting | What it does |
 |---|---|
 | GitHub repository | GitHub is a website where teams store and share project files. If your team uses it, this is the repository (or organisation) designers' work may go to; Studio never uploads anywhere else. Leave it empty to keep all work on each designer's computer. |
-| Projects folder on this computer | A folder on each designer's own computer where Studio makes new projects, so everyone's are in the same, easy-to-find place. Defaults to `~/Studio projects`; **Choose a folder…** in the form opens the Mac's folder picker. |
+| Projects folder on this computer | A folder on each designer's own computer where Studio makes new projects, so everyone's are in the same, easy-to-find place. Defaults to `~/studio-projects`; **Choose a folder…** in the form opens the Mac's folder picker. |
 | Figma team folder (destination) | A link to the Figma folder where Studio may create and change files, such as new project files and handover pages. Open the folder in Figma and copy the link from the address bar. Recorded now; in a later version Studio will refuse to change files anywhere else. |
 | Design systems | Every design system your team uses, each with its Figma library link. Designers choose one for each project. |
 
