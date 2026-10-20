@@ -235,8 +235,9 @@ export function register(on) {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
-    const studioBand = drawBand(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
-    const extras = e.surface === 'terminal' ? [] : [...(labState.bandSvg ? [drawBandTest(el)] : []), ...(labState.bandMotion ? [drawBandMotion(el, labState.frame)] : [])]
+    const extra = labState.bandMotion && e.surface !== 'terminal' ? drawBandMotion(el, labState.frame) : []
+    const studioBand = drawBand(el, { ...state(), surface: e.surface, extra }, actionsFor($), e.props.bodyColumns)
+    const extras = e.surface === 'terminal' ? [] : (labState.bandSvg ? [drawBandTest(el)] : [])
     const band = extras.length ? el.Box({ key: 'lab-band-wrap', flexDirection: 'column', children: [studioBand, ...extras] }) : studioBand
     const rest = await next(e)
     return rest ? el.Box({ key: 'studio-band-wrap', flexDirection: 'column', children: [band, rest] }) : band

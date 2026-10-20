@@ -118,7 +118,10 @@ function motion(el, lab) {
     Button({ key: 'motion-run', label: lab.running ? 'Stop the redraws' : 'Start the redraws (for A)', onPress: () => lab.toggleRun() }),
     Text({ key: 'motion-frame', color: MIST.muted, children: ['Frame ' + lab.frame + (lab.running ? ' · redrawing about 10 times a second' : ' · not redrawing') ] }),
     rowOf('m-a1', pic('m-a1-svg', pulseFrame(lab.frame), 2, 1), 'A · pulse, redrawn by Studio'),
-    rowOf('m-a2', pic('m-a2-svg', barFrame(lab.frame), 14, 1), 'A · progress shimmer, redrawn by Studio'),
+    rowOf('m-a3', pic('m-a3-svg-' + lab.frame, pulseFrame(lab.frame), 4, 2), 'A2 · pulse, a new picture every frame'),
+    rowOf('m-a2', pic('m-a2-svg-' + lab.frame, barFrame(lab.frame), 14, 1), 'A2 · progress shimmer, a new picture every frame'),
+    rowOf('m-c1', textPulse(el, lab.frame, 'm-c1-dot'), 'C · pulse made of text (the ● character)'),
+    rowOf('m-c2', textBar(el, lab.frame, 'm-c2-bar'), 'C · progress made of text'),
     rowOf('m-b1', pic('m-b1-svg', PULSE_SMIL, 2, 1), 'B1 · pulse, the picture animates itself (SVG)'),
     rowOf('m-b2', pic('m-b2-svg', PULSE_CSS, 2, 1), 'B2 · pulse, the picture animates itself (CSS)'),
     Button({ key: 'motion-band', label: lab.bandMotion ? 'Take the moving dots out of the band' : 'Put the moving dots in the band', onPress: () => lab.toggleBandMotion() }),
@@ -126,11 +129,27 @@ function motion(el, lab) {
   ]
 }
 
+// Motion C: text only, so it can't be cached as a picture.
+const PULSE_TEXT = ['●', '●', '◉', '◉', '◎', '◎', '◉', '◉', '●', '●']
+const PULSE_COLOR = [MIST.coral, MIST.coral, MIST.coral, '#E99A90', '#F0B8B0', '#F0B8B0', '#E99A90', MIST.coral, MIST.coral, MIST.coral]
+export function textPulse(el, frame, key) {
+  const i = frame % 10
+  return el.Text({ key, color: PULSE_COLOR[i], children: [PULSE_TEXT[i]] })
+}
+export function textBar(el, frame, key, step = 5) {
+  const lit = frame % 10 < 5
+  return el.Box({ key, flexDirection: 'row', children: Array.from({ length: 9 }, (_, j) => el.Text({ key: key + '-' + j, color: j + 1 < step ? MIST.coral : j + 1 === step ? (lit ? MIST.coral : '#F0B8B0') : MIST.control, children: [j + 1 === step ? '▬▬' : '▬'] })) })
+}
+
 // The band's motion test row: A, B1 and B2 side by side.
 export function drawBandMotion(el, frame) {
   const { Box, Svg, Text } = el
   const item = (key, source, label) => Box({ key, flexDirection: 'row', columnGap: 1, alignItems: 'center', children: [Svg({ key: key + '-svg', source, alt: 'animation', width: 2, height: 1 }), Text({ key: key + '-t', children: [label] })] })
-  return Box({ key: 'lab-band-motion', flexDirection: 'row', columnGap: 3, alignItems: 'center', children: [item('lbm-a', pulseFrame(frame), 'A'), item('lbm-b1', PULSE_SMIL, 'B1'), item('lbm-b2', PULSE_CSS, 'B2')] })
+  return [
+    item('lbm-a-' + frame, pulseFrame(frame), 'A2'),
+    item('lbm-b1', PULSE_SMIL, 'B1'),
+    Box({ key: 'lbm-c', flexDirection: 'row', columnGap: 1, alignItems: 'center', children: [textPulse(el, frame, 'lbm-c-dot'), Text({ key: 'lbm-c-t', children: ['C'] }), textBar(el, frame, 'lbm-c-bar')] }),
+  ]
 }
 
 export function drawLab(el, lab, version) {

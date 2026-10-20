@@ -39,6 +39,7 @@ export function drawBand(el, s, actions, columns) {
 
   const row = [
     mark(el, s.surface, 'band-mark'),
+    ...(s.extra || []), // the Studio lab's motion test, when it's on
     Box({ key: 'status', flexDirection: 'row', flexGrow: 1, flexShrink: 1, children: status }),
   ]
   if (s.working) row.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
