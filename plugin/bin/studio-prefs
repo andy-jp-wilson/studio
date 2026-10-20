@@ -1,0 +1,26 @@
+#!/bin/bash
+# studio-prefs: the person's own Studio preferences, kept on this computer in
+# ~/.studio/prefs.json.
+#
+#   studio-prefs show                         prints "designs: figma|prototype"
+#   studio-prefs designs figma|prototype      where designs are made by default:
+#       figma      results go into the project's Figma file; code only for a prototype (the default)
+#       prototype  results are built as a coded prototype; Figma only when needed
+
+file="$HOME/.studio/prefs.json"
+read_json() { [ -f "$file" ] && jq -c . "$file" 2>/dev/null || echo '{}'; }
+
+case "$1" in
+  show)
+    printf 'designs: %s\n' "$(read_json | jq -r 'if .designs == "prototype" then "prototype" else "figma" end')"
+    ;;
+  designs)
+    case "$2" in figma|prototype) ;; *) echo "usage: studio-prefs designs figma|prototype"; exit 1 ;; esac
+    mkdir -p "$(dirname "$file")"
+    tmp=$(mktemp) && read_json | jq --arg v "$2" '.designs = $v' > "$tmp" && cat "$tmp" > "$file"; rm -f "$tmp"
+    echo "designs $2"
+    ;;
+  *)
+    sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
+    ;;
+esac

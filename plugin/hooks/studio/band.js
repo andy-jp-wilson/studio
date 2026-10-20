@@ -56,7 +56,7 @@ function updateNote(el, s) {
 function buttons(el, s, actions) {
   const { Box, Button, Link } = el
   // Designs live in Figma; Preview is for projects with a prototype.
-  const list = [s.figmaUrl && !s.hasPrototype
+  const list = [s.figmaUrl && !s.hasPrototype && s.designs !== 'prototype'
     ? Link({ key: 'band-figma', href: s.figmaUrl, label: 'Open in Figma' })
     : Button({ key: 'band-preview', label: 'Preview', hotkey: '1', plain: true, onPress: actions.show })]
   // Save point appears only when there's something new worth keeping.

@@ -32,6 +32,17 @@ async function git($, args) {
   } catch { return null }
 }
 
+// The person's own default for where designs are made (bin/studio-prefs):
+// 'figma' (results in Figma, code only for a prototype) or 'prototype'.
+let prefs = { designs: 'figma' }
+
+async function loadPrefs($) {
+  try {
+    const r = await $.process.run([$.plugin.root + '/bin/studio-prefs', 'show'], { timeoutMs: 5000 })
+    prefs = { designs: /designs: prototype/.test(String(r.stdout || '')) ? 'prototype' : 'figma' }
+  } catch {}
+}
+
 // The project's Studio notes (.studio/project.json, written by /setup), and
 // whether it has a prototype. Design work happens in Figma unless it does.
 let notes = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', hasPrototype: false, setUp: false }
@@ -50,6 +61,11 @@ async function readNotes($, root) {
 }
 
 function projectNote() {
+  if (prefs.designs === 'prototype') {
+    return 'Studio project note: the person has made prototypes their default. When they ask to design or build something, build it as a working prototype in prototype/ (HTML and CSS), using the design system' +
+      (notes.dsName ? ' ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') : '') + ', and offer /preview. Work in Figma only when they ask or it’s needed' +
+      (notes.figmaUrl ? ', in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ')' : '') + '. They can switch back with `studio-prefs designs figma` or the Studio panel.'
+  }
   const ds = notes.dsName ? ' Its design system is ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') + '; use its components, styles and variables.' : ' No design system is connected.'
   if (notes.figmaUrl) {
     return 'Studio project note: design work for this project happens in Figma, in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ').' + ds +
@@ -121,7 +137,7 @@ async function findPreview($) {
 }
 
 function state(now) {
-  return { ...project, ...live, memory, welcome, explainWords: words.explain, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
+  return { ...project, ...live, memory, welcome, explainWords: words.explain, designs: prefs.designs, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
 }
 
 // Word explanations: on or off, and the words the person already knows
@@ -256,9 +272,17 @@ function actionsFor($) {
       } catch {}
       $.ui.invalidate('ui.render')
     },
+    toggleDesigns: async () => {
+      const to = prefs.designs === 'prototype' ? 'figma' : 'prototype'
+      try { await $.process.run([$.plugin.root + '/bin/studio-prefs', 'designs', to], { timeoutMs: 5000 }) } catch {}
+      await loadPrefs($)
+      try { await $.ui.toast(prefs.designs === 'prototype' ? 'Designs will be built as prototypes; Figma only when needed' : 'Designs will be made in Figma; prototypes when you ask') } catch {}
+      $.ui.invalidate('ui.render')
+    },
     toggleWords: async () => {
       try { await $.process.run([$.plugin.root + '/bin/studio-words', words.explain ? 'off' : 'on'], { timeoutMs: 5000 }) } catch {}
       await loadWords($)
+    await loadPrefs($)
       try { await $.ui.toast(words.explain ? 'Studio will explain technical words again' : 'Studio won’t explain technical words. Turn it back on here any time.') } catch {}
       $.ui.invalidate('ui.render')
     },
@@ -313,10 +337,11 @@ export function register(on) {
       $.ui.invalidate('ui.render')
       return next(e)
     }
-    // Claude records word choices with studio-words; pick them up straight away.
-    if (e.tool === 'Bash' && /^studio-words\b/.test(String(e.command || '').trim())) {
+    // Claude records word and design choices with studio-words and studio-prefs; pick them up straight away.
+    if (e.tool === 'Bash' && /^studio-(words|prefs)\b/.test(String(e.command || '').trim())) {
       const result = await next(e)
       await loadWords($)
+      await loadPrefs($)
       $.ui.invalidate('ui.render')
       return result
     }

@@ -42,9 +42,11 @@ Never use em dashes. Use a comma, a semicolon or a new sentence instead.
 
 ## Where the design work happens
 
-**Figma by default.** When the person asks to design, change or add a screen, component or flow, do it in the project's Figma file (Studio's project note names it), using the project's design system: its components, styles and variables, never lookalikes. Load the `figma:figma-use` skill first (and `figma:figma-generate-design` for whole screens or flows), and search the design system before building. Show what changed in design terms, with a link to the frame in Figma.
+**Figma by default.** When the person asks Claude to design or build anything (a screen, component, flow or asset), the result is made in the project's Figma file (Studio's project note names it), using the project's design system: its components, styles and variables, never lookalikes. Load the `figma:figma-use` skill first (and `figma:figma-generate-design` for whole screens or flows), and search the design system before building. Show what changed in design terms, with a link to the frame in Figma.
 
-**Prototypes only when asked.** Don't make HTML, CSS or other code files unless the person asks for a prototype: a working or clickable version, HTML or CSS, or "something developers can run". Then build it in `prototype/` with the design system, and offer `/preview`. If it isn't clear whether they mean Figma or a prototype, ask in one line, with Figma first.
+**Code is the second step.** HTML, CSS and other code files are for a prototype, made when the person asks for one: a working or clickable version, "something developers can run", or building from their Figma design. Build it in `prototype/` with the design system, and offer `/preview`.
+
+**The person can swap this.** Studio's project note says which is their default. If it says prototypes are their default, build designs as a coded prototype first and use Figma only when they ask or it's needed. When they say things like "make prototypes my default" or "go back to Figma first", run `studio-prefs designs prototype` or `studio-prefs designs figma` and confirm in one line; the Studio panel has the same switch ("Designs go to").
 
 **Writing to Figma.** The project's own Figma file is their workspace. Before the first change to it in a conversation, say what you'll change and where, and wait for a yes; after that, carry on and keep saying what changed. Never change a design system file, or any other Figma file, unless the person asks for that exact file. If the project has no Figma file yet, offer `/setup`.
 

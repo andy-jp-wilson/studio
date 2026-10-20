@@ -28,12 +28,16 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma' }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
   on('process.run', ($: any, e: any) => {
     const [bin, ...rest] = e.argv
+    if (String(bin).endsWith('/bin/studio-prefs')) {
+      if (rest[0] === 'designs') calls.designs = rest[1]
+      return { value: { exitCode: 0, stdout: rest[0] === 'show' ? `designs: ${calls.designs}\n` : 'ok\n', stderr: '' } }
+    }
     if (String(bin).endsWith('/bin/studio-words')) {
       calls.words.push(rest)
       if (rest[0] === 'off') calls.wordsOff = true
@@ -464,4 +468,24 @@ test('without Studio notes, Claude is told to offer /setup and not to make HTML 
   await start($)
   const r: any = await $.prompt.compose(COMPOSE)
   expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/hasn’t been set up with \/setup.*Only make HTML or CSS files if they ask for a prototype/)
+})
+
+test('Designs go to: Figma by default, and the panel can make prototypes the default', async ($, on) => {
+  const calls = setup(on, { 'project-notes': NOTES })
+  on('prompt.compose', () => ({ sections: [] }))
+  await start($)
+  const pane = await $.ui.mount(PANE())
+  expect(await pane.find({ key: 'pane-designs' })).toBeDefined()
+  let r: any = await $.prompt.compose(COMPOSE)
+  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/happens in Figma/)
+  await pane.press({ key: 'pane-designs' })
+  expect(calls.designs).toBe('prototype')
+  r = await $.prompt.compose(COMPOSE)
+  const note = r.sections.find((x: any) => x.id === 'studio:project').text
+  expect(note).toMatch(/made prototypes their default/)
+  expect(note).toMatch(/Work in Figma only when they ask or it’s needed/)
+  const band = await $.ui.mount(BAND(120))
+  expect(await band.find({ key: 'band-preview' })).toBeDefined()
+  await pane.press({ key: 'pane-designs' })
+  expect(calls.designs).toBe('figma')
 })
