@@ -52,3 +52,7 @@ From the Claude Code docs (code.claude.com/docs/en/plugins/mods/…, plugins/com
 | Studio's own question ($.ui.ask) | **Works** (after further testing) |
 
 After further testing the user confirmed every lab test worked. What this changes: the panel can have a real type hierarchy (sizes and weights), backgrounds, borders, hover and pictures; the band can show pictures (such as the Studio mark); the hint under the prompt can guide each step; and Studio can ask its own plain-words questions. Still not possible: one-sided lines, opacity, custom typefaces, changing the "Allow?" prompt or the app's own boxes.
+
+## Redesign proposal
+
+Figma page **15 Redesign · proposal** (`54:2`), 20 October 2026: the band with the Studio mark as a picture and a hint per step; the panel at five moments (before a story, the brief with answers in the panel, building with links to each screen, checking with requirements ticking off, ready to hand over); a dot whose colour follows the state, with a pulse and a progress bar in the band while Claude works (animation still to test in the app); Studio's own Figma question and friendlier tool rows. Waiting for the user's review before building.
