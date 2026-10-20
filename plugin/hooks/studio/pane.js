@@ -5,7 +5,7 @@
 // in Figma, questions can be answered here, and checklist items can ask Claude
 // for the next step. Claude fills it in with the story tool. No background of
 // its own: the app draws the panel's box and its "Studio" header.
-import { MIST, stageOf } from './mist.js'
+import { MIST, stageOf, LOGO_SVG } from './mist.js'
 import { progress } from './band.js'
 
 const GLYPH = { done: '✓', now: '●', todo: '○', need: '!', none: '—' }
@@ -100,11 +100,30 @@ export function drawPane(el, s, actions, columns) {
   const st = s.story
   const children = []
   if (!st || !st.story) {
-    children.push(card(el, { title: 'Start with a story', items: [{ text: 'Paste a Jira story into the conversation.' }, { text: 'Adding its Confluence technical design is optional, but encouraged.', state: 'muted' }] }, 0, MIST.coral, actions, {}))
+    // The starting screen (Figma page 19, A · Welcome): the logo, the name and
+    // tagline, three steps to start, the project, and a footer.
+    const { Text, Svg, Button } = el
+    children.push(Box({ key: 'welcome', flexDirection: 'column', paddingX: 1, paddingY: 1, children: [
+      ...(s.surface === 'terminal' ? [] : [Svg({ key: 'welcome-logo', source: LOGO_SVG.replace('width="24" height="24"', 'width="96" height="96"'), alt: 'Studio', width: 96, height: 96 })]),
+      Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
+      Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
+    ] }))
+    const steps = ['Paste a Jira story', 'Answer Claude’s questions', 'Review the design in Figma']
+    children.push(Box({ key: 'start', flexDirection: 'column', paddingX: 2, paddingY: 1, backgroundColor: MIST.card, borderStyle: 'round', borderColor: MIST.card, children: [
+      Text({ key: 'start-title', size: 'heading', weight: 'semibold', color: MIST.text, children: ['Start here'] }),
+      ...steps.map((t, i) => Box({ key: 'start-' + i, flexDirection: 'row', columnGap: 1, children: [
+        Text({ key: 'start-' + i + '-n', color: MIST.coral, weight: 'semibold', children: [String(i + 1)] }),
+        Text({ key: 'start-' + i + '-t', color: MIST.text, wrap: 'wrap', children: [t] }),
+      ] })),
+    ] }))
     children.push(card(el, { title: 'This project', items: [
       { text: s.dsName || 'No design system chosen yet', state: s.dsName ? 'plain' : 'muted', sub: s.dsName ? 'Design system · never changed by Studio' : 'Choose one with /setup' },
       { text: s.figmaName || 'No Figma file chosen yet', state: s.figmaName ? 'plain' : 'muted', sub: s.figmaName ? 'Figma file' : 'Choose one with /setup', ...(s.figmaUrl ? { link: s.figmaUrl } : {}) },
     ] }, 1, MIST.coral, actions, {}))
+    children.push(Box({ key: 'footer', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 1, children: [
+      Text({ key: 'footer-version', size: 'caption', color: MIST.muted, children: ['Studio ' + (s.version || '')] }),
+      Button({ key: 'footer-guide', label: 'How Studio works', plain: true, onPress: () => actions.guide() }),
+    ] }))
   } else {
     const step = Math.min(9, Math.max(1, Number(st.step) || 1))
     const color = stageOf(step).color

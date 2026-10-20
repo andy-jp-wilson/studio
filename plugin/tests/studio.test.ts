@@ -201,13 +201,15 @@ test('while Claude works, the band offers Stop, and Stop stops the turn', async 
 
 const COMPOSE2 = { model: 'claude-opus-5-5', promptModel: 'claude-opus-5-5', surfaces: ['desktop'], tools: [], outputStyle: null, traits: [], sections: [] }
 
-test('Studio gives Claude a story tool, and the panel starts with “Start with a story”', async ($, on) => {
+test('Studio gives Claude a story tool, and the panel starts with the welcome', async ($, on) => {
   const calls = setup(on, { 'project-notes': NOTES })
   await start($)
   expect(calls.tools).toContain('story')
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount(PANE(surface))
-    expect(await ui.find({ type: 'Text', text: 'Start with a story' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Start here' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Clearer, calmer Claude Code for designers' })).toBeDefined()
+    expect(!!(await ui.find({ type: 'Svg' }))).toBe(surface === 'desktop')
     expect(await ui.find({ type: 'Text', text: 'Acme DS' })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: 'Design system · never changed by Studio' })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: 'Onboarding' })).toBeDefined()
@@ -231,7 +233,7 @@ test('Claude’s story updates fill the panel: the story, its progress, and what
   expect((await pane.find({ type: 'Text', text: 'Faster sign-up' }) as any)?.props.size).toBe('title')
   expect(await pane.find({ type: 'Text', text: 'Technical design in Confluence' })).toBeDefined()
   expect((await pane.find({ type: 'Text', text: 'Questions for you' }) as any)?.props.color).toBe('#8E6516')
-  expect(await pane.find({ type: 'Text', text: 'Start with a story' })).toBeUndefined()
+  expect(await pane.find({ type: 'Text', text: 'Start here' })).toBeUndefined()
   // What needs you comes before Requirements
   const texts: any[] = await pane.findAll({ type: 'Text' }) as any
   const order = texts.map(t => t.text)
@@ -368,4 +370,12 @@ test('a long answer hint moves under the question, so the narrow answer box isn�
     sections: [{ title: 'Questions for you', needs: true, ask: true, items: [{ text: '1. What counts as a valid email?', state: 'need', placeholder: 'Format only, or a check that it exists too?' }, { text: '2. Can people resend the email?', state: 'need', placeholder: 'Yes or no' }] }] })
   const pane = await $.ui.mount(PANE())
   expect(await pane.find({ type: 'Text', text: 'Format only, or a check that it exists too?' })).toBeDefined()
+})
+
+test('the starting screen’s guide button opens /guide', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  const pane = await $.ui.mount(PANE())
+  await pane.press({ key: 'footer-guide' })
+  expect(calls.commands).toContain('guide')
 })

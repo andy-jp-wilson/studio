@@ -125,6 +125,7 @@ function projectNote() {
 // Figma files the designer said yes to in this conversation (Studio's own question).
 let figmaYes = new Set()
 let sessionId = ''
+let version = ''
 
 // Before Claude's first step in a Figma file in a conversation, Studio asks in
 // plain words. Design system files are refused without asking. Yes is
@@ -149,7 +150,7 @@ async function figmaGate($, e, next) {
 let answers = {}
 
 function state() {
-  return { ...live, story: storyCard, dsName: notes.dsName, figmaName: notes.figmaName, figmaUrl: notes.figmaUrl, answers }
+  return { ...live, story: storyCard, dsName: notes.dsName, figmaName: notes.figmaName, figmaUrl: notes.figmaUrl, answers, version }
 }
 
 // Word explanations: on or off, and the words the person already knows
@@ -186,6 +187,8 @@ function actionsFor($) {
       answers = {}
       $.ui.invalidate('ui.render')
     },
+    // The starting screen's guide button.
+    guide: () => { $.command.run({ command: 'guide' }).catch(() => $.prompt.submit({ text: '/guide', asUser: true }).catch(() => {})) },
     // A checklist item's button: the designer asks Claude for that next step.
     ask: text => { $.prompt.submit({ text: String(text), asUser: true }).catch(() => {}) },
   }
@@ -194,6 +197,7 @@ function actionsFor($) {
 export function register(on) {
   on('session.start', async ($, e, next) => {
     try { sessionId = String(await $.session.id()) } catch {}
+    try { version = String(JSON.parse(await $.fs.read($.plugin.root + '/.claude-plugin/plugin.json')).version || '') } catch {}
     try { storyKey = 'story:' + (await $.session.id()); const saved = await $.store.get(storyKey); storyCard = saved && typeof saved === 'object' ? saved : null } catch { storyCard = null }
     try { await $.tool.register(STORY_TOOL) } catch {}
     await readNotes($)
