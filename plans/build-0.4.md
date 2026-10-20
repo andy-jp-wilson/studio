@@ -1,6 +1,6 @@
 # Build plan: Studio 0.4, the redesign
 
-Status: **approved** (20 October 2026). **B1 done** (0.3.11: logo, still stage-coloured dot, equal-width bars with a quarter-space gap, hint per step). **B2 built** (0.3.12), waiting for the user to try it in the app. Built only from Figma pages 15 (redesign proposal), 16 and 17 (logo), and what the Studio lab showed the Claude app can draw (`plans/ui-limits.md`). Nothing is built until approved.
+Status: **approved** (20 October 2026). **B1 done** (0.3.11: logo, still stage-coloured dot, equal-width bars with a quarter-space gap, hint per step). **B2 built** (0.3.12), waiting for the user to try it in the app. Answer boxes stay plain (style A, chosen in the lab 2026-10-20). Built only from Figma pages 15 (redesign proposal), 16 and 17 (logo), and what the Studio lab showed the Claude app can draw (`plans/ui-limits.md`). Nothing is built until approved.
 
 ## What's decided
 
