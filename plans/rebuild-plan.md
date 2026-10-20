@@ -1,6 +1,6 @@
 # Rebuilding Studio to match the approved design
 
-Status: **approved** (2026-10-20). **R1 done** (0.2.33). **R2 done** (0.2.36). **R3 built** (0.2.37), waiting for the user to try it with a story.
+Status: **approved** (2026-10-20). **R1 done** (0.2.33). **R2 done** (0.2.36). **R3 done** (0.2.38, tested with SIGN-142). **R4 built** (0.2.39): `hooks/guard-figma.sh`.
 
 ## Where we are (for the next session)
 
