@@ -1,6 +1,6 @@
 # Rebuilding Studio to match the approved design
 
-Status: **approved** (2026-10-20). **R1 done** (Studio 0.2.33); **next: R2**.
+Status: **approved** (2026-10-20). **R1 done** (0.2.33). **R2 built** (0.2.34), waiting for the user to try it in the app.
 
 ## Where we are (for the next session)
 

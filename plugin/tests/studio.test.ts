@@ -28,7 +28,7 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[] }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[], tools: [] as string[] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
@@ -69,6 +69,8 @@ function setup(on: any, git: Record<string, string> = {}) {
     return { deny: 'missing' }
   })
   on('clock.now', () => ({ value: NOW }))
+  on('session.id', () => ({ value: 'sess-1' }))
+  on('tool.register', ($: any, e: any) => { calls.tools.push(e.name); return { value: { tool: 'mcp__studio__' + e.name } } })
   on('clock.every', () => ({ value: {} }))
   on('ui.open', ($: any, e: any) => { calls.opened.push(e); return { value: { isPlaced: true } } })
   on('command.register', () => ({ value: undefined }))
@@ -95,6 +97,8 @@ const TEAM = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 const TEAM_FILE = JSON.stringify({ teamName: 'Acme Design', uploadPlaces: 'acme', projectsFolder: '', figmaWritePlaces: '',
   designSystems: [{ name: 'Acme DS', link: 'https://www.figma.com/design/aaa/Acme' }, { name: 'Acme Classic', link: 'https://www.figma.com/design/bbb/Classic' }] })
 
+const NOTES = JSON.stringify({ targetFileUrl: 'https://www.figma.com/design/abc/Onboarding', targetFileName: 'Onboarding', designSystemName: 'Acme DS', designSystemUrl: 'https://www.figma.com/design/ds/Acme' })
+
 const start = ($: any) => $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work/onboarding' })
 // One finished request, so the band shows the journey rather than the welcome.
 const pastWelcome = async ($: any) => {
@@ -112,68 +116,6 @@ test('the working line uses the plain wording', async ($, on) => {
   await $.ui.mount({ plugin: 'studio', component: 'Spinner', requestId: 'main', surface: 'terminal', viewport: { columns: 100, rows: 30 },
     props: { word: 'Sauteing', message: null, suffix: '…', mode: 'tool-use' } } as any)
   expect(calls.spinner.at(-1).message).toBe('Making a save point')
-})
-
-test('the panel journey tab shows stages, happening now, actions and footer', async ($, on) => {
-  setup(on)
-  await start($)
-  await $.turn.start({ turnId: 't1' })
-  await $.tool.call({ tool: 'Bash', command: 'git commit -m "x"' })
-  await $.turn.complete({ turnId: 't1', answer: 'Done', durationMs: 10, isAborted: false, usage: null })
-  for (const surface of ['terminal', 'desktop'] as const) {
-    const ui = await $.ui.mount(PANE(surface))
-    const wanted: [string, any][] = [
-      ['journey label', { type: 'Text', text: 'YOUR JOURNEY' }],
-      ['refine detail', { type: 'Text', text: '  2 save points on bolder-button' }],
-      ['save step', { type: 'Text', text: 'Making a save point' }],
-      ['did you know', { type: 'Text', text: 'Developers call a save point a “commit”.' }],
-      ['preview link', { type: 'Link', text: 'Open preview' }],
-      ['footer', { type: 'Text', text: 'exploring bolder-button  ·  ' }],
-      ['save status', { type: 'Text', text: '✓ Saved 2m ago' }],
-    ]
-    const missing: string[] = []
-    for (const [name, q] of wanted) if (!(await ui.find(q))) missing.push(surface + ': ' + name)
-    expect(missing).toEqual([])
-    expect(await ui.find({ key: 'pane-save' })).toBeUndefined()
-    await ui.unmount()
-  }
-})
-
-test('pressing a stage remembers your choice for this project', async ($, on) => {
-  const calls = setup(on)
-  await start($)
-  const ui = await $.ui.mount(PANE())
-  await ui.press({ key: 'set-Build' })
-  expect(calls.store.get('stage:/work/onboarding')).toBe('Build')
-  expect(await ui.find({ type: 'Text', text: '● Build' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'You chose this stage.' })).toBeDefined()
-  await ui.press({ key: 'set-auto' })
-  expect(calls.store.has('stage:/work/onboarding')).toBe(false)
-})
-
-test('the glossary tab lists words and searches them', async ($, on) => {
-  setup(on)
-  await start($)
-  const ui = await $.ui.mount(PANE())
-  await ui.press({ key: 'tab-glossary' })
-  expect(await ui.find({ type: 'Text', text: 'commit' })).toBeDefined()
-  await ui.input({ key: 'search', text: 'branch' })
-  expect(await ui.find({ type: 'Text', text: 'Exploration' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'Save point' })).toBeUndefined()
-})
-
-test('Send to Figma asks Claude, Guide and Save point run commands, and /panel opens the panel', async ($, on) => {
-  const calls = setup(on, UNSAVED)
-  await start($)
-  const ui = await $.ui.mount(PANE())
-  await ui.press({ key: 'pane-figma' })
-  expect(calls.prompts.at(-1)).toMatch(/Figma/)
-  await ui.press({ key: 'pane-guide' })
-  await ui.press({ key: 'pane-save' })
-  expect(calls.commands).toEqual(['guide', 'save'])
-  expect(await ui.find({ type: 'Text', text: 'Changes not saved yet' })).toBeDefined()
-  const answer = await $.command.run({ command: 'panel', args: '' })
-  expect(answer).toEqual({})
 })
 
 test('the team form offers a team file (recommended) or typing, and typing saves only on this computer', async ($, on) => {
@@ -270,27 +212,6 @@ test('cancelling the picker changes nothing', async ($, on) => {
 
 const COMPOSE = { model: 'claude-opus-5-5', promptModel: 'claude-opus-5-5', surfaces: ['desktop'], tools: [], outputStyle: null, traits: [], sections: [] }
 
-test('the panel switches word explanations off and on, and Claude is told before each reply', async ($, on) => {
-  const calls = setup(on, { 'words-known': '.gitignore' })
-  let note = ''
-  on('prompt.compose', ($: any, e: any) => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
-  await start($)
-  const ui = await $.ui.mount(PANE())
-  expect(await ui.find({ key: 'pane-words' })).toBeDefined()
-  let r: any = await $.prompt.compose(COMPOSE)
-  note = r.sections.find((x: any) => x.id === 'studio:words').text
-  expect(note).toMatch(/ON/)
-  expect(note).toMatch(/\.gitignore/)
-  await ui.press({ key: 'pane-words' })
-  expect(calls.words).toContainEqual(['off'])
-  r = await $.prompt.compose(COMPOSE)
-  expect(r.sections.find((x: any) => x.id === 'studio:words').text).toMatch(/OFF/)
-  await ui.press({ key: 'pane-words' })
-  expect(calls.words).toContainEqual(['on'])
-})
-
-const NOTES = JSON.stringify({ targetFileUrl: 'https://www.figma.com/design/abc/Onboarding', targetFileName: 'Onboarding', designSystemName: 'Acme DS', designSystemUrl: 'https://www.figma.com/design/ds/Acme' })
-
 test('design work defaults to Figma: Claude is told the project file', async ($, on) => {
   setup(on, { 'project-notes': NOTES })
   on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
@@ -317,42 +238,6 @@ test('without Studio notes, Claude is told to offer /setup and not to make HTML 
   const r: any = await $.prompt.compose(COMPOSE)
   expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/hasn’t been set up with \/setup.*Only make HTML or CSS files if they ask for a prototype/)
 })
-
-test('Designs go to: Figma by default, and the panel can make prototypes the default', async ($, on) => {
-  const calls = setup(on, { 'project-notes': NOTES })
-  on('prompt.compose', () => ({ sections: [] }))
-  await start($)
-  const pane = await $.ui.mount(PANE())
-  expect(await pane.find({ key: 'pane-designs' })).toBeDefined()
-  let r: any = await $.prompt.compose(COMPOSE)
-  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/happens in Figma/)
-  await pane.press({ key: 'pane-designs' })
-  expect(calls.designs).toBe('prototype')
-  r = await $.prompt.compose(COMPOSE)
-  const note = r.sections.find((x: any) => x.id === 'studio:project').text
-  expect(note).toMatch(/made prototypes their default/)
-  expect(note).toMatch(/Work in Figma only when they ask or it’s needed/)
-  await pane.press({ key: 'pane-designs' })
-  expect(calls.designs).toBe('figma')
-})
-
-test('the panel menu groups everything', async ($, on) => {
-  const calls = setup(on, { 'project-notes': NOTES })
-  await start($)
-  const pane = await $.ui.mount(PANE())
-  await pane.press({ key: 'tab-menu' })
-  for (const t of ['GET READY', 'WORK', 'SHARE', 'HELP']) expect(await pane.find({ type: 'Text', text: t })).toBeDefined()
-  for (const k of ['menu-setup', 'menu-team', 'menu-explore', 'menu-go-back', 'menu-handover', 'menu-handoff', 'menu-guide', 'menu-glossary', 'menu-version']) expect(await pane.find({ key: k })).toBeDefined()
-  expect(await pane.find({ type: 'Text', text: 'Start an exploration: try something without touching the main design.' })).toBeDefined()
-  await pane.press({ key: 'menu-explore' })
-  await pane.press({ key: 'menu-handover' })
-  await pane.press({ key: 'menu-version' })
-  expect(calls.commands).toEqual(expect.arrayContaining(['explore', 'handover', 'version']))
-  await pane.press({ key: 'menu-glossary' })
-  expect(await pane.find({ key: 'search' })).toBeDefined()
-})
-
-const STORY = (story: any) => ({ 'story-card': JSON.stringify(story) })
 
 test('the band is status only: waiting for a Jira story, in Mist, with the Studio mark', async ($, on) => {
   setup(on)
@@ -381,4 +266,73 @@ test('while Claude works, the band offers Stop, and Stop stops the turn', async 
   await $.turn.complete({ turnId: 't1', answer: '', durationMs: 1, isAborted: true, usage: null })
   const after = await $.ui.mount(BAND(120))
   expect(await after.find({ key: 'band-stop' })).toBeUndefined()
+})
+
+const COMPOSE2 = { model: 'claude-opus-5-5', promptModel: 'claude-opus-5-5', surfaces: ['desktop'], tools: [], outputStyle: null, traits: [], sections: [] }
+
+test('Studio gives Claude a story tool, and the panel starts with “Start with a story”', async ($, on) => {
+  const calls = setup(on, { 'project-notes': NOTES })
+  await start($)
+  expect(calls.tools).toContain('story')
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount(PANE(surface))
+    expect(await ui.find({ type: 'Text', text: 'Start with a story' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Design system · Acme DS' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Figma file · Onboarding' })).toBeDefined()
+    for (const gone of ['tab-journey', 'tab-menu', 'tab-glossary', 'pane-designs', 'pane-words']) expect(await ui.find({ key: gone })).toBeUndefined()
+    await ui.unmount()
+  }
+})
+
+test('Claude’s story updates fill the band and panel, with what needs you first', async ($, on) => {
+  setup(on)
+  await start($)
+  const r: any = await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up', hasDesignDoc: true }, step: 2, status: 'playing the brief back', needs: '2 questions for you',
+    sections: [{ title: 'Requirements', items: [{ text: 'Sign up with email or Google', state: 'todo' }] }, { title: 'Questions for you', needs: true, items: [{ text: 'Password rules up front?', state: 'need' }] }] })
+  expect(String(r.result)).toMatch(/step 2 of 9.*2 questions for you/)
+  const band = await $.ui.mount(BAND(120))
+  expect(await band.find({ type: 'Text', text: 'Step 2 of 9' })).toBeDefined()
+  expect(await band.find({ type: 'Text', text: '2 questions for you' })).toBeDefined()
+  expect(await band.find({ key: 'status-needs' })).toBeDefined()
+  await band.unmount()
+  const pane = await $.ui.mount(PANE())
+  expect(await pane.find({ type: 'Text', text: 'SIGN-142 · Faster sign-up' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Jira · technical design in Confluence' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Questions for you' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Start with a story' })).toBeUndefined()
+  await pane.unmount()
+  // Later: fields left out stay; needs cleared
+  await $.tool.call({ tool: 'mcp__studio__story', step: 5, status: 'building screen 3 of 6', needs: '' })
+  const band2 = await $.ui.mount(BAND(120))
+  expect(await band2.find({ type: 'Text', text: 'building screen 3 of 6' })).toBeDefined()
+  expect(await band2.find({ key: 'status-needs' })).toBeUndefined()
+  await band2.unmount()
+  const pane2 = await $.ui.mount(PANE())
+  expect(await pane2.find({ type: 'Text', text: 'SIGN-142 · Faster sign-up' })).toBeDefined()
+})
+
+test('the story card is kept by Claude Code, so it comes back after a reload', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 3 })
+  expect(calls.store.get('story:sess-1')).toMatchObject({ step: 3, story: { key: 'SIGN-142' } })
+})
+
+test('clear starts a new story', async ($, on) => {
+  setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 6 })
+  await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SET-9', title: 'Settings' }, step: 1 })
+  const pane = await $.ui.mount(PANE())
+  expect(await pane.find({ type: 'Text', text: 'SET-9 · Settings' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Jira' })).toBeDefined()
+})
+
+test('Claude is still told the word and project notes before each reply', async ($, on) => {
+  setup(on, { 'project-notes': NOTES })
+  on('prompt.compose', () => ({ sections: [] }))
+  await start($)
+  const r: any = await $.prompt.compose(COMPOSE2)
+  const ids = r.sections.map((x: any) => x.id)
+  expect(ids).toEqual(expect.arrayContaining(['studio:words', 'studio:project']))
 })

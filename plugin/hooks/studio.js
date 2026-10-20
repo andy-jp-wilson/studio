@@ -16,12 +16,55 @@ let project = { project: '', exploration: '', isMain: true, ownSavePoints: 0, ex
 // What Claude is doing in this request.
 let live = { working: false, turnId: '', current: null, steps: [], todo: null, lastKind: null }
 let memory = 0
-// The story card for this session (R2 fills it in; until then the band shows step 1).
+// The story card for this session: the story, the journey step, what needs
+// the designer, and the panel's sections. Claude fills it in with the story
+// tool (mcp__studio__story); Claude Code keeps it ($.store), so no project
+// folder is needed.
 let storyCard = null
+let storyKey = ''
+const STATES = ['done', 'now', 'todo', 'need', 'muted', 'none', 'plain', 'strong']
+const STORY_TOOL = {
+  name: 'story',
+  description: 'Update the Studio story card that the designer sees in the Studio band and panel. Call it when a Jira story is pasted, and whenever the journey step, its status, what needs the designer, or the panel sections change. Steps: 1 pick up the story, 2 play the brief back, 3 choose where and how, 4 say first then wait for a yes, 5 build in Figma, 6 review and change, 7 check the work, 8 make interactions clear, 9 ready to hand over. Use short, plain wording and no em dashes. Fields you leave out stay as they were; send the whole list of sections whenever you change any. Set clear to true to start a new story.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      clear: { type: 'boolean', description: 'Start over with an empty card (a new story).' },
+      story: { type: 'object', description: 'The Jira story.', properties: {
+        key: { type: 'string', description: 'The Jira key, e.g. SIGN-142.' },
+        title: { type: 'string', description: 'The story title, short.' },
+        hasDesignDoc: { type: 'boolean', description: 'True if a Confluence technical design document was given.' },
+      } },
+      step: { type: 'integer', minimum: 1, maximum: 9, description: 'The current journey step.' },
+      status: { type: 'string', description: 'How the step is going, a few words, e.g. "building screen 3 of 6".' },
+      needs: { type: 'string', description: 'What is waiting for the designer, a few words, e.g. "2 questions for you". Empty string when nothing is.' },
+      sections: { type: 'array', description: 'The panel sections for this step, in order (do not repeat the story itself).', items: { type: 'object', properties: {
+        title: { type: 'string' },
+        needs: { type: 'boolean', description: 'True if this section is waiting for the designer (shown first, on a soft tint).' },
+        items: { type: 'array', items: { type: 'object', properties: {
+          text: { type: 'string' },
+          state: { type: 'string', enum: STATES, description: 'done ✓, now ●, todo ○, need (waiting for the designer), muted, none (—, not applicable), plain, strong.' },
+        }, required: ['text'] } },
+      }, required: ['title'] } },
+    },
+  },
+}
+
+function applyStory(card, e) {
+  const next = e.clear ? {} : { ...(card || {}) }
+  if (e.story && typeof e.story === 'object') next.story = { ...(next.story || {}), ...e.story }
+  if (e.step != null) next.step = Math.min(9, Math.max(1, Math.round(Number(e.step)) || 1))
+  if (typeof e.status === 'string') next.status = e.status.slice(0, 80)
+  if (typeof e.needs === 'string') next.needs = e.needs.slice(0, 80)
+  if (Array.isArray(e.sections)) next.sections = e.sections.slice(0, 12).map(sec => ({
+    title: String(sec?.title || '').slice(0, 60), needs: Boolean(sec?.needs),
+    items: (Array.isArray(sec?.items) ? sec.items : []).slice(0, 12).map(it => ({ text: String(it?.text ?? it ?? '').slice(0, 120), state: STATES.includes(it?.state) ? it.state : 'plain' })),
+  }))
+  return next
+}
 let stageOverride = null
 // Which Studio is running, and whether a newer one is ready (bin/studio-version).
 let studio = { version: '', update: '' }
-let view = { tab: 'journey', query: '' }
 let refreshing = null
 
 async function git($, args) {
@@ -136,7 +179,7 @@ async function findPreview($) {
 }
 
 function state(now) {
-  return { ...project, ...live, memory, story: storyCard, explainWords: words.explain, designs: prefs.designs, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
+  return { ...project, ...live, memory, story: storyCard, dsName: notes.dsName, figmaName: notes.figmaName, explainWords: words.explain, designs: prefs.designs, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
 }
 
 // Word explanations: on or off, and the words the person already knows
@@ -263,7 +306,6 @@ function actionsFor($) {
     // an open pane doesn't bring it forward, so close it and open it again, on
     // the Menu tab.
     menu: async () => {
-      view = { ...view, tab: 'menu' }
       try { await $.ui.close({ id: PANE }) } catch {}
       try { await $.ui.open({ id: PANE, title: 'Studio', focus: true }) } catch {}
       $.ui.invalidate('ui.render')
@@ -295,13 +337,13 @@ function actionsFor($) {
       try { await $.ui.toast(words.explain ? 'Studio will explain technical words again' : 'Studio won’t explain technical words. Turn it back on here any time.') } catch {}
       $.ui.invalidate('ui.render')
     },
-    tab: t => { view = { ...view, tab: t }; $.ui.invalidate('ui.render') },
-    search: q => { view = { ...view, query: String(q || '') }; $.ui.invalidate('ui.render') },
   }
 }
 
 export function register(on) {
   on('session.start', async ($, e, next) => {
+    try { storyKey = 'story:' + (await $.session.id()); const saved = await $.store.get(storyKey); storyCard = saved && typeof saved === 'object' ? saved : null } catch { storyCard = null }
+    try { await $.tool.register(STORY_TOOL) } catch {}
     await refresh($)
     checkVersion($).then(() => $.ui.invalidate('ui.render')).catch(() => {})
     await loadWords($)
@@ -336,7 +378,16 @@ export function register(on) {
     return next(e)
   })
 
+  on('tool.call', { tool: 'mcp__studio__story' }, async ($, e) => {
+    storyCard = applyStory(storyCard, e)
+    try { if (storyKey) await $.store.set(storyKey, storyCard) } catch {}
+    $.ui.invalidate('ui.render')
+    const st = storyCard
+    return { result: 'Studio story card updated' + (st.step ? ': step ' + st.step + ' of 9' : '') + (st.needs ? ', waiting for: ' + st.needs : '') + '.' }
+  })
+
   on('tool.call', async ($, e, next) => {
+    if (e.tool === 'mcp__studio__story') return next(e)
     if (e.agentId) return next(e)
     if (e.tool === 'TodoWrite' && Array.isArray(e.todos)) {
       const items = e.todos.map(t => ({ label: t.status === 'in_progress' ? (t.activeForm || t.content) : t.content, status: t.status === 'completed' ? 'done' : t.status === 'in_progress' ? 'now' : 'upcoming' }))
@@ -393,7 +444,7 @@ export function register(on) {
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
     if (e.requestId !== PANE) return next(e)
     const el = $.ui.resolve(e)
-    return drawPane(el, state(await $.clock.now()), view, actionsFor($), e.props.bodyColumns)
+    return drawPane(el, { ...state(await $.clock.now()), surface: e.surface }, actionsFor($), e.props.bodyColumns)
   })
 
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {

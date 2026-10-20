@@ -16,7 +16,7 @@
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|mcp__studio__story",
         "hooks": [
           {
             "type": "command",

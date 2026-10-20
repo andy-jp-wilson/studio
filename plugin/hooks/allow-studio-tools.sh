@@ -6,6 +6,11 @@
 # nothing else can be chained on. Everything else follows normal permissions.
 
 input=$(cat)
+# Studio's own story tool only changes what the band and panel show.
+if [ "$(printf '%s' "$input" | jq -r '.tool_name // empty' 2>/dev/null)" = "mcp__studio__story" ]; then
+  jq -n '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"allow",permissionDecisionReason:"Studio story card"}}'
+  exit 0
+fi
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
 [ -z "$cmd" ] && exit 0
 case "$cmd" in *$'\n'*) exit 0 ;; esac
