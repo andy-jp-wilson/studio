@@ -103,37 +103,41 @@ function journeyTab(el, s, actions) {
 function menuTab(el, s, actions) {
   const { Box, Text, Button, Link } = el
   const prototypeish = s.hasPrototype || s.previewUrl
-  const group = (key, title, items) => items.length ? [
-    Text({ key: 'g-' + key, color: 'subtle', children: [title] }),
-    Box({ key: 'row-' + key, flexDirection: 'row', flexWrap: 'wrap', columnGap: 2, children: items }),
-  ] : []
   const run = name => () => actions.run(name)
+  // Each item: its button or link, with one short line saying what it does.
+  const item = (control, about) => Box({ key: 'item-' + control.props.key, flexDirection: 'column', children: [
+    control,
+    Text({ key: 'about-' + control.props.key, color: 'subtle', wrap: 'wrap', children: [about] }),
+  ] })
+  const group = (key, title, items) => items.length ? [
+    Text({ key: 'g-' + key, color: 'claude', bold: true, children: [title.toUpperCase()] }),
+    Box({ key: 'col-' + key, flexDirection: 'column', rowGap: 1, children: items }),
+  ] : []
   const work = []
-  if (s.unsaved) work.push(Button({ key: 'menu-save', label: 'Save point', hotkey: 's', onPress: actions.save }))
-  work.push(Button({ key: 'menu-explore', label: 'Try an idea', hotkey: 'i', onPress: run('explore') }))
-  work.push(Button({ key: 'menu-go-back', label: 'Go back', hotkey: 'b', onPress: run('go-back') }))
-  if (s.figmaUrl) work.push(Link({ key: 'menu-figma-link', href: s.figmaUrl, label: 'Open in Figma' }))
-  if (s.previewUrl) work.push(Link({ key: 'menu-preview-link', href: s.previewUrl, label: 'Open preview' }))
-  else if (prototypeish) work.push(Button({ key: 'menu-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }))
-  if (prototypeish) work.push(Button({ key: 'menu-send-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }))
+  if (s.unsaved) work.push(item(Button({ key: 'menu-save', label: 'Save point', hotkey: 's', onPress: actions.save }), 'Keep your work as it is now, with a name, so you can always come back to it.'))
+  work.push(item(Button({ key: 'menu-explore', label: 'Try an idea', hotkey: 'i', onPress: run('explore') }), 'Start an exploration: try something without touching the main design.'))
+  work.push(item(Button({ key: 'menu-go-back', label: 'Go back', hotkey: 'b', onPress: run('go-back') }), 'Undo Claude’s recent changes to files on this computer. For Figma, use Figma’s undo or version history.'))
+  if (s.figmaUrl) work.push(item(Link({ key: 'menu-figma-link', href: s.figmaUrl, label: 'Open in Figma' }), 'Open this project’s Figma file.'))
+  if (s.previewUrl) work.push(item(Link({ key: 'menu-preview-link', href: s.previewUrl, label: 'Open preview' }), 'Open your prototype in a private website only you can see.'))
+  else if (prototypeish) work.push(item(Button({ key: 'menu-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }), 'Start a private preview of your prototype, a website only you can see.'))
+  if (prototypeish) work.push(item(Button({ key: 'menu-send-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }), 'Put a picture of the prototype’s current screen into Figma, after asking.'))
   const menu = [
     ...group('ready', 'Get ready', [
-      Button({ key: 'menu-setup', label: 'Setup', hotkey: 'u', onPress: run('setup') }),
-      Button({ key: 'menu-team', label: 'Team settings', hotkey: 't', onPress: run('team-settings') }),
+      item(Button({ key: 'menu-setup', label: 'Setup', hotkey: 'u', onPress: run('setup') }), 'Check Figma, set up this project, and link its design system and Figma file.'),
+      item(Button({ key: 'menu-team', label: 'Team settings', hotkey: 't', onPress: run('team-settings') }), 'Your team’s design systems, projects folder, Figma folder and where work may be shared.'),
     ]),
     ...group('work', 'Work', work),
     ...group('share', 'Share', [
-      Button({ key: 'menu-handover', label: 'Hand over to the team', hotkey: 'o', onPress: run('handover') }),
-      Button({ key: 'menu-handoff', label: 'Share for review', hotkey: 'r', onPress: run('handoff') }),
+      item(Button({ key: 'menu-handover', label: 'Hand over to the team', hotkey: 'o', onPress: run('handover') }), 'Make or update the project’s handover for developers: changelog, Figma page and specs.'),
+      item(Button({ key: 'menu-handoff', label: 'Share for review', hotkey: 'r', onPress: run('handoff') }), 'Share an exploration online for review. Always asks before anything leaves this computer.'),
     ]),
     ...group('help', 'Help', [
-      Button({ key: 'menu-guide', label: 'Guide', onPress: actions.guide }),
-      Button({ key: 'menu-glossary', label: 'Glossary', onPress: () => actions.tab('glossary') }),
-      Button({ key: 'menu-version', label: 'Studio version', hotkey: 'v', onPress: run('version') }),
+      item(Button({ key: 'menu-guide', label: 'Guide', onPress: actions.guide }), 'How Studio works, and which Claude to use for what.'),
+      item(Button({ key: 'menu-glossary', label: 'Glossary', onPress: () => actions.tab('glossary') }), 'The friendly words, and the technical ones behind them.'),
+      item(Button({ key: 'menu-version', label: 'Studio version', hotkey: 'v', onPress: run('version') }), 'Which Studio you have, and whether there’s a newer one.'),
     ]),
   ]
   return [label(Text, 'h-menu', 'Menu'), Text({ key: 'menu-note', color: 'subtle', wrap: 'wrap', children: ['Everything Studio does, by what you’re doing. The / commands still work too.'] }), ...menu]
-
 }
 
 function glossaryTab(el, view, actions) {
