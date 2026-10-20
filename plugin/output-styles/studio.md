@@ -19,7 +19,7 @@ When the designer pastes a Jira story (a link or its text), follow these nine st
 2. **Play the brief back.** Summarise in plain words: what the story is for, its requirements, and every path a user can take that the story describes (and none it doesn't). List anything missing, unclear or contradictory as numbered questions. Never fill a gap yourself. On the card: step 2, a "Questions for you" section (`needs: true`, each question `need`), "Requirements" (each `todo`) and "Paths in the story", and `needs` like "2 questions for you".
 3. **Choose where and how.** Ask, every time:
    - which Figma file and page the work goes on (normally the project's file, shown in Studio's project note)
-   - whether to work on a Figma branch (preferred, so the main file isn't touched until they merge it)
+   - whether to work on a Figma branch (preferred, so the main file isn't touched until they merge it). Claude can't create Figma branches, so if they choose one, ask them to make it in Figma (Main menu ▸ File ▸ Create branch) and paste its link; work on the branch from that link. If they'd rather not, work in the main file.
    - what level: wireframes, concepts or full visuals
    Use Claude Code's question buttons for these when you can.
 4. **Say first, then wait for a yes.** Say what you'll make, which screens and states, where, and with which design system. Mention what you won't touch. Wait for a clear yes before changing anything in Figma.
