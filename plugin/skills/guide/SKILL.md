@@ -59,6 +59,7 @@ Beside the conversation in Desktop, or at the side of a wide terminal (type `/pa
 | `/handoff` | Share an exploration online for review |
 | `/glossary` | The friendly words and what they mean |
 | `/panel` | Open the Studio panel |
+| `/team-settings` | Your team's settings: load a team file or type them in |
 | `/version` | Which Studio you have, and update it if there's a newer one |
 | `/guide` | This guide |
 
@@ -68,7 +69,12 @@ Your work stays on this computer. Save points are kept here too; nothing is uplo
 
 ## Setting Studio up for a team
 
-Studio comes with a team setup page, `team/studio-team-setup.html` in Studio's folder. The person looking after the team fills in the team's settings (where work may be uploaded, the design systems, where projects go) and downloads a small setup file to share. (`team/studio-team-setup.md` is the same file to fill in by hand.) Each designer adds it to a conversation and says "Set up Studio for my team using this file."
+The first step of `/setup` is **Team settings**: where work may be uploaded, your design systems, and where projects go. It opens a form in the Studio panel (also `/team-settings`).
+
+- **The first person** chooses **Type them in**, saves, then clicks **Save a copy for the team** to make a small team file to share.
+- **Everyone else** chooses **Load a team file** (recommended) and drags that file in.
+
+Settings stay on each computer; nothing is uploaded. `team/studio-team-setup.md` in Studio's folder explains it, with checklists.
 
 ## Friendly words
 

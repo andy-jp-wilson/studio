@@ -28,12 +28,21 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[] }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
   on('process.run', ($: any, e: any) => {
     const [bin, ...rest] = e.argv
+    if (String(bin).endsWith('/bin/studio-team')) {
+      calls.team.push(rest)
+      const ok = (stdout: string) => ({ value: { exitCode: 0, stdout: stdout + '\n', stderr: '' } })
+      if (rest[0] === 'json') return ok(map['team-json'] ?? '{"teamName":"","uploadPlaces":"","projectsFolder":"","figmaWritePlaces":"","designSystems":[]}')
+      if (rest[0] === 'read') return ok(map['team-read'] ?? 'not-a-team-file')
+      if (rest[0] === 'set') return ok((rest[2] ? 'set ' : 'removed ') + rest[1])
+      if (rest[0] === 'export') return ok('saved /Users/sam/Desktop/acme-design.studio-team.json')
+      return ok('')
+    }
     if (String(bin).endsWith('/bin/studio-version')) {
       const line = map['studio-version']
       return { value: line === undefined ? { exitCode: 1, stdout: '', stderr: '' } : { exitCode: 0, stdout: line + '\n', stderr: '' } }
@@ -61,6 +70,14 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('ui.render', ($: any, e: any) => { if (e.component === 'Spinner') calls.spinner.push(e.props); return { type: 'Text', props: {}, children: ['drawn by Claude Code'] } })
   return calls
 }
+
+const TEAM = (surface: 'terminal' | 'desktop' = 'desktop') => ({
+  plugin: 'studio', component: 'Pane', requestId: 'studio-team', surface,
+  viewport: { columns: 160, rows: 60 },
+  props: { title: 'Team settings', isFocused: true, bodyColumns: 56, placement: 'dock', scroll: { offset: 0, bodyRows: 56 }, view: {} },
+}) as const
+const TEAM_FILE = JSON.stringify({ teamName: 'Acme Design', uploadPlaces: 'acme', projectsFolder: '', figmaWritePlaces: '',
+  designSystems: [{ name: 'Acme DS', link: 'https://www.figma.com/design/aaa/Acme' }, { name: 'Acme Classic', link: 'https://www.figma.com/design/bbb/Classic' }] })
 
 const start = ($: any) => $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work/onboarding' })
 // One finished request, so the band shows the journey rather than the welcome.
@@ -289,4 +306,66 @@ test('Send to Figma asks Claude, Guide and Save point run commands, and /panel o
   expect(await ui.find({ type: 'Text', text: 'Changes not saved yet' })).toBeDefined()
   const answer = await $.command.run({ command: 'panel', args: '' })
   expect(answer).toEqual({})
+})
+
+test('the team form offers a team file (recommended) or typing, and typing saves only on this computer', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  expect(await $.command.run({ command: 'team-settings', args: '' })).toEqual({})
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount(TEAM(surface))
+    expect(await ui.find({ key: 'load' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Recommended' })).toBeDefined()
+    expect(await ui.find({ key: 'type' })).toBeDefined()
+    await ui.unmount()
+  }
+  const ui = await $.ui.mount(TEAM())
+  await ui.press({ key: 'type' })
+  await ui.input({ key: 'f-teamName', text: 'Acme Design' })
+  await ui.input({ key: 'f-uploadPlaces', text: 'acme, acme-labs' })
+  await ui.input({ key: 'ds-name-0', text: 'Acme DS' })
+  await ui.input({ key: 'ds-link-0', text: 'not a link' })
+  expect(await ui.find({ type: 'Text', text: 'This doesn’t look like a Figma link yet.' })).toBeDefined()
+  await ui.input({ key: 'ds-link-0', text: 'https://www.figma.com/design/aaa/Acme' })
+  await ui.press({ key: 'save' })
+  const sets = calls.team.filter(c => c[0] === 'set')
+  expect(sets).toContainEqual(['set', 'STUDIO_TEAM_NAME', 'Acme Design'])
+  expect(sets).toContainEqual(['set', 'STUDIO_ALLOWED_ORGS', 'acme,acme-labs'])
+  expect(sets).toContainEqual(['set', 'STUDIO_DESIGN_SYSTEMS', 'Acme DS | https://www.figma.com/design/aaa/Acme'])
+  expect(await ui.find({ type: 'Text', text: '✓ Team settings saved on this computer' })).toBeDefined()
+  expect(calls.prompts.length).toBe(0)
+  await ui.press({ key: 'export' })
+  expect(await ui.find({ type: 'Text', text: '✓ Team file saved: /Users/sam/Desktop/acme-design.studio-team.json' })).toBeDefined()
+})
+
+test('loading a team file fills the form for checking; a wrong file says so', async ($, on) => {
+  setup(on, { 'team-read': TEAM_FILE })
+  await start($)
+  await $.command.run({ command: 'team-settings', args: '' })
+  const ui = await $.ui.mount(TEAM())
+  await ui.press({ key: 'load' })
+  await ui.input({ key: 'file-path', text: '~/Desktop/acme-design.studio-team.json' })
+  expect(await ui.find({ type: 'Text', text: 'Check your team’s settings' })).toBeDefined()
+  expect(await ui.find({ key: 'ds-name-1' })).toBeDefined()
+})
+
+test('a file that isn’t a team file is refused calmly', async ($, on) => {
+  setup(on)
+  await start($)
+  await $.command.run({ command: 'team-settings', args: '' })
+  const ui = await $.ui.mount(TEAM())
+  await ui.press({ key: 'load' })
+  await ui.input({ key: 'file-path', text: '/Users/sam/Desktop/notes.txt' })
+  expect(await ui.find({ type: 'Text', text: 'That isn’t a Studio team file, or it can’t be opened. Check the file, or type the settings in instead.' })).toBeDefined()
+})
+
+test('/setup opens the form by running studio-team form, and saving tells Claude to carry on', async ($, on) => {
+  const calls = setup(on, { 'team-read': TEAM_FILE })
+  await start($)
+  await $.tool.call({ tool: 'Bash', command: 'studio-team form' })
+  const ui = await $.ui.mount(TEAM())
+  await ui.press({ key: 'load' })
+  await ui.input({ key: 'file-path', text: '~/Desktop/acme-design.studio-team.json' })
+  await ui.press({ key: 'save' })
+  expect(calls.prompts.at(-1)).toMatch(/saved their team settings.*Acme Design.*Acme DS, Acme Classic.*Carry on with \/setup/)
 })

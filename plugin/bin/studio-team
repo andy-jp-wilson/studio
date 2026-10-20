@@ -6,6 +6,17 @@
 #   studio-team show
 #       Prints the Studio settings currently set, as KEY=value lines,
 #       or "none".
+#   studio-team json
+#       Prints the current settings as one JSON object (for the team form).
+#   studio-team read <file>
+#       Reads a team file (*.studio-team.json) and prints its settings as JSON,
+#       or "not-a-team-file". Changes nothing.
+#   studio-team export [folder]
+#       Saves the current settings as a team file to share, in [folder]
+#       (default: Desktop, else home). Prints "saved <path>".
+#   studio-team form
+#       Opens the team settings form in the Studio panel (the Studio band
+#       and panel watch for this). Prints "form".
 #   studio-team set <KEY> <value>
 #       Sets one Studio setting (an empty value removes it). Keeps a copy of
 #       the settings file first (settings.json.studio-backup). Prints
@@ -43,7 +54,30 @@ case "$cmd" in
     fi
     rm -f "$tmp"
     ;;
+  json)
+    [ -f "$file" ] && jq -c '(.env // {}) as $e | {teamName: ($e.STUDIO_TEAM_NAME // ""), uploadPlaces: ($e.STUDIO_ALLOWED_ORGS // ""),
+      projectsFolder: ($e.STUDIO_PROJECTS_FOLDER // ""), figmaWritePlaces: ($e.STUDIO_FIGMA_WRITE_PLACES // ""),
+      designSystems: (($e.STUDIO_DESIGN_SYSTEMS // "") | split(";") | map(split("|") | map(gsub("^ +| +$"; "")) | select(.[0] != "" or (.[1] // "") != "") | {name: .[0], link: (.[1] // "")}))}' "$file" 2>/dev/null \
+      || echo '{"teamName":"","uploadPlaces":"","projectsFolder":"","figmaWritePlaces":"","designSystems":[]}'
+    ;;
+  read)
+    f="${1/#\~/$HOME}"
+    jq -e -c 'select(.studioTeam) | {teamName: (.teamName // ""), uploadPlaces: (.uploadPlaces // ""), projectsFolder: (.projectsFolder // ""),
+      figmaWritePlaces: (.figmaWritePlaces // ""), designSystems: [(.designSystems // [])[] | {name: (.name // ""), link: (.link // "")}]}' "$f" 2>/dev/null \
+      || echo "not-a-team-file"
+    ;;
+  export)
+    dir="${1:-}"; dir="${dir/#\~/$HOME}"
+    [ -z "$dir" ] && { [ -d "$HOME/Desktop" ] && dir="$HOME/Desktop" || dir="$HOME"; }
+    cur=$("$0" json)
+    name=$(printf '%s' "$cur" | jq -r '.teamName' | tr 'A-Z' 'a-z' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g')
+    out="$dir/${name:-team}.studio-team.json"
+    printf '%s' "$cur" | jq '{studioTeam: 1} + .' > "$out" && echo "saved $out"
+    ;;
+  form)
+    echo "form"
+    ;;
   *)
-    sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,37p' "$0" | sed 's/^# \{0,1\}//'
     ;;
 esac

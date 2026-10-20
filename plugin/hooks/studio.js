@@ -5,6 +5,7 @@ import { describe } from './studio/narrate.js'
 import { guessStage } from './studio/journey.js'
 import { drawBand } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
+import { TEAM_PANE, EMPTY, drawTeamForm, toSettings } from './studio/team-form.js'
 
 const PANE = 'studio'
 const PREVIEW_PORTS = [4321, 5173, 3000, 8080, 8000, 4173, 5000]
@@ -94,6 +95,82 @@ function state(now) {
   return { ...project, ...live, memory, welcome, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
 }
 
+// The team settings form (studio/team-form.js).
+const blankTeam = () => ({ step: 'choose', current: { ...EMPTY }, values: { ...EMPTY }, path: '', error: '', loadedFrom: '', exported: '', saving: false, fromSetup: false })
+let team = blankTeam()
+const copy = v => ({ ...EMPTY, ...v, designSystems: (v.designSystems || []).map(d => ({ name: d.name || '', link: d.link || '' })) })
+
+async function teamBin($, args) {
+  const r = await $.process.run([$.plugin.root + '/bin/studio-team', ...args], { timeoutMs: 8000 })
+  return { ok: r.exitCode === 0, out: String(r.stdout || '').trim() }
+}
+
+async function openTeam($, fromSetup) {
+  let current = { ...EMPTY }
+  try { const r = await teamBin($, ['json']); if (r.ok) current = copy(JSON.parse(r.out)) } catch {}
+  team = { ...blankTeam(), current, values: copy(current), fromSetup }
+  try { await $.ui.open({ id: TEAM_PANE, title: 'Team settings', focus: true }) } catch {}
+  $.ui.invalidate('ui.render')
+}
+
+function teamActions($) {
+  const redraw = () => $.ui.invalidate('ui.render')
+  const tell = text => { if (team.fromSetup) $.prompt.submit({ text }).catch(() => {}) }
+  return {
+    file: () => { team = { ...team, step: 'file', error: '' }; redraw() },
+    manual: () => { team = { ...team, step: 'edit', error: '', loadedFrom: '', values: copy(team.step === 'saved' ? team.values : team.current) }; redraw() },
+    back: () => { team = { ...team, step: 'choose', error: '' }; redraw() },
+    setPath: v => { team = { ...team, path: String(v || ''), error: '' } },
+    load: async v => {
+      const path = String(v || team.path || '').trim().replace(/^['"]|['"]$/g, '').replace(/\\ /g, ' ')
+      if (!path) { team = { ...team, error: 'Drag the team file into the box, or paste where it is.' }; return redraw() }
+      try {
+        const r = await teamBin($, ['read', path])
+        if (!r.ok || r.out === 'not-a-team-file') { team = { ...team, path, error: 'That isn’t a Studio team file, or it can’t be opened. Check the file, or type the settings in instead.' }; return redraw() }
+        team = { ...team, path, step: 'edit', error: '', loadedFrom: path.split('/').pop(), values: copy(JSON.parse(r.out)) }
+      } catch { team = { ...team, path, error: 'That file couldn’t be read. Check it, or type the settings in instead.' } }
+      redraw()
+    },
+    setField: (id, v) => { team = { ...team, values: { ...team.values, [id]: String(v || '') } } },
+    setDs: (i, k, v) => {
+      const ds = team.values.designSystems.length ? [...team.values.designSystems] : [{ name: '', link: '' }]
+      ds[i] = { ...ds[i], [k]: String(v || '') }
+      team = { ...team, values: { ...team.values, designSystems: ds } }
+      if (k === 'link') redraw()
+    },
+    addDs: () => {
+      const ds = team.values.designSystems.length ? team.values.designSystems : [{ name: '', link: '' }]
+      team = { ...team, values: { ...team.values, designSystems: [...ds, { name: '', link: '' }] } }; redraw()
+    },
+    removeDs: i => { team = { ...team, values: { ...team.values, designSystems: team.values.designSystems.filter((_, j) => j !== i) } }; redraw() },
+    keep: () => { tell('The person kept the team settings already saved on this computer. Carry on with /setup.'); team = { ...team, step: 'saved', values: copy(team.current) }; redraw() },
+    save: async () => {
+      team = { ...team, saving: true, error: '' }; redraw()
+      try {
+        for (const [key, value] of toSettings(team.values)) {
+          const r = await teamBin($, ['set', key, value])
+          if (!r.ok) throw new Error(r.out)
+        }
+        const values = copy({ ...team.values, designSystems: team.values.designSystems.filter(d => d.name || d.link) })
+        team = { ...team, saving: false, step: 'saved', current: values, values }
+        const names = values.designSystems.map(d => d.name || d.link).join(', ')
+        tell('The person saved their team settings in the Studio form' + (values.teamName ? ' for ' + values.teamName : '') + (names ? ', with design systems: ' + names : '') + '. Carry on with /setup.')
+      } catch {
+        team = { ...team, saving: false, error: 'The settings couldn’t be saved. Nothing has changed; try again.' }
+      }
+      redraw()
+    },
+    exportFile: async () => {
+      try {
+        const r = await teamBin($, ['export'])
+        team = { ...team, exported: r.ok && r.out.startsWith('saved ') ? r.out.slice(6) : '' }
+        if (!team.exported) team = { ...team, error: 'The team file couldn’t be saved. Try again.' }
+      } catch { team = { ...team, error: 'The team file couldn’t be saved. Try again.' } }
+      redraw()
+    },
+  }
+}
+
 function actionsFor($) {
   const run = name => {
     $.command.run({ command: name }).catch(() => $.prompt.submit({ text: '/' + name, asUser: true }).catch(() => {}))
@@ -124,11 +201,17 @@ export function register(on) {
     try { await $.clock.every(30000, async () => { await refresh($); $.ui.invalidate('ui.render') }) } catch {}
     try { await $.ui.open({ id: PANE, title: 'Studio' }) } catch {}
     try { await $.command.register({ name: 'panel', description: 'Open the Studio panel', immediate: true }) } catch {}
+    try { await $.command.register({ name: 'team-settings', description: 'Your team’s Studio settings: load a team file or type them in', immediate: true }) } catch {}
     return next(e)
   })
 
   on('command.run', { command: 'panel' }, async ($) => {
     await $.ui.open({ id: PANE, title: 'Studio', focus: true })
+    return {}
+  })
+
+  on('command.run', { command: 'team-settings' }, async ($) => {
+    await openTeam($, false)
     return {}
   })
 
@@ -155,6 +238,12 @@ export function register(on) {
       live = { ...live, todo: { items, total: items.length, current: cur >= 0 ? cur + 1 : items.filter(i => i.status === 'done').length } }
       $.ui.invalidate('ui.render')
       return next(e)
+    }
+    // /setup asks for the team form by running `studio-team form`.
+    if (e.tool === 'Bash' && String(e.command || '').trim() === 'studio-team form') {
+      const result = await next(e)
+      await openTeam($, true)
+      return result
     }
     const d = describe(e)
     if (!d) return next(e)
@@ -186,6 +275,11 @@ export function register(on) {
     if (e.requestId !== PANE) return next(e)
     const el = $.ui.resolve(e)
     return drawPane(el, state(await $.clock.now()), view, actionsFor($), e.props.bodyColumns)
+  })
+
+  on('ui.render', { component: 'Pane' }, async ($, e, next) => {
+    if (e.requestId !== TEAM_PANE) return next(e)
+    return drawTeamForm($.ui.resolve(e), team, teamActions($), e.props.bodyColumns)
   })
 
   on('ui.render', { component: 'Spinner' }, async ($, e, next) => {
