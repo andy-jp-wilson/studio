@@ -29,8 +29,12 @@ function itemRow(el, it, i, key, ctx) {
     Box({ key: k + '-body', flexDirection: 'column', flexGrow: 1, flexShrink: 1, children: body }),
     ...right,
   ] })]
-  // A question you can answer here: a text box under it.
-  if (ctx.ask) rows.push(el.Input({ key: k + '-answer', placeholder: it.placeholder || 'Your answer', value: ctx.answers[k] || '', onInput: v => ctx.actions.setAnswer(k, v), onSubmit: v => ctx.actions.setAnswer(k, v) }))
+  // A question you can answer here: a text box under it, and the pair given
+  // room to breathe (a line above each question after the first).
+  if (ctx.ask) {
+    rows.push(el.Input({ key: k + '-answer', placeholder: it.placeholder || 'Your answer', value: ctx.answers[k] || '', onInput: v => ctx.actions.setAnswer(k, v), onSubmit: v => ctx.actions.setAnswer(k, v) }))
+    return [Box({ key: k + '-q', flexDirection: 'column', rowGap: 1, marginTop: 1, children: rows })]
+  }
   return rows
 }
 
@@ -45,7 +49,7 @@ function card(el, sec, i, color, actions, answers) {
     Text({ key: key + '-title', size: 'heading', weight: 'semibold', color: needs ? MIST.needsText : MIST.text, children: [String(sec.title || '')] }),
     ...items.flatMap((it, j) => itemRow(el, it, j, key, ctx)),
   ]
-  if (sec.ask && items.length) children.push(Box({ key: key + '-send', flexDirection: 'row', columnGap: 2, alignItems: 'center', children: [
+  if (sec.ask && items.length) children.push(Box({ key: key + '-send', flexDirection: 'row', columnGap: 2, alignItems: 'center', marginTop: 1, children: [
     Button({ key: key + '-send-btn', label: 'Send answers', onPress: () => actions.sendAnswers(questions) }),
     Text({ key: key + '-send-or', color: MIST.muted, size: 'footnote', children: ['or answer in the chat'] }),
   ] }))
