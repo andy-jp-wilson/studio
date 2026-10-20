@@ -36,7 +36,7 @@ onboarding/
   README.md        What this project is, who's involved, and links to its Figma file and design system
   prototype/       The prototype's code: the screens you preview, e.g. the sign-up screen
     assets/        Images, icons and fonts the prototype uses
-  handovers/       What /handover makes: changelogs and developer packs
+  handover/        The project's one handover for developers, updated by each /handover
   .studio/         Studio's own notes about this project (hidden)
 ```
 

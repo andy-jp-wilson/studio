@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """studio-pack <handover.json>
 
-Builds a Studio developer pack next to handover.json:
+Builds (or updates) the project's one developer handover, next to
+handover.json (normally <project>/handover/):
   index.html     review page (same content as the Figma handover page)
-  CHANGELOG.md   the changelog as text
-  prototype/     clean copy of the project (no history, packages or handovers)
-  screens/       pictures of the final screens (made earlier by studio-capture)
-  .gitignore     keeps the pack out of the project's save points
+  CHANGELOG.md   the changelog as text: this handover first, then earlier ones
+  history.json   every handover so far, so updating never loses the changelog
+  prototype/     clean copy of the prototype, when the project has one
+  screens/       pictures of the final screens (made earlier by studio-capture);
+                 pictures of screens no longer in the design are removed
+  .gitignore     keeps the handover out of the project's save points
 Then marks the handover (refs/studio/handovers/<date>-<slug>) so the next
 changelog starts from here. Prints "built <folder>" or "failed <reason>".
 """
-import html, json, os, subprocess, sys
+import datetime, html, json, os, subprocess, sys
 
 def flat(s): return ", ".join(map(str, s)) if isinstance(s, list) else str(s or "")
 def esc(s): return html.escape(flat(s))
@@ -28,16 +31,19 @@ def main():
     if not top:
         print("failed this folder does not keep save points"); return
 
-    # Clean copy of the prototype.
+    # Clean copy of the prototype: the project's prototype/ folder when it
+    # has the Studio layout, otherwise the whole project.
     proto = os.path.join(out, "prototype")
     os.makedirs(proto, exist_ok=True)
+    src = os.path.join(top, "prototype") if os.path.isdir(os.path.join(top, "prototype")) else top
     r = subprocess.run(["rsync", "-a", "--delete",
-                        "--exclude", ".git", "--exclude", "node_modules", "--exclude", "handover",
-                        "--exclude", ".DS_Store", "--exclude", ".claude",
-                        top + "/", proto + "/"], capture_output=True, text=True)
+                        "--exclude", ".git", "--exclude", "node_modules", "--exclude", "/handover",
+                        "--exclude", "/handovers", "--exclude", ".DS_Store", "--exclude", ".claude",
+                        "--exclude", "/.studio", src + "/", proto + "/"], capture_output=True, text=True)
     if r.returncode != 0:
         print(f"failed copying the prototype: {r.stderr.strip()}"); return
     open(os.path.join(out, ".gitignore"), "w").write("*\n")
+    has_proto = any(f != ".DS_Store" for _, _, files in os.walk(proto) for f in files)
 
     title, date = d.get("title", "Handover"), d.get("date", "")
     try:
@@ -46,19 +52,60 @@ def main():
     except Exception:
         nice = date
     changes = d.get("changes", [])
+    # Only the final design: remove pictures of screens no longer listed.
+    keep = {os.path.normpath(s.get("file", "")) for s in d.get("screens", [])}
+    shots_dir = os.path.join(out, "screens")
+    if os.path.isdir(shots_dir):
+        for f in os.listdir(shots_dir):
+            if os.path.normpath(os.path.join("screens", f)) not in keep and f.lower().endswith(".png"):
+                os.remove(os.path.join(shots_dir, f))
     screens = [s for s in d.get("screens", []) if os.path.exists(os.path.join(out, s.get("file", "")))]
+
+    # History: this handover first, then earlier ones (an update on the same
+    # day with the same title replaces that entry rather than repeating it).
+    hist_path = os.path.join(out, "history.json")
+    try:
+        history = json.load(open(hist_path))
+    except Exception:
+        history = []
+    entry = {"date": date, "title": title, "summary": d.get("summary", ""), "changes": changes, "savePoints": d.get("savePoints")}
+    history = [entry] + [h for h in history if not (h.get("date") == date and h.get("title") == title)]
+    json.dump(history, open(hist_path, "w"), indent=2)
+    earlier = history[1:]
+
+    def nice_date(s):
+        try:
+            return datetime.date.fromisoformat(s).strftime("%d %B %Y").lstrip("0")
+        except Exception:
+            return s or ""
+
+    figma_url, figma_name = d.get("figmaFileUrl") or "", d.get("figmaFileName") or "Figma file"
+    page_url = d.get("figmaPageUrl") or ""
     comps = d.get("components", [])
     link = d.get("packLink") or ""
-    ks_link = d.get("acmeLink") or ""
+    ds_name = d.get("designSystemName") or ""
+    ds_link = d.get("designSystemLink") or d.get("acmeLink") or ""
 
     # CHANGELOG.md
-    md = [f"# {title}", "", f"Handover · {nice} · {d.get('project','')} · {d.get('exploration','')}", "",
-          d.get("summary", ""), "", "## Changelog", ""]
+    md = [f"# {title}", "", f"Handover · updated {nice} · {d.get('project','')} · {d.get('exploration','')}", ""]
+    md += [f"- Figma file: [{figma_name}]({figma_url})" if figma_url else "- Figma file: not linked yet (`/setup` can link it)"]
+    if page_url:
+        md += [f"- Handover page in Figma: {page_url}"]
+    md += ["", d.get("summary", ""), "", "## Changelog", ""]
     for c in changes:
         md += [f"### {c.get('title','')}", f"_{c.get('when','')}_", "", c.get("detail", ""), "",
                f"**Why:** {c.get('why','')}", "", f"Files: `{flat(c.get('files'))}`", ""]
-    md += ["## Specs", "", "Use the Acme Design System as the source of truth.",
-           "", "Acme Design System components on these screens: " + ", ".join(comps), ""]
+    for h in earlier:
+        md += [f"## Earlier: {h.get('title','')} ({nice_date(h.get('date'))})", ""]
+        for c in h.get("changes", []):
+            md += [f"- **{c.get('title','')}**: {c.get('detail','')}"]
+        md += [""]
+    if ds_name:
+        md += ["## Specs", "", f"Use {ds_name} as the source of truth." + (f" {ds_link}" if ds_link else ""),
+               "", f"{ds_name} components on these screens: " + ", ".join(comps), ""]
+    else:
+        md += ["## Specs", "", "No design system is connected to this project yet.",
+               "", "Components on these screens: " + ", ".join(comps), ""]
     open(os.path.join(out, "CHANGELOG.md"), "w").write("\n".join(md))
 
     # index.html
@@ -71,8 +118,30 @@ def main():
     log = "".join(f'''<div class="entry"><div class="when">{esc(c.get("when"))}</div><div>
       <div class="t">{esc(c.get("title"))}</div><div>{esc(c.get("detail"))}</div>
       <div class="why"><b>WHY</b> {esc(c.get("why"))}</div><code>{esc(c.get("files"))}</code></div></div>''' for c in changes)
+    if earlier:
+        log += '<h3 class="earlier">Earlier handovers</h3>' + "".join(
+            f'<details><summary>{esc(h.get("title"))} · {esc(nice_date(h.get("date")))}</summary>'
+            + "".join(f'<p><b>{esc(c.get("title"))}</b>: {esc(c.get("detail"))}</p>' for c in h.get("changes", []))
+            + '</details>' for h in earlier)
+    if figma_url:
+        fig = f'<a class="figma" href="{esc(figma_url)}">Open {esc(figma_name)} in Figma</a>'
+        if page_url:
+            fig += f' <a class="figma" href="{esc(page_url)}">Handover page in Figma</a>'
+    else:
+        fig = '<span class="todo">Figma file: not linked yet; /setup can link it</span>'
+    proto_note = ('<p>The prototype&rsquo;s HTML and CSS are in the <code>prototype/</code> folder next to this page. Open <code>prototype/index.html</code> to try it.</p>'
+                  if has_proto else '<p>There&rsquo;s no prototype for this project; the designs are in Figma.</p>')
     comp_list = "".join(f"<li>{esc(c)}</li>" for c in comps)
-    ks = f'<a href="{esc(ks_link)}">Open Acme Design System</a>' if ks_link else '<span class="todo">Link to Acme Design System: to be added</span>'
+    if ds_link:
+        ds = f'<a href="{esc(ds_link)}">Open {esc(ds_name or "the design system")}</a>'
+    elif ds_name:
+        ds = '<span class="todo">Link to the design system: to be added</span>'
+    else:
+        ds = '<span class="todo">Connect one with /setup</span>'
+    ds_title = esc(ds_name) if ds_name else "Not connected yet"
+    ds_sub = (f"Colours, type, spacing and components come from {esc(ds_name)}, the team&rsquo;s design system. Use it as the source of truth."
+              if ds_name else "No design system is connected to this project yet, so these specs aren&rsquo;t linked to one.")
+    ds_note = f"Specs: use {esc(ds_name)}." if ds_name else "Specs: no design system connected yet."
     pk = f'<a href="{esc(link)}">{esc(link)}</a>' if link else '<span class="todo">Developer pack link: to be added</span>'
     meta = "".join(f'<div class="meta"><span>{k}</span>{esc(v)}</div>' for k, v in
                    [("Project", d.get("project")), ("Exploration", d.get("exploration")),
@@ -92,20 +161,20 @@ main{{flex:1;max-width:1040px;padding:48px}}section{{margin-bottom:56px}}h1{{fon
 figure{{display:inline-block;margin:16px 24px 0 0}}figure img,iframe{{width:390px;height:844px;border:1px solid var(--border);border-radius:28px;background:#fff}}img{{height:auto}}figcaption{{font-size:12px;color:var(--muted);margin-top:8px}}
 .entry{{display:flex;gap:24px;padding:16px 0;border-bottom:1px solid var(--border)}}.when{{width:140px;font:14px "JetBrains Mono",ui-monospace,monospace;color:var(--muted)}}.t{{font-weight:600}}
 .why{{font-size:12px;color:var(--muted);margin:4px 0}}.why b{{color:var(--accent);font-size:11px;margin-right:6px}}code{{font:13px "JetBrains Mono",ui-monospace,monospace;background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--muted)}}
-.ks{{display:flex;gap:32px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:16px}}.ks>div{{flex:1}}.ks h3{{margin:4px 0 8px}}.ks li::marker{{color:var(--accent)}}
-.todo{{display:inline-block;background:var(--warn-soft);color:var(--warn);font-size:12px;padding:4px 8px;border-radius:4px}}.dev{{background:var(--info-soft);border-radius:12px;padding:24px;margin-top:16px}}.dev p{{margin:4px 0}}a{{color:var(--accent)}}
+.ds{{display:flex;gap:32px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:16px}}.ds>div{{flex:1}}.ds h3{{margin:4px 0 8px}}.ds li::marker{{color:var(--accent)}}
+.figmas{{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 0}}.figma{{display:inline-block;background:var(--info-soft);color:var(--info);font-size:14px;padding:6px 12px;border-radius:6px;text-decoration:none}}.earlier{{margin:24px 0 8px}}details{{margin:6px 0}}summary{{cursor:pointer}}.todo{{display:inline-block;background:var(--warn-soft);color:var(--warn);font-size:12px;padding:4px 8px;border-radius:4px}}.dev{{background:var(--info-soft);border-radius:12px;padding:24px;margin-top:16px}}.dev p{{margin:4px 0}}a{{color:var(--accent)}}
 </style></head><body><div class="wrap">
-<nav><b>STUDIO HANDOVER</b><a href="#summary">Summary</a><a href="#design">Final design</a><a href="#changelog">Changelog</a><a href="#acme">Acme Design System</a><a href="#developers">For developers</a></nav>
+<nav><b>STUDIO HANDOVER</b><a href="#summary">Summary</a><a href="#design">Final design</a><a href="#changelog">Changelog</a><a href="#specs">Specs</a><a href="#developers">For developers</a></nav>
 <main>
-<section><span class="label">Handover · {esc(nice)}</span><h1>{esc(title)}</h1><p class="lede">{esc(d.get("summary"))}</p><div class="metas">{meta}</div></section>
+<section><span class="label">Handover · updated {esc(nice)}</span><h1>{esc(title)}</h1><p class="figmas">{fig}</p><p class="lede">{esc(d.get("summary"))}</p><div class="metas">{meta}</div></section>
 <section id="summary"><h2>Summary</h2><p class="sub">What this handover covers.</p><div class="cards">{points}</div></section>
 <section id="design"><h2>Final design</h2><p class="sub">The finished screens. Earlier versions are not included; the changelog describes what changed.</p>{shots}</section>
-<section id="changelog"><h2>Changelog</h2><p class="sub">Every save point since the last handover, newest first.</p>{log}</section>
-<section id="acme"><h2>Specs</h2><p class="sub">Colours, type, spacing and components come from Acme Design System, our design system. Use Acme Design System as the source of truth.</p>
-<div class="ks"><div><span class="label">Design system</span><h3>Acme Design System Design System &amp; Component Library</h3>{ks}</div><div><span class="label">Acme Design System components on these screens</span><ul>{comp_list}</ul></div></div></section>
+<section id="changelog"><h2>Changelog</h2><p class="sub">What changed in this handover, newest first. Earlier handovers are below.</p>{log}</section>
+<section id="specs"><h2>Specs</h2><p class="sub">{ds_sub}</p>
+<div class="ds"><div><span class="label">Design system</span><h3>{ds_title}</h3>{ds}</div><div><span class="label">Components on these screens</span><ul>{comp_list}</ul></div></div></section>
 <section id="developers"><h2>For developers</h2><div class="dev">
-<p>Where this pack lives: {pk}</p><p>The prototype’s HTML and CSS are in the <code>prototype/</code> folder next to this page. Open <code>prototype/index.html</code> to try it.</p>
-<p>Pictures of the final screens are in <code>screens/</code>; the changelog is also in <code>CHANGELOG.md</code>.</p><p>Specs: use the Acme Design System Design System &amp; Component Library.</p></div></section>
+<p>Designs: {fig}</p><p>Where this pack lives: {pk}</p>{proto_note}
+<p>Pictures of the final screens are in <code>screens/</code>; the changelog is also in <code>CHANGELOG.md</code>.</p><p>{ds_note}</p></div></section>
 </main></div></body></html>'''
     open(os.path.join(out, "index.html"), "w").write(page)
 

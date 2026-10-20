@@ -36,7 +36,7 @@ Call the Figma `whoami` tool.
 ## 2. The right Figma account
 
 Show who's signed in, from `whoami`: name, email and the plans (teams or organisations) they belong to, e.g.
-"Signed in as **Andrew Wilson** (name@company.com), on **Acme** and **Personal**."
+"Signed in as **Sam Rivera** (sam@company.com), on **Acme** and **Personal**."
 
 - If `computer.figmaAccount` already names this same account, say "✓ Same Figma account as before." and move on.
 - Otherwise ask: "Is this the account you use for work?"
@@ -55,7 +55,7 @@ Ask: "Do you want to start a **new project**, or set up **this folder** (<folder
 3. Explain the layout in one short list, and ask if they'd like it (they can say no and keep their own):
    - `prototype/`: the prototype's code, the screens you preview
    - `prototype/assets/`: images, icons and fonts
-   - `handovers/`: what `/handover` makes
+   - `handover/`: the project's handover for developers, made by `/handover`
    - `README.md`: what the project is, with links to its Figma file and design system
 4. Run `studio-project new "<parent>" "<name>"`. `exists` means a folder with that name is already there: don't touch it; offer a different name or to set that folder up instead.
 5. From now on, pass the new folder as the last argument to every `studio-project set` and `done` call.
@@ -70,12 +70,12 @@ Ask: "Do you want to start a **new project**, or set up **this folder** (<folder
 
 Say: "Next, the design system your designs use."
 
-If the `STUDIO_DESIGN_SYSTEM_URL` setting is present (`printenv STUDIO_DESIGN_SYSTEM_URL`), offer it: "Your team uses <name from link>. Use that?" Otherwise ask them to paste the Figma link to the design system file (the **Acme Design System** for this team).
+If the `STUDIO_DESIGN_SYSTEM_URL` setting is present (`printenv STUDIO_DESIGN_SYSTEM_URL`), offer it: "Your team uses <name from link>. Use that?" Otherwise ask: "Does this project use a design system or component library? If so, paste the Figma link to its library file." Don't name or suggest any particular design system. If they don't have one, that's fine: say Studio will work without one, mark the step done and move on.
 
 Check it:
 - It must be a `figma.com/design/...` or `figma.com/file/...` link. Take the file key from it.
 - Call the Figma `get_metadata` tool with that file key (no node id) to read its pages. If it fails, explain plainly (the link may be wrong, or this account can't open it) and ask for another link.
-- Show the file name (from the link, as readable words) and its pages, and ask: "Is this the **Acme Design System**?"
+- Show the file name (from the link, as readable words) and its pages, and ask: "Is **<file name>** the design system this project uses?"
 - Yes: `studio-project set designSystemUrl "<link>"`, `studio-project set designSystemName "<name>"`, `studio-project done designSystem`.
 
 ## 5. Target Figma file
@@ -97,7 +97,7 @@ Then:
 Finish with a tick list, e.g.
 
 ✓ Figma connected
-✓ Account: Andrew Wilson (name@company.com)
+✓ Account: Sam Rivera (sam@company.com)
 ✓ Project: onboarding, with the Studio layout
 ✓ Design system: Acme Design System
 ✓ Figma file: Onboarding

@@ -31,7 +31,11 @@ function text(parent, s, style, color, o = {}) {
   parent.appendChild(t); if (o.fill) { t.textAutoResize = 'HEIGHT'; t.layoutSizingHorizontal = 'FILL'; }
   else if (o.width) { t.resize(o.width, t.height); t.textAutoResize = 'HEIGHT'; } return t; }
 
-const page = figma.createPage(); page.name = `Handover · ${DATA.date} · ${DATA.title}`;
+// One handover page per project: update the page called "Handover" if it's
+// there (clearing only that page), otherwise add it.
+let page = figma.root.children.find(p => p.name === 'Handover');
+if (page) { await page.loadAsync(); for (const n of [...page.children]) n.remove(); }
+else { page = figma.createPage(); page.name = 'Handover'; }
 await figma.setCurrentPageAsync(page);
 const root = box('VERTICAL', 'Handover', { fill:C.bg, p:48, gap:48 }); page.appendChild(root);
 root.counterAxisSizingMode = 'FIXED'; root.resize(1440, root.height);
@@ -41,7 +45,7 @@ const cover = box('VERTICAL','Cover',{ gap:16 }); root.appendChild(cover); cover
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const [yy,mm,dd] = String(DATA.date).split('-').map(Number);
 const niceDate = yy && mm && dd ? `${dd} ${MONTHS[mm-1]} ${yy}` : DATA.date;
-text(cover, `HANDOVER  ·  ${niceDate.toUpperCase()}`, 'label', C.accent);
+text(cover, `HANDOVER  ·  UPDATED ${niceDate.toUpperCase()}`, 'label', C.accent);
 text(cover, DATA.title, 'display', C.text);
 text(cover, DATA.summary, 'body', C.muted, { width:760 });
 const meta = box('HORIZONTAL','Meta',{ gap:12 }); cover.appendChild(meta);
@@ -76,15 +80,19 @@ for (const c of DATA.changes || []) { const e = box('HORIZONTAL','Entry',{ p:[0,
   const why = box('HORIZONTAL','Why',{ gap:8 }); b.appendChild(why); why.layoutSizingHorizontal='FILL'; text(why,'WHY','label',C.accent); text(why,c.why,'caption',C.muted,{fill:true});
   const fl = box('HORIZONTAL','Files',{ fill:C.surface, r:4, p:[6,2] }); b.appendChild(fl); text(fl,c.files,'mono',C.muted); }
 
-// Specs: Acme Design System reference
-const sp = section('Specs','Colours, type, spacing and components come from Acme Design System, our design system. Use Acme Design System as the source of truth; this handover doesn’t repeat its values.');
-const ks = box('HORIZONTAL','Acme Design System reference',{ fill:C.surface, stroke:C.border, r:12, p:24, gap:32 }); sp.appendChild(ks); ks.layoutSizingHorizontal='FILL';
+// Specs: the project's design system (from /setup), or "not connected yet"
+const DS = DATA.designSystemName || '';
+const DS_LINK = DATA.designSystemLink || DATA.acmeLink || '';
+const sp = section('Specs', DS
+  ? 'Colours, type, spacing and components come from ' + DS + ', the team’s design system. Use it as the source of truth; this handover doesn’t repeat its values.'
+  : 'No design system is connected to this project yet, so these specs aren’t linked to one.');
+const ks = box('HORIZONTAL','Design system reference',{ fill:C.surface, stroke:C.border, r:12, p:24, gap:32 }); sp.appendChild(ks); ks.layoutSizingHorizontal='FILL';
 const kl = box('VERTICAL','Library',{ gap:8 }); ks.appendChild(kl); kl.layoutSizingHorizontal='FILL';
-text(kl,'DESIGN SYSTEM','label',C.muted); text(kl,'Acme Design System','h2',C.text,{fill:true});
-const lk = box('HORIZONTAL','Link',{ fill: DATA.acmeLink ? C.infoSoft : C.warnSoft, r:4, p:[8,4] }); kl.appendChild(lk);
-text(lk, DATA.acmeLink || 'Link to Acme Design System: to be added', 'caption', DATA.acmeLink ? C.info : C.warn);
+text(kl,'DESIGN SYSTEM','label',C.muted); text(kl, DS || 'Not connected yet','h2',C.text,{fill:true});
+const lk = box('HORIZONTAL','Link',{ fill: DS_LINK ? C.infoSoft : C.warnSoft, r:4, p:[8,4] }); kl.appendChild(lk);
+text(lk, DS_LINK || (DS ? 'Link to the design system: to be added' : 'Connect one with /setup'), 'caption', DS_LINK ? C.info : C.warn);
 const kr = box('VERTICAL','Components used',{ gap:8 }); ks.appendChild(kr); kr.layoutSizingHorizontal='FILL';
-text(kr,'ACME COMPONENTS ON THESE SCREENS','label',C.muted);
+text(kr,'COMPONENTS ON THESE SCREENS','label',C.muted);
 for (const c of DATA.components || []) { const r = box('HORIZONTAL','Component',{ gap:8 }); kr.appendChild(r); text(r,'◆','caption',C.accent); text(r,c,'body',C.text); }
 
 // For developers
@@ -94,8 +102,8 @@ const lkRow = box('HORIZONTAL','Pack link',{ gap:8 }); dn.appendChild(lkRow); lk
 text(lkRow,'Developer pack:','strong',C.text);
 const pl = box('HORIZONTAL','Link',{ fill: DATA.packLink ? C.raised : C.warnSoft, r:4, p:[8,2] }); lkRow.appendChild(pl);
 text(pl, DATA.packLink || 'Developer pack link: to be added', 'caption', DATA.packLink ? C.info : C.warn);
-for (const s of ['The pack has a review page (index.html), the changelog, pictures of the final screens, and the prototype’s HTML and CSS.',
-                 'Specs: use the Acme Design System; the components used are listed above.']) {
+for (const s of ['The pack has a review page (index.html), the changelog, pictures of the final screens, and the prototype’s HTML and CSS when there is one.',
+                 DS ? 'Specs: use ' + DS + '; the components used are listed above.' : 'Specs: no design system connected yet; the components used are listed above.']) {
   const r = box('HORIZONTAL','Note',{ gap:8 }); dn.appendChild(r); r.layoutSizingHorizontal='FILL'; text(r,'–','body',C.info); text(r,s,'body',C.text,{fill:true}); }
 
 return { pageId: page.id, rootId: root.id, screenFrames };

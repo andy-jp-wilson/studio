@@ -22,7 +22,7 @@
 #       Marks a setup step done: connection, account, folder, designSystem,
 #       targetFile. Prints "done <step>".
 
-LAYOUT_DIRS="prototype prototype/assets handovers .studio"
+LAYOUT_DIRS="prototype prototype/assets handover .studio"
 COMPUTER="$HOME/.studio/setup.json"
 cmd="$1"; shift
 
@@ -43,7 +43,7 @@ What this project is, and who's involved.
 
 - \`prototype/\`: the prototype's code, the screens you preview
 - \`prototype/assets/\`: images, icons and fonts the prototype uses
-- \`handovers/\`: what /handover makes, changelogs and developer packs
+- \`handover/\`: the project's handover for developers, made by /handover
 EOF
 }
 
