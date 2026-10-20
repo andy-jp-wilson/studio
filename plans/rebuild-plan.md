@@ -18,7 +18,7 @@ Built from what's agreed: the core and jobs (`plans/core-jobs.md`), the requirem
 
 When a designer pastes a Jira story, Claude follows the nine-step journey. Studio shows where they are:
 
-- **The band** (above where you type): status only. "studio · Step 5 of 9 · The design · building screen 3 of 6". The last part goes on a coral tint when something needs you. Stop appears only while Claude is building.
+- **The band** (above where you type): status only. "studio · Step 5 of 9 · The design · building screen 3 of 6". The last part is in coral text when something needs you (no tint behind it, 2026-10-20). Stop appears only while Claude is building.
 - **The panel** (beside the conversation): follows the story. The story, then whatever matters at this step: questions for you, requirements, paths, needs you, changes, notes in Figma, the handover checklist.
 - **Claude's conversation and quick replies** stay Claude's own.
 - **The look:** D5 Mist, the colours from the Figma variables, and the Studio mark (a picture, in the app).

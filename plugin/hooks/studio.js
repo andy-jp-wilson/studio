@@ -40,7 +40,7 @@ const STORY_TOOL = {
       needs: { type: 'string', description: 'What is waiting for the designer, a few words, e.g. "2 questions for you". Empty string when nothing is.' },
       sections: { type: 'array', description: 'The panel sections for this step, in order (do not repeat the story itself).', items: { type: 'object', properties: {
         title: { type: 'string' },
-        needs: { type: 'boolean', description: 'True if this section is waiting for the designer (shown first, on a soft tint).' },
+        needs: { type: 'boolean', description: 'True if this section is waiting for the designer (shown first, in coral text).' },
         items: { type: 'array', items: { type: 'object', properties: {
           text: { type: 'string' },
           state: { type: 'string', enum: STATES, description: 'done ✓, now ●, todo ○, need (waiting for the designer), muted, none (—, not applicable), plain, strong.' },

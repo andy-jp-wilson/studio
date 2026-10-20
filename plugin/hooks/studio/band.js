@@ -1,7 +1,8 @@
 // Studio: the band above the prompt (Figma page 13, D5 Mist).
 //   ● studio  Step 5 of 9 · The design · building screen 3 of 6        [Stop]
 // Status only: which step of the journey, and how it's going. When something
-// needs the designer, the last part sits on a coral tint. (No top line: the
+// needs the designer, the last part is in coral text, with no background
+// (the tint was removed, 2026-10-20). (No top line: the
 // app can't draw a one-sided border, and drawn line characters didn't match
 // the design, so it was removed, 2026-10-20.)
 // Stop appears only while Claude is working. Pure drawing.
@@ -28,7 +29,7 @@ export function drawBand(el, s, actions, columns) {
     if (i) status.push(Text({ key: 'sep-' + i, color: MIST.muted, children: [' · '] }))
     const last = i === parts.length - 1
     if (last && needs) {
-      status.push(Box({ key: 'status-needs', backgroundColor: MIST.tint, paddingX: 1, children: [
+      status.push(Box({ key: 'status-needs', children: [
         Text({ key: 'status-' + i, color: MIST.tintText, bold: true, wrap: 'truncate-end', children: [p] }),
       ] }))
     } else {

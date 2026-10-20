@@ -12,7 +12,7 @@ export const MIST = {
   line: '#9C9CA6',         // the line across the top of the band
   control: '#D6D6DC',      // borders of Studio's buttons (Stop)
   coral: '#E07A6E',        // Studio's dot; the band line when something needs you
-  tint: '#FBE9E6',         // background for what needs you
+  tint: '#FBE9E6',         // (not used: no background for what needs you)
   tintText: '#A9483D',     // text for what needs you
 }
 

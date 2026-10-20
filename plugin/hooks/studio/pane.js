@@ -23,7 +23,8 @@ function section(el, sec, i) {
   const { Box, Text } = el
   const key = 'sec-' + i
   const needs = Boolean(sec.needs)
-  return Box({ key, flexDirection: 'column', ...(needs ? { backgroundColor: MIST.tint, paddingX: 1 } : {}), children: [
+  // What needs the designer is in coral text, with no background (2026-10-20).
+  return Box({ key, flexDirection: 'column', children: [
     Text({ key: key + '-title', color: needs ? MIST.tintText : MIST.text, bold: true, children: [String(sec.title || '')] }),
     ...(sec.items || []).map((it, j) => item(el, typeof it === 'string' ? { text: it } : it, j, key, needs)),
   ] })
