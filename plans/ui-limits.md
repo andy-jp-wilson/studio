@@ -35,3 +35,20 @@ From the Claude Code docs (code.claude.com/docs/en/plugins/mods/…, plugins/com
 - **Raw hex colours** aren't documented (named and theme colours are), though ours work in the app.
 - **The grey box** around the band in the app is our observation; the docs don't mention it, and nothing documented removes it.
 - Panel placement, toasts, status line, Link clicks and borders in the app: untested.
+
+## Tested in the Claude app (Studio lab, 20 October 2026)
+
+| Test | Result |
+|---|---|
+| Type sizes (caption, footnote, body, heading, title) | **Work**: clearly different sizes |
+| Weights, mono, italic and so on | Pages drew (not checked one by one) |
+| Hex text colours, theme colours | Pages drew |
+| Backgrounds on text and boxes | **Work** |
+| Borders (10 styles) | **Work** |
+| Hover (a box turns pale coral under the mouse) | **Works** |
+| Pictures (Svg) in the panel | **Work** |
+| Pictures (Svg) in the band | **Don't show** |
+| Changing the hint under the prompt | **Didn't change** |
+| Studio's own question ($.ui.ask) from a panel button | **Nothing appeared**. Still to try from where it's meant to be used: just before a Figma step, during Claude's turn. |
+
+What this changes: the panel can have a real type hierarchy (sizes and weights), backgrounds, borders, hover and pictures. The band stays text only, in one size.
