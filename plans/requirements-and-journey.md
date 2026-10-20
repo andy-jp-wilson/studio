@@ -10,7 +10,7 @@ Draft, 20 October 2026. Built only from what's agreed in `plans/core-jobs.md` an
 
 A designer picks up a piece of work. The journey below is the target; each step names the requirements it needs.
 
-1. **Pick up the story.** The designer opens Claude Code and pastes in the Jira story and its Confluence technical design document. *(R1, R2)*
+1. **Pick up the story.** The designer opens Claude Code and pastes in the Jira story, and its Confluence technical design document if there is one (optional, but encouraged). *(R1, R2)*
 2. **Claude reads the brief and plays it back.** It summarises the story, the requirements and the paths the story describes, and lists anything missing or unclear as questions. It doesn't fill gaps itself. *(R3, R4)*
 3. **The designer chooses where and how.** Which Figma file and page (chosen each time), whether to work on a Figma branch (asked each time), and what level: wireframes, concepts or full visuals. *(R5, R6, R27)*
 4. **Claude says what it will make, and waits for a yes.** *(R7)*
@@ -25,7 +25,7 @@ A designer picks up a piece of work. The journey below is the target; each step 
 ### Reading the brief
 
 - **R1. Read Jira stories:** the user story, its requirements and acceptance criteria. For now the designer pastes them in (link or text); finding them for the designer is a later option.
-- **R2. Read Confluence pages:** the technical design document linked to the work.
+- **R2. Read Confluence pages:** the technical design document linked to the work. It's **optional, but encouraged**: Studio works without one, and suggests adding it when it's missing.
 - **R3. Play the brief back** in plain words before designing: the requirements and every path the story describes.
 - **R4. Never invent requirements.** Anything missing, unclear or contradictory becomes a question for the designer.
 
