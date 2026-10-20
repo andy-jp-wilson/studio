@@ -35,8 +35,12 @@ function itemRow(el, it, i, key, ctx) {
   const right = []
   if (it.link) right.push(Link({ key: k + '-link', href: it.link, label: (it.linkLabel || 'Open') + ' ↗' }))
   if (it.action) right.push(Button({ key: k + '-act', label: it.actionLabel || 'Start', plain: true, onPress: () => ctx.actions.ask(it.action) }))
+  // The app sets the answer box's width, so a long hint is cut off: keep the
+  // box's hint short and move any longer hint under the question instead.
+  const longHint = ctx.ask && it.placeholder && it.placeholder.length > 22
+  const sub = [it.sub, longHint ? it.placeholder : ''].filter(Boolean).join(' · ')
   const body = [Text({ key: k + '-t', color: textColor, weight, wrap: 'wrap', children: [String(it.text || '')] })]
-  if (it.sub) body.push(Text({ key: k + '-s', color: MIST.muted, size: 'footnote', wrap: 'wrap', children: [String(it.sub)] }))
+  if (sub) body.push(Text({ key: k + '-s', color: MIST.muted, size: 'footnote', wrap: 'wrap', children: [sub] }))
   const rows = [Box({ key: k, flexDirection: 'row', columnGap: 1, children: [
     ...(drawn
       // A new name for each look, so the app never shows an old picture
@@ -48,7 +52,7 @@ function itemRow(el, it, i, key, ctx) {
   // A question you can answer here: a text box under it, and the pair given
   // room to breathe (a line above each question after the first).
   if (ctx.ask) {
-    rows.push(el.Input({ key: k + '-answer', placeholder: it.placeholder || 'Your answer', value: ctx.answers[k] || '', onInput: v => ctx.actions.setAnswer(k, v), onSubmit: v => ctx.actions.setAnswer(k, v) }))
+    rows.push(el.Input({ key: k + '-answer', placeholder: !longHint && it.placeholder ? it.placeholder : 'Your answer', value: ctx.answers[k] || '', onInput: v => ctx.actions.setAnswer(k, v), onSubmit: v => ctx.actions.setAnswer(k, v) }))
     return [Box({ key: k + '-q', flexDirection: 'column', rowGap: 1, marginTop: 1, children: rows })]
   }
   return rows

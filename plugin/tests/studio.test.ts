@@ -360,3 +360,12 @@ test('Figma steps in the conversation read as what they do', async ($, on) => {
   expect(await ui.find({ type: 'Text', text: 'Searching the design system' })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: '· for text field' })).toBeDefined()
 })
+
+test('a long answer hint moves under the question, so the narrow answer box isn’t cut off', async ($, on) => {
+  setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 2, needs: '1 question for you',
+    sections: [{ title: 'Questions for you', needs: true, ask: true, items: [{ text: '1. What counts as a valid email?', state: 'need', placeholder: 'Format only, or a check that it exists too?' }, { text: '2. Can people resend the email?', state: 'need', placeholder: 'Yes or no' }] }] })
+  const pane = await $.ui.mount(PANE())
+  expect(await pane.find({ type: 'Text', text: 'Format only, or a check that it exists too?' })).toBeDefined()
+})
