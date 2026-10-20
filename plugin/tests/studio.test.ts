@@ -104,154 +104,6 @@ const pastWelcome = async ($: any) => {
 }
 const UNSAVED = { 'status --porcelain': ' M styles.css' }
 
-test('a new session opens with the Studio welcome', async ($, on) => {
-  setup(on)
-  await start($)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'Clearer, calmer Claude Code for designers · /guide' })).toBeDefined()
-  expect(await ui.find({ key: 'band-preview' })).toBeDefined()
-  await ui.unmount()
-  const small = await $.ui.mount(BAND(50))
-  expect(await small.find({ type: 'Text', text: 'Studio' })).toBeDefined()
-  expect(await small.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeUndefined()
-  await small.unmount()
-  await $.turn.start({ turnId: 't1' })
-  const after = await $.ui.mount(BAND(120))
-  expect(await after.find({ type: 'Text', text: 'Clearer, calmer Claude Code for designers · /guide' })).toBeUndefined()
-})
-
-test('the welcome shows where you left off, without typing /start', async ($, on) => {
-  setup(on, { 'status --porcelain': ' M styles.css\n M SignUpScreen.tsx' })
-  await start($)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'onboarding' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'exploring ' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'bolder-button' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: '“Calmer sign-up”' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: ', 2m ago' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: '2 files not saved yet' })).toBeDefined()
-  await ui.unmount()
-  const small = await $.ui.mount(BAND(50))
-  expect(await small.find({ type: 'Text', text: 'onboarding · bolder-button · not saved yet · /guide' })).toBeDefined()
-  await small.unmount()
-})
-
-test('on the main design with everything saved', async ($, on) => {
-  setup(on, { 'branch --show-current': 'main' })
-  await start($)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'main design' })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: 'everything saved' })).toBeDefined()
-  await ui.unmount()
-})
-
-test('the app draws the STUDIO pixel lettering as a picture; the terminal keeps the big one', async ($, on) => {
-  setup(on)
-  await start($)
-  const app = await $.ui.mount(BAND(120, 'desktop'))
-  expect(await app.find({ type: 'Svg' })).toBeDefined()
-  expect(await app.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeUndefined()
-  expect(await app.find({ type: 'Text', text: 'Clearer, calmer Claude Code for designers · /guide' })).toBeDefined()
-  await app.unmount()
-  const term = await $.ui.mount(BAND(120, 'terminal'))
-  expect(await term.find({ type: 'Svg' })).toBeUndefined()
-  expect(await term.find({ type: 'Text', text: '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ' })).toBeDefined()
-  await term.unmount()
-})
-
-test('the welcome and panel show the Studio version; an update shows a note', async ($, on) => {
-  setup(on, { 'version': '0.2.2', 'studio-version': 'up-to-date 0.2.2' })
-  await start($)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'Clearer, calmer Claude Code for designers · v0.2.2 · /guide' })).toBeDefined()
-  expect(await ui.find({ key: 'welcome-update' })).toBeUndefined()
-  await ui.unmount()
-  const pane = await $.ui.mount(PANE())
-  expect(await pane.find({ type: 'Text', text: 'Studio v0.2.2' })).toBeDefined()
-  await pane.unmount()
-})
-
-test('when a newer Studio is ready, the welcome and panel say so', async ($, on) => {
-  setup(on, { 'version': '0.2.2', 'studio-version': 'update-available 0.2.2 0.2.3' })
-  await start($)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'Update ready · /version' })).toBeDefined()
-  await ui.unmount()
-  const pane = await $.ui.mount(PANE())
-  expect(await pane.find({ type: 'Text', text: ' · v0.2.3 ready, type /version' })).toBeDefined()
-  await pane.unmount()
-})
-
-test('a folder without save points says so in the welcome', async ($, on) => {
-  setup(on, { 'rev-parse --is-inside-work-tree': 'false' })
-  await start($)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'Save points aren’t set up here yet; /start can set them up' })).toBeDefined()
-  await ui.unmount()
-})
-
-test('the band shows the journey, ready text, when you last saved and Preview when idle', async ($, on) => {
-  setup(on)
-  await pastWelcome($)
-  for (const surface of ['terminal', 'desktop'] as const) {
-    const ui = await $.ui.mount(BAND(120, surface))
-    expect(await ui.find({ type: 'Text', text: '✓ Explore' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: '● Refine' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: '○ Build' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: 'Ready when you are' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: '✓ Saved 2m ago' })).toBeDefined()
-    expect(await ui.find({ key: 'band-preview' })).toBeDefined()
-    expect(await ui.find({ key: 'band-save' })).toBeUndefined()
-    expect(await ui.find({ key: 'band-stop' })).toBeUndefined()
-    await ui.unmount()
-  }
-})
-
-test('while Claude works, the band says what it is doing and offers Stop', async ($, on) => {
-  const calls = setup(on)
-  await start($)
-  await $.turn.start({ turnId: 't1' })
-  await $.tool.call({ tool: 'Edit', file_path: '/work/onboarding/styles.css', old_string: 'a', new_string: 'b' })
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'Editing styles.css' })).toBeDefined()
-  await ui.press({ key: 'band-stop' })
-  expect(calls.aborts).toEqual(['t1'])
-})
-
-test('a step list adds "step 2 of 3"', async ($, on) => {
-  setup(on)
-  await start($)
-  await $.turn.start({ turnId: 't1' })
-  await $.tool.call({ tool: 'TodoWrite', todos: [
-    { content: 'Soften the heading', activeForm: 'Softening the heading', status: 'completed' },
-    { content: 'Add space above Continue', activeForm: 'Adding space above Continue', status: 'in_progress' },
-    { content: 'Quiet the helper text', activeForm: 'Quieting the helper text', status: 'pending' },
-  ] })
-  await $.tool.call({ tool: 'Read', file_path: '/work/onboarding/styles.css' })
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'Reading styles.css, step 2 of 3' })).toBeDefined()
-})
-
-test('with new changes, the band says so and Save point appears; buttons run /preview and /save', async ($, on) => {
-  const calls = setup(on, UNSAVED)
-  await pastWelcome($)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Text', text: 'Changes not saved yet' })).toBeDefined()
-  await ui.press({ key: 'band-preview' })
-  await ui.press({ key: 'band-save' })
-  expect(calls.commands).toEqual(['preview', 'save'])
-})
-
-test('a narrow band drops the Now text and stage names, keeping buttons', async ($, on) => {
-  setup(on, UNSAVED)
-  await pastWelcome($)
-  const ui = await $.ui.mount(BAND(50))
-  expect(await ui.find({ type: 'Text', text: 'Ready when you are' })).toBeUndefined()
-  expect(await ui.find({ type: 'Text', text: '●' })).toBeDefined()
-  expect(await ui.find({ key: 'band-save' })).toBeDefined()
-})
-
 test('the working line uses the plain wording', async ($, on) => {
   const calls = setup(on)
   await start($)
@@ -439,7 +291,7 @@ test('the panel switches word explanations off and on, and Claude is told before
 
 const NOTES = JSON.stringify({ targetFileUrl: 'https://www.figma.com/design/abc/Onboarding', targetFileName: 'Onboarding', designSystemName: 'Acme DS', designSystemUrl: 'https://www.figma.com/design/ds/Acme' })
 
-test('design work defaults to Figma: Claude is told the project file, and the band links to it', async ($, on) => {
+test('design work defaults to Figma: Claude is told the project file', async ($, on) => {
   setup(on, { 'project-notes': NOTES })
   on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
   await start($)
@@ -448,19 +300,14 @@ test('design work defaults to Figma: Claude is told the project file, and the ba
   expect(note).toMatch(/happens in Figma, in "Onboarding" \(https:\/\/www\.figma\.com\/design\/abc\/Onboarding\)/)
   expect(note).toMatch(/Acme DS/)
   expect(note).toMatch(/only make HTML or CSS files if the person asks for a prototype/)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ type: 'Link' })).toBeDefined()
-  expect(await ui.find({ key: 'band-preview' })).toBeUndefined()
 })
 
-test('with a prototype, Claude knows about it and the band offers Preview', async ($, on) => {
+test('with a prototype, Claude knows about it', async ($, on) => {
   setup(on, { 'project-notes': NOTES, '/work/onboarding/prototype -type f ! -name .DS_Store -print -quit': '/work/onboarding/prototype/index.html' })
   on('prompt.compose', () => ({ sections: [] }))
   await start($)
   const r: any = await $.prompt.compose(COMPOSE)
   expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/also has a prototype/)
-  const ui = await $.ui.mount(BAND(120))
-  expect(await ui.find({ key: 'band-preview' })).toBeDefined()
 })
 
 test('without Studio notes, Claude is told to offer /setup and not to make HTML unasked', async ($, on) => {
@@ -485,13 +332,11 @@ test('Designs go to: Figma by default, and the panel can make prototypes the def
   const note = r.sections.find((x: any) => x.id === 'studio:project').text
   expect(note).toMatch(/made prototypes their default/)
   expect(note).toMatch(/Work in Figma only when they ask or it’s needed/)
-  const band = await $.ui.mount(BAND(120))
-  expect(await band.find({ key: 'band-preview' })).toBeDefined()
   await pane.press({ key: 'pane-designs' })
   expect(calls.designs).toBe('figma')
 })
 
-test('the panel menu groups everything, and the band Menu opens it', async ($, on) => {
+test('the panel menu groups everything', async ($, on) => {
   const calls = setup(on, { 'project-notes': NOTES })
   await start($)
   const pane = await $.ui.mount(PANE())
@@ -505,11 +350,35 @@ test('the panel menu groups everything, and the band Menu opens it', async ($, o
   expect(calls.commands).toEqual(expect.arrayContaining(['explore', 'handover', 'version']))
   await pane.press({ key: 'menu-glossary' })
   expect(await pane.find({ key: 'search' })).toBeDefined()
-  const band = await $.ui.mount(BAND(120))
-  const before = calls.opened.length
-  await band.press({ key: 'band-menu' })
-  expect(calls.closed).toContain('studio')
-  expect(calls.opened.length).toBe(before + 1)
-  expect(calls.opened.at(-1)).toMatchObject({ id: 'studio', focus: true })
-  expect(await pane.find({ type: 'Text', text: 'GET READY' })).toBeDefined()
+})
+
+const STORY = (story: any) => ({ 'story-card': JSON.stringify(story) })
+
+test('the band is status only: waiting for a Jira story, in Mist, with the Studio mark', async ($, on) => {
+  setup(on)
+  await start($)
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount(BAND(120, surface))
+    expect(await ui.find({ type: 'Text', text: 'studio' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'Step 1 of 9' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: 'waiting for a Jira story' })).toBeDefined()
+    for (const gone of ['band-preview', 'band-save', 'band-menu', 'studio-welcome']) expect(await ui.find({ key: gone })).toBeUndefined()
+    expect(await ui.find({ key: 'band-stop' })).toBeUndefined()
+    await ui.unmount()
+  }
+  const app = await $.ui.mount(BAND(120, 'desktop'))
+  expect(await app.find({ type: 'Svg' })).toBeDefined()
+})
+
+test('while Claude works, the band offers Stop, and Stop stops the turn', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  await $.turn.start({ turnId: 't1' })
+  const ui = await $.ui.mount(BAND(120))
+  await ui.press({ key: 'band-stop' })
+  expect(calls.aborts).toEqual(['t1'])
+  await ui.unmount()
+  await $.turn.complete({ turnId: 't1', answer: '', durationMs: 1, isAborted: true, usage: null })
+  const after = await $.ui.mount(BAND(120))
+  expect(await after.find({ key: 'band-stop' })).toBeUndefined()
 })

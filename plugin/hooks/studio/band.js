@@ -1,173 +1,49 @@
-// Studio: the band above the prompt (Figma page 01).
-//   ✓ Explore ─ ● Refine ─ ○ Build    Now  editing styles.css, step 2 of 3    ✓ Saved 2m ago    [1 Preview] [3 Stop]
-// Pure drawing: takes the element table, Studio's state and the actions, and
-// returns the band. Narrower bands drop text before buttons. Until the first
-// request of a session, the band shows the welcome instead, with a short
-// "where you left off" summary under the wordmark (the same facts as /start).
-import { STAGES, GLYPH, COLOR, stageState, saveStatus, ago } from './journey.js'
+// Studio: the band above the prompt (Figma page 13, D5 Mist).
+//   ────────────────────────────────────────────────────────────── (grey line)
+//   ● studio  Step 5 of 9 · The design · building screen 3 of 6        [Stop]
+// Status only: which step of the journey, and how it's going. When something
+// needs the designer, the line turns coral and the last part sits on a tint.
+// Stop appears only while Claude is working. Pure drawing.
+import { MIST, mark } from './mist.js'
 
-// The STUDIO wordmark, 6 rows, 47 columns.
-export const WORDMARK = [
-  '███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗ ',
-  '██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔═══██╗',
-  '███████╗   ██║   ██║   ██║██║  ██║██║██║   ██║',
-  '╚════██║   ██║   ██║   ██║██║  ██║██║██║   ██║',
-  '███████║   ██║   ╚██████╔╝██████╔╝██║╚██████╔╝',
-  '╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝ ╚═════╝ ',
-]
-// The STUDIO wordmark for the Desktop app: the same pixel letters, drawn as
-// a crisp picture (SVG), since block characters come apart in the app's type.
-// Each letter is 3 by 5 pixels with a 1-pixel gap; clay, lighter in dark mode.
-const PIXEL_LETTERS = {
-  S: ['111', '100', '111', '001', '111'],
-  T: ['111', '010', '010', '010', '010'],
-  U: ['101', '101', '101', '101', '111'],
-  D: ['110', '101', '101', '101', '110'],
-  I: ['111', '010', '010', '010', '111'],
-  O: ['111', '101', '101', '101', '111'],
-}
-const PIXEL = 6
-function pixelWordmark(word) {
-  let rects = '', x = 0
-  for (const ch of word) {
-    PIXEL_LETTERS[ch].forEach((row, y) => [...row].forEach((on, i) => {
-      if (on === '1') rects += `<rect x="${(x + i) * PIXEL}" y="${y * PIXEL}" width="${PIXEL}" height="${PIXEL}"/>`
-    }))
-    x += 4
-  }
-  const w = (x - 1) * PIXEL, h = 5 * PIXEL
-  return { width: w, height: h, source: `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges"><style>rect{fill:#C2643D}@media (prefers-color-scheme: dark){rect{fill:#E08A62}}</style>${rects}</svg>` }
-}
-export const APP_WORDMARK = pixelWordmark('STUDIO')
+export const STAGES_BY_STEP = { 1: 'The brief', 2: 'The brief', 3: 'The brief', 4: 'The design', 5: 'The design', 6: 'The design', 7: 'Ready for developers', 8: 'Ready for developers', 9: 'Ready for developers' }
 
-export const TAGLINE = 'Clearer, calmer Claude Code for designers'
-export const TIP = 'Try: “make the heading softer”'
-
-// "Clearer, calmer Claude Code for designers · v0.2.2 · /guide"
-function tagline(s) {
-  return TAGLINE + (s.studioVersion ? ' · v' + s.studioVersion : '') + ' · /guide'
+// The status parts for the band, from the story card (or its absence).
+export function statusParts(s) {
+  const st = s.story
+  if (!st || !st.step) return { parts: ['Step 1 of 9', 'The brief', 'waiting for a Jira story'], needs: false }
+  const step = Math.min(9, Math.max(1, Number(st.step) || 1))
+  const detail = st.needs ? st.needs : (st.status || '')
+  return { parts: ['Step ' + step + ' of 9', STAGES_BY_STEP[step], detail].filter(Boolean), needs: Boolean(st.needs) }
 }
 
-// Shown only when a newer Studio is ready to install.
-function updateNote(el, s) {
-  return s.studioUpdate ? [el.Text({ key: 'welcome-update', color: 'warning', children: ['Update ready · /version'] })] : []
-}
+export function drawBand(el, s, actions, columns) {
+  const { Box, Text, Button } = el
+  const { parts, needs } = statusParts(s)
+  const width = Math.max(20, columns || 80)
+  const line = Text({ key: 'band-line', color: needs ? MIST.coral : MIST.line, wrap: 'truncate-end', children: [(needs ? '━' : '─').repeat(width)] })
 
-function buttons(el, s, actions) {
-  const { Box, Button, Link } = el
-  // Designs live in Figma; Preview is for projects with a prototype.
-  const list = [s.figmaUrl && !s.hasPrototype && s.designs !== 'prototype'
-    ? Link({ key: 'band-figma', href: s.figmaUrl, label: 'Open in Figma' })
-    : Button({ key: 'band-preview', label: 'Preview', hotkey: '1', plain: true, onPress: actions.show })]
-  // Save point appears only when there's something new worth keeping.
-  if (s.unsaved && !s.working) list.push(Button({ key: 'band-save', label: 'Save point', hotkey: '2', plain: true, onPress: actions.save }))
-  if (s.working) list.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
-  // Everything else lives in the Studio panel's menu.
-  list.push(Button({ key: 'band-menu', label: 'Menu', hotkey: '4', plain: true, onPress: actions.menu }))
-  return Box({ key: 'buttons', flexDirection: 'row', columnGap: 2, children: list })
-}
-
-// Two lines under the wordmark:
-//   project onboarding · exploring fewer-steps
-//   last save point “Calmer sign-up”, 2h ago · 2 files not saved yet
-export function leftOff(el, s) {
-  const { Box, Text } = el
-  const label = (key, text) => Text({ key, color: 'subtle', children: [text] })
-  const value = (key, text) => Text({ key, color: 'text', bold: true, children: [text] })
-  const where = [label('left-project-label', 'project '), value('left-project', s.project)]
-  if (s.hasSavePoints) {
-    where.push(label('left-sep', ' · '))
-    if (s.isMain) where.push(label('left-exploring-label', 'on the '), value('left-exploring', 'main design'))
-    else where.push(label('left-exploring-label', 'exploring '), value('left-exploring', s.exploration))
-  }
-  const lines = [Box({ key: 'left-where', flexDirection: 'row', children: where })]
-  if (!s.hasSavePoints) {
-    lines.push(Text({ key: 'left-setup', color: 'subtle', wrap: 'truncate-end', children: ['Save points aren’t set up here yet; /start can set them up'] }))
-    return lines
-  }
-  const saved = []
-  if (s.lastSaveNote) {
-    const when = ago(s.lastSaveAt, s.now)
-    saved.push(label('left-save-label', 'last save point '))
-    saved.push(Text({ key: 'left-save-note', color: 'text', wrap: 'truncate-end', children: ['“' + s.lastSaveNote + '”'] }))
-    if (when) saved.push(label('left-save-when', ', ' + when.replace(/^saved /, '')))
-    saved.push(label('left-save-sep', ' · '))
-  }
-  const n = s.unsavedCount || 0
-  saved.push(n
-    ? Text({ key: 'left-unsaved', color: 'warning', children: [`${n} file${n === 1 ? '' : 's'} not saved yet`] })
-    : Text({ key: 'left-unsaved', color: 'success', children: ['everything saved'] }))
-  lines.push(Box({ key: 'left-saved', flexDirection: 'row', children: saved }))
-  return lines
-}
-
-// The one-line version for small bands: "onboarding · fewer-steps · not saved yet".
-function leftOffShort(s) {
-  const parts = [s.project]
-  if (s.hasSavePoints) parts.push(s.isMain ? 'main design' : s.exploration)
-  if (s.unsaved) parts.push('not saved yet')
-  return parts.filter(Boolean).join(' · ')
-}
-
-function drawWelcome(el, s, actions, columns, rows) {
-  const { Box, Text } = el
-  const summary = leftOff(el, s)
-  const app = s.surface === 'desktop' && el.Svg
-  const markRows = app ? 2 : WORDMARK.length
-  const big = columns >= 60 && (rows == null || rows >= markRows + 1 + summary.length)
-  if (!big) {
-    return Box({ key: 'studio-welcome', flexDirection: 'row', columnGap: 2, width: columns, children: [
-      Text({ key: 'welcome-name', color: 'claude', bold: true, children: ['Studio'] }),
-      Text({ key: 'welcome-left-off', color: 'subtle', wrap: 'truncate-end', children: [leftOffShort(s) + ' · /guide'] }),
-      Box({ key: 'spacer', flexGrow: 1, children: [] }),
-      ...updateNote(el, s),
-      buttons(el, s, actions),
-    ] })
-  }
-  return Box({ key: 'studio-welcome', flexDirection: 'column', width: columns, children: [
-    ...(app
-      ? [Box({ key: 'mark', marginBottom: 1, children: [el.Svg({ key: 'mark-svg', source: APP_WORDMARK.source, alt: 'Studio', width: APP_WORDMARK.width, height: APP_WORDMARK.height })] })]
-      : WORDMARK.map((line, i) => Text({ key: 'mark-' + i, color: 'claude', bold: true, wrap: 'truncate-end', children: [line] }))),
-    ...summary,
-    Box({ key: 'welcome-row', flexDirection: 'row', columnGap: 3, children: [
-      Text({ key: 'welcome-tagline', color: 'text', children: [tagline(s)] }),
-      ...(s.studioUpdate ? updateNote(el, s) : columns >= 96 ? [Text({ key: 'welcome-tip', color: 'subtle', wrap: 'truncate-end', children: [TIP] })] : []),
-      Box({ key: 'spacer', flexGrow: 1, children: [] }),
-      buttons(el, s, actions),
-    ] }),
-  ] })
-}
-
-export function drawBand(el, s, actions, columns, rows) {
-  if (s.welcome && !s.working) return drawWelcome(el, s, actions, columns, rows)
-  const { Box, Text } = el
-  const wide = columns >= 96, medium = columns >= 60
-
-  const journey = []
-  STAGES.forEach((stage, i) => {
-    const st = stageState(stage, s.stage)
-    journey.push(Text({ key: 'stage-' + stage, color: COLOR[st], bold: st === 'current', children: [GLYPH[st] + (medium ? ' ' + stage : '')] }))
-    if (i < STAGES.length - 1) journey.push(Text({ key: 'sep-' + i, color: 'subtle', children: [medium ? ' ─ ' : ' '] }))
+  const status = []
+  parts.forEach((p, i) => {
+    if (i) status.push(Text({ key: 'sep-' + i, color: MIST.muted, children: [' · '] }))
+    const last = i === parts.length - 1
+    if (last && needs) {
+      status.push(Box({ key: 'status-needs', backgroundColor: MIST.tint, paddingX: 1, children: [
+        Text({ key: 'status-' + i, color: MIST.tintText, bold: true, wrap: 'truncate-end', children: [p] }),
+      ] }))
+    } else {
+      status.push(Text({ key: 'status-' + i, color: last ? MIST.text : MIST.muted, bold: last, wrap: 'truncate-end', children: [p] }))
+    }
   })
 
-  const parts = [Box({ key: 'journey', flexDirection: 'row', children: journey })]
+  const row = [
+    mark(el, s.surface, 'band-mark'),
+    Box({ key: 'status', flexDirection: 'row', flexGrow: 1, flexShrink: 1, children: status }),
+  ]
+  if (s.working) row.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
 
-  if (wide) {
-    let now = s.working ? (s.current ? s.current.label : 'Thinking') : 'Ready when you are'
-    if (s.working && s.todo && s.todo.total > 1) now += `, step ${s.todo.current} of ${s.todo.total}`
-    parts.push(Box({
-      key: 'now', flexDirection: 'row', flexGrow: 1, children: [
-        Text({ key: 'now-label', color: 'subtle', bold: true, children: ['Now  '] }),
-        Text({ key: 'now-text', color: 'text', wrap: 'truncate-end', children: [now] }),
-      ],
-    }))
-  } else {
-    parts.push(Box({ key: 'spacer', flexGrow: 1, children: [] }))
-  }
-
-  const save = saveStatus(s)
-  if (medium && save && !s.working) parts.push(Text({ key: 'save-status', color: save.color, children: [save.text] }))
-
-  parts.push(buttons(el, s, actions))
-  return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 3, width: columns, children: parts })
+  return Box({ key: 'studio-band', flexDirection: 'column', width, backgroundColor: MIST.surface, children: [
+    line,
+    Box({ key: 'band-row', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 1, children: row }),
+  ] })
 }

@@ -16,9 +16,8 @@ let project = { project: '', exploration: '', isMain: true, ownSavePoints: 0, ex
 // What Claude is doing in this request.
 let live = { working: false, turnId: '', current: null, steps: [], todo: null, lastKind: null }
 let memory = 0
-// The welcome, with where you left off, shows in the band until the first
-// request of a session.
-let welcome = true
+// The story card for this session (R2 fills it in; until then the band shows step 1).
+let storyCard = null
 let stageOverride = null
 // Which Studio is running, and whether a newer one is ready (bin/studio-version).
 let studio = { version: '', update: '' }
@@ -137,7 +136,7 @@ async function findPreview($) {
 }
 
 function state(now) {
-  return { ...project, ...live, memory, welcome, explainWords: words.explain, designs: prefs.designs, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
+  return { ...project, ...live, memory, story: storyCard, explainWords: words.explain, designs: prefs.designs, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
 }
 
 // Word explanations: on or off, and the words the person already knows
@@ -324,7 +323,6 @@ export function register(on) {
   })
 
   on('turn.start', async ($, e, next) => {
-    welcome = false
     live = { ...live, working: true, turnId: e.turnId, current: null, steps: [], todo: null }
     $.ui.invalidate('ui.render')
     return next(e)
@@ -387,7 +385,7 @@ export function register(on) {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
-    const band = drawBand(el, { ...state(await $.clock.now()), surface: e.surface }, actionsFor($), e.props.bodyColumns, e.props.maxRows)
+    const band = drawBand(el, { ...state(await $.clock.now()), surface: e.surface }, actionsFor($), e.props.bodyColumns)
     const rest = await next(e)
     return rest ? el.Box({ key: 'studio-band-wrap', flexDirection: 'column', children: [band, rest] }) : band
   })

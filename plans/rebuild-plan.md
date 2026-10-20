@@ -1,6 +1,6 @@
 # Rebuilding Studio to match the approved design
 
-Status: **approved** (2026-10-20). R1 in progress.
+Status: **approved** (2026-10-20). R1 built (Studio 0.2.29), waiting for the user to try it in the app.
 
 Built from what's agreed: the core and jobs (`plans/core-jobs.md`), the requirements and journey (`plans/requirements-and-journey.md`), your keep/cut calls (`plans/studio-today.md`), and the approved visuals (Figma page 13, D5 Mist). Nothing new is added; anything unclear is a question at the end.
 
