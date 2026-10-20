@@ -10,28 +10,28 @@ Draft, 20 October 2026. Built only from what's agreed in `plans/core-jobs.md` an
 
 A designer picks up a piece of work. The journey below is the target; each step names the requirements it needs.
 
-1. **Pick up the story.** The designer opens Claude Code and points Claude at the Jira story (and its Confluence technical design document). *(R1, R2)*
+1. **Pick up the story.** The designer opens Claude Code and pastes in the Jira story and its Confluence technical design document. *(R1, R2)*
 2. **Claude reads the brief and plays it back.** It summarises the story, the requirements and the paths the story describes, and lists anything missing or unclear as questions. It doesn't fill gaps itself. *(R3, R4)*
-3. **The designer chooses where and how.** Which Figma file and page, and what level: wireframes, concepts or full visuals. *(R5, R6)*
+3. **The designer chooses where and how.** Which Figma file and page (chosen each time), whether to work on a Figma branch (asked each time), and what level: wireframes, concepts or full visuals. *(R5, R6, R27)*
 4. **Claude says what it will make, and waits for a yes.** *(R7)*
 5. **Claude builds it in Figma,** using only the design system's components, styles and variables, covering every path in the story. If a component doesn't exist, it stops and asks. *(R8, R9, R10)*
 6. **The designer reviews and asks for changes.** A change made once is carried across every affected screen. *(R11)*
-7. **Claude checks the work** against the story's requirements and the design system, and reports anything that doesn't match. *(R12)*
-8. **Claude makes the interactions clear for developers,** so nothing is lost in flat visuals. *(R13)*
-9. **The work is ready to hand over.** *(R14)*
+7. **Claude checks the work** against the story's requirements and the design system, and flags anything that doesn't match as notes in Figma. *(R12)*
+8. **Claude makes the interactions clear for developers:** ideally as a Figma prototype, otherwise as annotations or state pages. *(R13)*
+9. **The work is ready to hand over:** marked ready for development, annotations and developer notes done, the presentation prototype ready, and any coded prototype zipped up to send. *(R14)*
 
 ## Requirements
 
 ### Reading the brief
 
-- **R1. Read Jira stories:** the user story, its requirements and acceptance criteria.
+- **R1. Read Jira stories:** the user story, its requirements and acceptance criteria. For now the designer pastes them in (link or text); finding them for the designer is a later option.
 - **R2. Read Confluence pages:** the technical design document linked to the work.
 - **R3. Play the brief back** in plain words before designing: the requirements and every path the story describes.
 - **R4. Never invent requirements.** Anything missing, unclear or contradictory becomes a question for the designer.
 
 ### Making designs in Figma
 
-- **R5. Work in the project's Figma file:** normally one file with several pages, sometimes a folder of files.
+- **R5. Work in the project's Figma file:** normally one file with several pages, sometimes a folder of files. The designer chooses the page or place each time. (A team Figma template could make this smarter later.)
 - **R6. Three levels:** wireframes, concepts or full visuals, as the designer asks.
 - **R7. Say first, then do.** Before changing the Figma file, Claude says what it will make or change, and where, and waits for a yes.
 - **R8. Only the design system.** Use its components, styles and variables; never lookalikes or hand-drawn copies.
@@ -41,21 +41,29 @@ A designer picks up a piece of work. The journey below is the target; each step 
 ### Keeping it right
 
 - **R11. Change once, everywhere.** A change the designer asks for is applied to every screen it affects.
-- **R12. Check accuracy and consistency** against the story's requirements and the design system, and report anything that doesn't match.
+- **R12. Check accuracy and consistency** against the story's requirements and the design system, and flag anything that doesn't match as **notes in Figma**, next to what they refer to.
 
 ### For developers
 
-- **R13. Make the interaction design clear,** so the coded version can match it.
-- **R14. Ready to hand over.**
+- **R13. Make the interaction design clear,** so the coded version can match it: ideally as a **Figma prototype** (connections between frames); if the designer isn't prototyping, as **annotations** or **state pages** in Figma.
+- **R14. Ready to hand over,** meaning:
+  - the design files are marked ready for development in Figma
+  - all annotations, and any extra notes for developers, are done
+  - the presentation prototype is mocked up and ready to use
+  - if there's a coded prototype, its files are zipped up, ready to send to developers
 
 ### Never (protections)
 
 - **R15. Never edit the design system.**
 - **R16. Never change anything in Jira or Confluence.** Read only, with no exceptions, even if asked.
 - **R17. Never touch files outside the project,** in Figma or anywhere else.
+- **R27. Figma branches:** working on a branch is preferred, so the main file isn't touched until the designer merges; Claude asks each time.
 - **R18. The designer decides.** Claude is an extension of the designer: it proposes and does the work; the designer approves.
 
 ### How the protections are made trustworthy
+
+**Parked (20 October 2026):** come back to this later. The rule R16 stands; how it's enforced waits. Research is in `plans/atlassian-read-only.md`.
+
 
 R16 must be **enforced, not just instructed**, with four layers, each working even if another fails:
 
@@ -80,11 +88,11 @@ The same approach should be used for R15 and R17 where Studio can check Figma ac
 - Team feedback and discovery questions (after it's built).
 - Accessibility checks, screen sizes, learning HTML and CSS (separate or later).
 
-## Questions to decide
+## Answers (20 October 2026)
 
-1. **Step 1, pointing at the story:** does the designer paste a Jira link, give a story key (like ABC-123), or pick from a list?
-2. **R12, checking:** how should Claude report what doesn't match? In the conversation, as notes in Figma, or both?
-3. **R13, interactions:** what does "clear for developers" look like in your Figma files today? For example annotations beside frames, prototype connections, a states page, or something else.
-4. **R14, handover:** what does "ready to hand over" mean for your team? A specific page, a status, a Jira update (made by the designer, since Studio can't change Jira)?
-5. **Steps 3 and 5, where it goes:** new pages, new frames on an existing page, or the designer's choice each time?
-6. **Figma branches:** should Claude work on a Figma branch by default, so the main file isn't touched until the designer merges?
+1. **Picking up a story:** paste it in for now. Claude finding the files itself is a possible later approach.
+2. **Mismatches:** flagged as notes in Figma.
+3. **Interactions:** ideally a Figma prototype; otherwise annotations or state pages.
+4. **Ready to hand over:** marked for dev, all annotations and dev notes done, the presentation prototype ready, and any coded prototype zipped up to send.
+5. **Placement:** chosen each time. A team Figma template could make this better later.
+6. **Figma branches:** preferred, but asked each time.
