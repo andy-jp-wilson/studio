@@ -17,7 +17,7 @@ A designer picks up a piece of work. The journey below is the target; each step 
 5. **Claude builds it in Figma,** using only the design system's components, styles and variables, covering every path in the story. If a component doesn't exist, it stops and asks. *(R8, R9, R10)*
 6. **The designer reviews and asks for changes.** A change made once is carried across every affected screen. *(R11)*
 7. **Claude checks the work** against the story's requirements and the design system, and flags anything that doesn't match as notes in Figma. *(R12)*
-8. **Claude makes the interactions clear for developers:** ideally as a Figma prototype, otherwise as annotations or state pages. *(R13)*
+8. **Claude makes the interactions clear for developers:** ideally as a coded prototype (the design built in HTML and CSS), otherwise as annotations or state pages in Figma. *(R13)*
 9. **The work is ready to hand over:** marked ready for development, annotations and developer notes done, the presentation prototype ready, and any coded prototype zipped up to send. *(R14)*
 
 ## Requirements
@@ -45,7 +45,7 @@ A designer picks up a piece of work. The journey below is the target; each step 
 
 ### For developers
 
-- **R13. Make the interaction design clear,** so the coded version can match it: ideally as a **Figma prototype** (connections between frames); if the designer isn't prototyping, as **annotations** or **state pages** in Figma.
+- **R13. Make the interaction design clear,** so the coded version can match it: ideally as a **coded prototype**, the design built in HTML and CSS; if the designer isn't prototyping, as **annotations** or **state pages** in Figma.
 - **R14. Ready to hand over,** meaning:
   - the design files are marked ready for development in Figma
   - all annotations, and any extra notes for developers, are done
@@ -92,7 +92,7 @@ The same approach should be used for R15 and R17 where Studio can check Figma ac
 
 1. **Picking up a story:** paste it in for now. Claude finding the files itself is a possible later approach.
 2. **Mismatches:** flagged as notes in Figma.
-3. **Interactions:** ideally a Figma prototype; otherwise annotations or state pages.
+3. **Interactions:** ideally a coded prototype (HTML and CSS); otherwise annotations or state pages in Figma. ("Prototyping" always means building the design in HTML and CSS, not a Figma prototype.)
 4. **Ready to hand over:** marked for dev, all annotations and dev notes done, the presentation prototype ready, and any coded prototype zipped up to send.
 5. **Placement:** chosen each time. A team Figma template could make this better later.
 6. **Figma branches:** preferred, but asked each time.
