@@ -260,7 +260,15 @@ function actionsFor($) {
   }
   return {
     run,
-    menu: () => { $.ui.open({ id: PANE, title: 'Studio', focus: true }).catch(() => {}) },
+    // The panel is usually open already (from the session's start), and opening
+    // an open pane doesn't bring it forward, so close it and open it again, on
+    // the Menu tab.
+    menu: async () => {
+      view = { ...view, tab: 'menu' }
+      try { await $.ui.close({ id: PANE }) } catch {}
+      try { await $.ui.open({ id: PANE, title: 'Studio', focus: true }) } catch {}
+      $.ui.invalidate('ui.render')
+    },
     show: () => run('preview'),
     save: () => run('save'),
     guide: () => run('guide'),

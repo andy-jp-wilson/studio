@@ -28,7 +28,7 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[] }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
@@ -78,6 +78,7 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('command.run', ($: any, e: any) => { calls.commands.push(e.command); return {} })
   on('prompt.submit', ($: any, e: any) => { calls.prompts.push(e.text); return { text: e.text } })
   on('ui.toast', () => ({ value: undefined }))
+  on('ui.close', ($: any, e: any) => { calls.closed.push(e.id); return { value: undefined } })
   on('turn.abort', ($: any, e: any) => { calls.aborts.push(e.turnId); return { value: undefined } })
   on('turn.start', ($: any, e: any) => ({ turnId: e.turnId }))
   on('turn.complete', () => ({ text: '' }))
@@ -494,6 +495,7 @@ test('the panel menu groups everything, and the band Menu opens it', async ($, o
   const calls = setup(on, { 'project-notes': NOTES })
   await start($)
   const pane = await $.ui.mount(PANE())
+  await pane.press({ key: 'tab-menu' })
   for (const t of ['Get ready', 'Work', 'Share', 'Help']) expect(await pane.find({ type: 'Text', text: t })).toBeDefined()
   for (const k of ['menu-setup', 'menu-team', 'menu-explore', 'menu-go-back', 'menu-handover', 'menu-handoff', 'menu-guide', 'menu-glossary', 'menu-version']) expect(await pane.find({ key: k })).toBeDefined()
   await pane.press({ key: 'menu-explore' })
@@ -505,6 +507,8 @@ test('the panel menu groups everything, and the band Menu opens it', async ($, o
   const band = await $.ui.mount(BAND(120))
   const before = calls.opened.length
   await band.press({ key: 'band-menu' })
+  expect(calls.closed).toContain('studio')
   expect(calls.opened.length).toBe(before + 1)
   expect(calls.opened.at(-1)).toMatchObject({ id: 'studio', focus: true })
+  expect(await pane.find({ type: 'Text', text: 'Get ready' })).toBeDefined()
 })

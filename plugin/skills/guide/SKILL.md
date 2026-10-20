@@ -44,7 +44,7 @@ Claude comes in a few forms, and it's fair to wonder why a designer would use on
 
 ## The Studio panel
 
-Beside the conversation in Desktop, or at the side of a wide terminal (type `/panel` to open it). It shows your journey, what's happening now with a "Did you know?" note, and a **Menu** with everything Studio does, so you can click instead of typing commands: **Get ready** (Setup, Team settings), **Work** (Save point, Try an idea, Go back, Open in Figma, Preview), **Share** (Hand over to the team, Share for review) and **Help** (Guide, Glossary, Studio version). It also has a Glossary tab.
+Beside the conversation in Desktop, or at the side of a wide terminal (type `/panel` to open it). It shows your journey, what's happening now with a "Did you know?" note, and quick buttons (Save point, Open in Figma). Its **Menu** tab has everything Studio does, so you can click instead of typing commands: **Get ready** (Setup, Team settings), **Work** (Save point, Try an idea, Go back, Open in Figma, Preview), **Share** (Hand over to the team, Share for review) and **Help** (Guide, Glossary, Studio version). There's also a Glossary tab.
 
 ## Commands
 

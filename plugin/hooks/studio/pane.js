@@ -56,41 +56,16 @@ function journeyTab(el, s, actions) {
   ] }))
   out.push(Box({ key: 'now-card', flexDirection: 'column', borderStyle: 'round', paddingX: 1, children: now }))
 
-  // Menu: everything Studio does, grouped by what you're doing, so nothing
-  // needs a / command.
+  // Everyday buttons; the full menu has its own tab.
   out.push(Text({ key: 'gap-2', children: [' '] }))
-  out.push(label(Text, 'h-menu', 'Menu'))
-  const prototypeish = s.hasPrototype || s.previewUrl
-  const group = (key, title, items) => items.length ? [
-    Text({ key: 'g-' + key, color: 'subtle', children: [title] }),
-    Box({ key: 'row-' + key, flexDirection: 'row', flexWrap: 'wrap', columnGap: 2, children: items }),
-  ] : []
-  const run = name => () => actions.run(name)
-  const work = []
-  if (s.unsaved) work.push(Button({ key: 'pane-save', label: 'Save point', hotkey: 's', onPress: actions.save }))
-  work.push(Button({ key: 'menu-explore', label: 'Try an idea', hotkey: 'i', onPress: run('explore') }))
-  work.push(Button({ key: 'menu-go-back', label: 'Go back', hotkey: 'b', onPress: run('go-back') }))
-  if (s.figmaUrl) work.push(Link({ key: 'menu-figma-link', href: s.figmaUrl, label: 'Open in Figma' }))
-  if (s.previewUrl) work.push(Link({ key: 'preview-link', href: s.previewUrl, label: 'Open preview' }))
-  else if (prototypeish) work.push(Button({ key: 'pane-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }))
-  if (prototypeish) work.push(Button({ key: 'pane-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }))
-  const menu = [
-    ...group('ready', 'Get ready', [
-      Button({ key: 'menu-setup', label: 'Setup', hotkey: 'u', onPress: run('setup') }),
-      Button({ key: 'menu-team', label: 'Team settings', hotkey: 't', onPress: run('team-settings') }),
-    ]),
-    ...group('work', 'Work', work),
-    ...group('share', 'Share', [
-      Button({ key: 'menu-handover', label: 'Hand over to the team', hotkey: 'o', onPress: run('handover') }),
-      Button({ key: 'menu-handoff', label: 'Share for review', hotkey: 'r', onPress: run('handoff') }),
-    ]),
-    ...group('help', 'Help', [
-      Button({ key: 'menu-guide', label: 'Guide', onPress: actions.guide }),
-      Button({ key: 'menu-glossary', label: 'Glossary', onPress: () => actions.tab('glossary') }),
-      Button({ key: 'menu-version', label: 'Studio version', hotkey: 'v', onPress: run('version') }),
-    ]),
-  ]
-  out.push(Box({ key: 'menu', flexDirection: 'column', borderStyle: 'round', paddingX: 1, children: menu }))
+  const quick = []
+  if (s.unsaved) quick.push(Button({ key: 'pane-save', label: 'Save point', hotkey: 's', onPress: actions.save }))
+  if (s.figmaUrl) quick.push(Link({ key: 'figma-link', href: s.figmaUrl, label: 'Open in Figma' }))
+  if (s.previewUrl) quick.push(Link({ key: 'preview-link', href: s.previewUrl, label: 'Open preview' }))
+  else if (s.hasPrototype) quick.push(Button({ key: 'pane-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }))
+  if (s.hasPrototype || s.previewUrl) quick.push(Button({ key: 'pane-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }))
+  quick.push(Button({ key: 'to-menu', label: 'More in Menu', hotkey: 'm', dimColor: true, onPress: () => actions.tab('menu') }))
+  out.push(Box({ key: 'quick', flexDirection: 'row', flexWrap: 'wrap', columnGap: 2, children: quick }))
   if (s.previewUrl) out.push(Text({ key: 'actions-note', color: 'subtle', children: ['Your private preview is running at ' + s.previewUrl] }))
 
   // Footer
@@ -125,6 +100,42 @@ function journeyTab(el, s, actions) {
   return out
 }
 
+function menuTab(el, s, actions) {
+  const { Box, Text, Button, Link } = el
+  const prototypeish = s.hasPrototype || s.previewUrl
+  const group = (key, title, items) => items.length ? [
+    Text({ key: 'g-' + key, color: 'subtle', children: [title] }),
+    Box({ key: 'row-' + key, flexDirection: 'row', flexWrap: 'wrap', columnGap: 2, children: items }),
+  ] : []
+  const run = name => () => actions.run(name)
+  const work = []
+  if (s.unsaved) work.push(Button({ key: 'menu-save', label: 'Save point', hotkey: 's', onPress: actions.save }))
+  work.push(Button({ key: 'menu-explore', label: 'Try an idea', hotkey: 'i', onPress: run('explore') }))
+  work.push(Button({ key: 'menu-go-back', label: 'Go back', hotkey: 'b', onPress: run('go-back') }))
+  if (s.figmaUrl) work.push(Link({ key: 'menu-figma-link', href: s.figmaUrl, label: 'Open in Figma' }))
+  if (s.previewUrl) work.push(Link({ key: 'menu-preview-link', href: s.previewUrl, label: 'Open preview' }))
+  else if (prototypeish) work.push(Button({ key: 'menu-preview', label: 'Preview', hotkey: 'p', onPress: actions.show }))
+  if (prototypeish) work.push(Button({ key: 'menu-send-figma', label: 'Send to Figma', hotkey: 'f', onPress: actions.figma }))
+  const menu = [
+    ...group('ready', 'Get ready', [
+      Button({ key: 'menu-setup', label: 'Setup', hotkey: 'u', onPress: run('setup') }),
+      Button({ key: 'menu-team', label: 'Team settings', hotkey: 't', onPress: run('team-settings') }),
+    ]),
+    ...group('work', 'Work', work),
+    ...group('share', 'Share', [
+      Button({ key: 'menu-handover', label: 'Hand over to the team', hotkey: 'o', onPress: run('handover') }),
+      Button({ key: 'menu-handoff', label: 'Share for review', hotkey: 'r', onPress: run('handoff') }),
+    ]),
+    ...group('help', 'Help', [
+      Button({ key: 'menu-guide', label: 'Guide', onPress: actions.guide }),
+      Button({ key: 'menu-glossary', label: 'Glossary', onPress: () => actions.tab('glossary') }),
+      Button({ key: 'menu-version', label: 'Studio version', hotkey: 'v', onPress: run('version') }),
+    ]),
+  ]
+  return [label(Text, 'h-menu', 'Menu'), Text({ key: 'menu-note', color: 'subtle', wrap: 'wrap', children: ['Everything Studio does, by what you’re doing. The / commands still work too.'] }), ...menu]
+
+}
+
 function glossaryTab(el, view, actions) {
   const { Box, Text, Input } = el
   const out = [label(Text, 'h-words', 'Words, in plain language'),
@@ -147,9 +158,10 @@ export function drawPane(el, s, view, actions, columns) {
   const tabs = Box({ key: 'tabs', flexDirection: 'row', columnGap: 2, children: [
     Text({ key: 'title', bold: true, color: 'text', children: ['Studio'] }),
     Button({ key: 'tab-journey', label: 'Journey', hotkey: 'j', dimColor: view.tab !== 'journey', onPress: () => actions.tab('journey') }),
+    Button({ key: 'tab-menu', label: 'Menu', hotkey: 'n', dimColor: view.tab !== 'menu', onPress: () => actions.tab('menu') }),
     Button({ key: 'tab-glossary', label: 'Glossary', hotkey: 'g', dimColor: view.tab !== 'glossary', onPress: () => actions.tab('glossary') }),
     Button({ key: 'pane-guide', label: 'Guide', hotkey: 'h', dimColor: true, onPress: actions.guide }),
   ] })
-  const body = view.tab === 'glossary' ? glossaryTab(el, view, actions) : journeyTab(el, s, actions)
+  const body = view.tab === 'glossary' ? glossaryTab(el, view, actions) : view.tab === 'menu' ? menuTab(el, s, actions) : journeyTab(el, s, actions)
   return Box({ key: 'studio-pane', flexDirection: 'column', rowGap: 1, width: Math.max(20, columns), children: [tabs, ...body] })
 }
