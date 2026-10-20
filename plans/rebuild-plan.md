@@ -1,0 +1,62 @@
+# Rebuilding Studio to match the approved design
+
+Status: **draft for approval** (2026-10-20). Nothing is rebuilt yet.
+
+Built from what's agreed: the core and jobs (`plans/core-jobs.md`), the requirements and journey (`plans/requirements-and-journey.md`), your keep/cut calls (`plans/studio-today.md`), and the approved visuals (Figma page 13, D5 Mist). Nothing new is added; anything unclear is a question at the end.
+
+## What the rebuilt Studio is
+
+When a designer pastes a Jira story, Claude follows the nine-step journey. Studio shows where they are:
+
+- **The band** (above where you type): status only. "studio · Step 5 of 9 · The design · building screen 3 of 6". The last part goes on a coral tint when something needs you. Stop appears only while Claude is building.
+- **The panel** (beside the conversation): follows the story. The story, then whatever matters at this step: questions for you, requirements, paths, needs you, changes, notes in Figma, the handover checklist.
+- **Claude's conversation and quick replies** stay Claude's own.
+- **The look:** D5 Mist, the colours from the Figma variables, and the Studio mark (a picture, in the app).
+
+## How it works underneath (plain version)
+
+- **Studio keeps a small "story card" for the session:** the story, requirements, paths, questions, the current step and what needs you. Claude updates it as it works, through a small Studio helper, and the band and panel draw from it.
+- **No project folder is needed.** The card is kept by Claude Code itself, not in a folder, so a designer can work in Figma without setting anything up on their computer.
+- **Quick replies** use Claude Code's own question buttons.
+
+## Phases
+
+Each phase ends with you trying it in the app, and a pause.
+
+### R1. The look and the band
+
+- The band rebuilt as status only, in D5 Mist, with the Studio mark.
+- The three band states: status, needs you, building (with Stop).
+- Remove from the band: the welcome lettering, the journey stages (Explore, Refine, Build), save status, Preview and Menu buttons.
+
+### R2. The story card and the panel
+
+- The story card, and the helper Claude uses to update it.
+- The panel rebuilt to follow the story, in D5 Mist: the story, then sections per step, with "needs you" on the tint.
+- Remove from the panel: the Journey, Menu and Glossary tabs, the "Designs go to" and "Explain technical words" switches.
+
+### R3. The journey in Claude's instructions
+
+- The Studio voice updated to follow the nine steps when a Jira story is pasted: play the brief back, ask where and how (asking each time about a Figma branch), say first and wait for a yes, build with the design system only, change once across every screen, check and leave notes in Figma, make interactions clear, and the handover checklist.
+- Word explanations become **dismiss / don't show again**, as you asked, in place of the switch.
+
+### R4. Protections that are enforced
+
+- **The design system file can't be changed:** Studio checks every Figma action and refuses any change aimed at the project's design system file.
+- **Only the project's Figma file is changed,** and Claude asks before the first change in a conversation.
+- The upload check (local by default) stays as it is.
+- Jira and Confluence read-only: still parked; the rule stays in Claude's instructions until then.
+
+### R5. Setup through the conversation, and tidying up
+
+- Setup becomes a short conversation instead of seven steps and a form: is Figma connected, is this the right account, which design system, which Figma file. Claude asks, Studio remembers.
+- Remove what you marked cut or unclear: project folder layout, the team settings form, `/start`, explorations, the panel menu.
+- Keep: undo ("go back"), the upload check, `/guide` (updated), `/glossary`.
+- Tests for each phase, and Studio version 0.3.0.
+
+## Questions to decide
+
+1. **Save points** ("might need tweaking"): for Figma work they don't do anything. Suggestion: keep the automatic snapshots and "go back" quietly for files on the computer, and remove save points from the band, panel and Claude's replies. Or would you rather keep `/save`?
+2. **`/handover` and `/handoff`**: both are file-based today. Suggestion: remove both for now, since step 9's checklist covers getting ready to hand over in Figma, and rebuild the developer handover later, with your developers' input. Or keep them as they are for now?
+3. **Coded prototypes and `/preview`**: keep `/preview` for when a designer asks for a coded prototype, or remove it until prototypes are worked on properly?
+4. **Team settings**: the design systems list is useful for every designer. Keep it as one thing setup asks for or loads from a team file, and drop the rest of the form (projects folder, GitHub, Figma folder)?
