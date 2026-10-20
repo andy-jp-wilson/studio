@@ -131,7 +131,7 @@ function teamActions($) {
       } catch { team = { ...team, path, error: 'That file couldn’t be read. Check it, or type the settings in instead.' } }
       redraw()
     },
-    setField: (id, v) => { team = { ...team, values: { ...team.values, [id]: String(v || '') } } },
+    setField: (id, v) => { team = { ...team, values: { ...team.values, [id]: String(v || '') } }; if (id === 'figmaWritePlaces') redraw() },
     setDs: (i, k, v) => {
       const ds = team.values.designSystems.length ? [...team.values.designSystems] : [{ name: '', link: '' }]
       ds[i] = { ...ds[i], [k]: String(v || '') }
@@ -154,7 +154,7 @@ function teamActions($) {
         const values = copy({ ...team.values, designSystems: team.values.designSystems.filter(d => d.name || d.link) })
         team = { ...team, saving: false, step: 'saved', current: values, values }
         const names = values.designSystems.map(d => d.name || d.link).join(', ')
-        tell('The person saved their team settings in the Studio form' + (values.teamName ? ' for ' + values.teamName : '') + (names ? ', with design systems: ' + names : '') + '. Carry on with /setup.')
+        tell('The person saved their team settings in the Studio form' + (names ? ', with design systems: ' + names : '') + '. Carry on with /setup.')
       } catch {
         team = { ...team, saving: false, error: 'The settings couldn’t be saved. Nothing has changed; try again.' }
       }

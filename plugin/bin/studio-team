@@ -70,7 +70,7 @@ case "$cmd" in
     dir="${1:-}"; dir="${dir/#\~/$HOME}"
     [ -z "$dir" ] && { [ -d "$HOME/Desktop" ] && dir="$HOME/Desktop" || dir="$HOME"; }
     cur=$("$0" json)
-    name=$(printf '%s' "$cur" | jq -r '.teamName' | tr 'A-Z' 'a-z' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g')
+    name=$(printf '%s' "$cur" | jq -r 'if .teamName != "" then .teamName else (.uploadPlaces | split(",")[0] | sub("^(https?://)?(www\\.)?github\\.com/"; "") | split("/")[0]) end' | tr 'A-Z' 'a-z' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g')
     out="$dir/${name:-team}.studio-team.json"
     printf '%s' "$cur" | jq '{studioTeam: 1} + .' > "$out" && echo "saved $out"
     ;;

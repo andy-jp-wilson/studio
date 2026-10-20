@@ -35,8 +35,8 @@ Say: "First, your team's settings: your design systems, where projects go, and w
 
 **Without the panel** (for example in VS Code), or if they'd rather do it here:
 - Ask whether they have a team file (recommended). If so, they drag it into the conversation; run `studio-team read <path>`, show what's in it in plain words, and ask before saving.
-- Otherwise ask for each setting in turn, each optional: team or company name (only for messages), GitHub repository (or organisation) work may be uploaded to, with a one-line explanation of GitHub, projects folder on this computer, Figma team folder (destination; recorded, not enforced yet), and each design system's name and Figma link.
-- Save each with `studio-team set <KEY> "<value>"` (keys: `STUDIO_TEAM_NAME`, `STUDIO_ALLOWED_ORGS`, `STUDIO_PROJECTS_FOLDER`, `STUDIO_FIGMA_WRITE_PLACES`, `STUDIO_DESIGN_SYSTEMS` as `Name | link` joined with `; `).
+- Otherwise ask for each setting in turn, each optional: GitHub repository (or organisation) work may be uploaded to, with a one-line explanation of GitHub, projects folder on this computer, Figma team folder (destination), as a Figma link (recorded, not enforced yet), and each design system's name and Figma link.
+- Save each with `studio-team set <KEY> "<value>"` (keys: `STUDIO_ALLOWED_ORGS`, `STUDIO_PROJECTS_FOLDER`, `STUDIO_FIGMA_WRITE_PLACES`, `STUDIO_DESIGN_SYSTEMS` as `Name | link` joined with `; `).
 
 No team settings at all is fine: say Studio works without them, and move on. They're saved on this computer only; nothing is uploaded.
 
@@ -110,7 +110,7 @@ Ask: "Paste a link to the file, or shall I **create a new one**?"
 
 **A link**: check it as in step 5. Show the file name and its pages. If the first page has something on it, also show a small picture of it (Figma `get_screenshot` on that page's id; skip quietly if it fails). Ask: "Is this the right file?"
 
-**Create a new one**: load the `figma:figma-create-new-file` skill first and follow it. Name the file after the project (e.g. "Onboarding"). Use `whoami`'s plans; if there's more than one, ask which team or organisation it belongs in. Creating a file is a change in Figma, so confirm before creating it. Then show the new file's link.
+**Create a new one**: load the `figma:figma-create-new-file` skill first and follow it. Name the file after the project (e.g. "Onboarding"). If the team set a Figma team folder (`STUDIO_FIGMA_WRITE_PLACES`, a link like `figma.com/files/…/project/<id>`), create it in that folder (its project id). Otherwise use `whoami`'s plans; if there's more than one, ask which team or organisation it belongs in. Creating a file is a change in Figma, so confirm before creating it. Then show the new file's link.
 
 Then:
 - `studio-project set targetFileUrl "<link>"`, `studio-project set targetFileName "<name>"`, `studio-project done targetFile`.
@@ -120,7 +120,7 @@ Then:
 
 Finish with a tick list, e.g.
 
-✓ Team settings: Acme Design
+✓ Team settings: Acme Design System, design work in acme/design-work
 ✓ Figma connected
 ✓ Account: Sam Rivera (sam@company.com)
 ✓ Project: onboarding, with the Studio layout

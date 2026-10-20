@@ -9,10 +9,9 @@ export const TEAM_PANE = 'studio-team'
 export const EMPTY = { teamName: '', uploadPlaces: '', projectsFolder: '', figmaWritePlaces: '', designSystems: [] }
 
 export const FIELDS = [
-  { id: 'teamName', label: 'Team or company name (optional)', placeholder: 'Product Design', hint: 'Only used in Studio’s messages and to name the team file. Leave it empty if you like.' },
   { id: 'uploadPlaces', label: 'GitHub repository (optional)', placeholder: 'https://github.com/acme/design-work', hint: 'GitHub is a website where teams store and share project files. If your team uses it, paste the repository (or organisation) designers’ work may go to; Studio will never upload anywhere else. Leave it empty to keep all work on this computer.' },
   { id: 'projectsFolder', label: 'Projects folder on this computer (optional)', placeholder: '~/Studio projects', hint: 'A folder on each designer’s own computer where Studio makes new projects, so everyone’s projects are in the same, easy-to-find place. Leave it empty to use ~/Studio projects.' },
-  { id: 'figmaWritePlaces', label: 'Figma team folder (destination)', placeholder: 'Product Design · Projects', hint: 'The Figma team or project folder where Studio may create and change files, such as handover pages. Coming in a later version: Studio will then refuse to change files anywhere else.' },
+  { id: 'figmaWritePlaces', label: 'Figma team folder (destination)', placeholder: 'https://www.figma.com/files/team/…/project/…', hint: 'The link to the Figma folder where Studio may create and change files, such as new project files and handover pages. Open the folder in Figma and copy the link from the address bar. Coming in a later version: Studio will then refuse to change files anywhere else.', figma: true },
 ]
 
 // Settings as Studio stores them (bin/studio-team set KEY value).
@@ -22,7 +21,6 @@ export function toSettings(v) {
     .filter(d => d.name || d.link)
     .map(d => d.name + ' | ' + d.link).join('; ')
   return [
-    ['STUDIO_TEAM_NAME', clean(v.teamName)],
     ['STUDIO_ALLOWED_ORGS', clean(v.uploadPlaces).replace(/\s*,\s*/g, ',')],
     ['STUDIO_PROJECTS_FOLDER', clean(v.projectsFolder)],
     ['STUDIO_FIGMA_WRITE_PLACES', clean(v.figmaWritePlaces)],
@@ -33,7 +31,7 @@ export function toSettings(v) {
 function clean(s) { return String(s || '').replace(/[|;]/g, ' ').replace(/\s+/g, ' ').trim() }
 
 export function isSet(v) {
-  return Boolean(v && (v.teamName || v.uploadPlaces || v.projectsFolder || v.figmaWritePlaces || (v.designSystems || []).length))
+  return Boolean(v && (v.uploadPlaces || v.projectsFolder || v.figmaWritePlaces || (v.designSystems || []).length))
 }
 
 const heading = (Text, key, text) => Text({ key, bold: true, children: [text] })
@@ -43,7 +41,7 @@ const gap = (Text, key) => Text({ key, children: [' '] })
 function summary(el, v, prefix) {
   const { Box, Text } = el
   const rows = [
-    ['Team or company', v.teamName], ['GitHub repository', v.uploadPlaces], ['Projects folder', v.projectsFolder],
+    ['GitHub repository', v.uploadPlaces], ['Projects folder', v.projectsFolder],
     ['Figma team folder', v.figmaWritePlaces],
     ['Design systems', (v.designSystems || []).map(d => d.name || d.link).join(', ')],
   ]
@@ -109,6 +107,7 @@ function edit(el, f, a) {
   ]
   FIELDS.forEach(fd => {
     out.push(Input({ key: 'f-' + fd.id, label: fd.label, placeholder: fd.placeholder, value: v[fd.id], onInput: x => a.setField(fd.id, x), onSubmit: x => a.setField(fd.id, x) }))
+    if (fd.figma && v[fd.id] && !/figma\.com\//.test(v[fd.id])) out.push(note(Text, 'bad-' + fd.id, 'This doesn’t look like a Figma link yet.', 'warning'))
     out.push(note(Text, 'hint-' + fd.id, fd.hint))
   })
   out.push(gap(Text, 'g2'), heading(Text, 'h-ds', 'Design systems'),
