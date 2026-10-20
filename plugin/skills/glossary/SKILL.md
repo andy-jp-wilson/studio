@@ -1,6 +1,6 @@
 ---
 name: glossary
-description: Studio's friendly words for technical terms (save point = commit, exploration = branch, and so on). Use when explaining git, terminals, previews or Claude's working memory to a designer, or when they ask what a word means.
+description: Plain explanations of the words that come up when working with Studio and Claude Code (Figma branch, design system, coded prototype, upload, working memory and so on). Use when explaining a technical word to a designer, or when they ask what a word means.
 argument-hint: "[word]"
 ---
 
@@ -8,26 +8,19 @@ argument-hint: "[word]"
 
 If the person named a word ($ARGUMENTS), explain just that one. Otherwise show the whole list as a short table.
 
-| Friendly word | Real term | In one sentence |
-|---|---|---|
-| Project | repository (repo) | The folder that holds everything for one piece of work, with its history. |
-| Exploration | branch | A safe copy where you can try an idea without touching the original. |
-| Save point | commit | A snapshot of your work you can always go back to. |
-| Upload | push | Sending your save points to an upload place such as GitHub, so they leave this computer. Studio only does it when you ask. |
-| Leave-out list | .gitignore | A small file listing what save points should leave out, like Mac system files. Its name starts with a dot, so Finder hides it. |
-| Upload place | remote | Where your save points can be uploaded, like your team's GitHub. Work stays on this computer until you upload it. |
-| Handoff for review | pull request | Asking a teammate to look at an exploration before it joins the main design. |
-| Working memory | context window | How much of your conversation Claude can hold in mind at once. |
-| Workspace | terminal | The text window where you talk to Claude Code. |
-| Private preview | localhost | A website running on your own computer that only you can see. |
+| Word | In one sentence |
+|---|---|
+| Jira story | The piece of work: what a user wants, why, and how we'll know it's done (the acceptance criteria). Studio reads it and never changes it. |
+| Technical design | The Confluence page developers write about how the story will be built. Optional, but it helps Claude check the design. Read only. |
+| Path | One way a user can go through the story, like "email already used, then sign in". |
+| Design system | Your team's shared components, styles and variables in Figma. Claude builds only with these, and never changes them. |
+| Figma branch | A copy of a Figma file where work happens without touching the main file, until you merge it. Claude can't make one, so you make it and paste its link. |
+| Annotation | A note in Figma beside a design, explaining how something behaves. |
+| State page | A Figma page showing each state of a screen or component, like empty, error and loading. |
+| Coded prototype | The design built in HTML and CSS (the languages web pages are made of), so it can be clicked and tried. Optional, after Figma. |
+| Upload | Sending work to GitHub or another website, so it leaves this computer (developers say "push"). Studio only does it when you ask. |
+| Snapshot | A hidden copy Studio keeps automatically before Claude changes files on this computer, so you can say "go back". |
+| Working memory | How much of your conversation Claude can hold in mind at once (developers say "context window"). |
+| Workspace | The text window where you talk to Claude Code (developers say "terminal"). |
 
-More words, explained the same way when they come up:
-
-| Friendly word | Real term | In one sentence |
-|---|---|---|
-| Main design | main branch | The agreed design that explorations start from and join back into. |
-| Snapshot | (Studio's hidden save point) | A copy Studio keeps automatically before Claude changes anything. |
-| Clash | merge conflict | Two explorations changed the same thing, so you need to choose which to keep. |
-| Packages | dependencies | Ready-made code the project borrows, downloaded onto your computer. |
-
-Keep explanations to one or two sentences, and follow up with an example from their own project when you can. Don't use em dashes.
+Keep explanations to one or two sentences, and follow up with an example from their own story when you can. Don't use em dashes.

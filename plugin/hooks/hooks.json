@@ -1,5 +1,5 @@
 {
-  "description": "Studio: the band above the prompt and the Studio panel (a mod), plus safety hooks: design system files in Figma are never changed and Claude's first change to each Figma file in a conversation is asked about, work stays on this computer unless the person approves an upload (or it goes to a team-listed GitHub), a hidden snapshot before Claude's first change in each request, plain-language notes when a step fails, and pre-approval for Studio's own helper commands.",
+  "description": "Studio: the band above the prompt and the Studio panel (a mod) that follow the story, plus safety hooks: design system files in Figma are never changed and Claude's first change to each Figma file in a conversation is asked about, work stays on this computer unless the person approves an upload (or it goes to a team-listed GitHub), a hidden snapshot before Claude's first change to files in each request, plain-language notes when a step fails, and pre-approval for Studio's own helpers and story tool.",
   "modules": [
     "./studio.js"
   ],

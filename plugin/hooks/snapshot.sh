@@ -29,13 +29,13 @@ case "$result" in
   "created "*)
     say "Studio made a hidden snapshot (${result#created }) of the user's files before this change. The user can return to it by saying 'go back'." ;;
   "same-as-save-point "*)
-    say "Studio checked before this change: the user's files match their last save point (\"${result#same-as-save-point }\"), so that save point already covers going back and no extra snapshot was needed." ;;
+    say "Studio checked before this change: the user's files match their last saved version (\"${result#same-as-save-point }\"), so going back is already covered and no extra snapshot was needed." ;;
   "same-as-snapshot "*)
     say "Studio checked before this change: the user's files match the existing snapshot ${result#same-as-snapshot }, which already covers going back." ;;
   "no-save-points")
     note="$state/${session:-nosession}-nogit"
     [ -e "$note" ] && exit 0
     touch "$note"
-    say "Studio note: this folder does not keep save points yet, so Studio could not make a snapshot before this change. The /start command can set save points up." ;;
+    say "Studio note: this folder does not keep a history of versions (git), so Studio could not make a snapshot before this change, and \"go back\" can't undo it. Mention this in one line only if the change is to files the person cares about." ;;
 esac
 exit 0

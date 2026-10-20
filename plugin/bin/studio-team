@@ -1,38 +1,27 @@
 #!/bin/bash
-# studio-team: the team's Studio settings, kept in Claude Code's user
-# settings (~/.claude/settings.json, under "env") so every session sees them.
-# Only Studio's own settings are ever read or written; nothing else changes.
+# studio-team: the team's design systems for Studio, kept in Claude Code's
+# user settings (~/.claude/settings.json, under "env") so every session sees
+# them. Only Studio's own settings are ever read or written.
 #
 #   studio-team show
-#       Prints the Studio settings currently set, as KEY=value lines,
-#       or "none".
-#   studio-team json
-#       Prints the current settings as one JSON object (for the team form).
+#       Prints the Studio settings currently set, as KEY=value lines, or "none".
 #   studio-team read <file>
-#       Reads a team file (*.studio-team.json) and prints its settings as JSON,
-#       or "not-a-team-file". Changes nothing.
+#       Reads a team file (*.studio-team.json) someone shared and prints its
+#       design systems as "Name | link; …", or "not-a-team-file". Changes nothing.
 #   studio-team export [folder]
-#       Saves the current settings as a team file to share, in [folder]
+#       Saves the design systems as a team file to share, in [folder]
 #       (default: Desktop, else home). Prints "saved <path>".
-#   studio-team pick-folder | pick-file
-#       Opens the Mac's own folder or file picker and prints the chosen path
-#       (with ~ for the home folder), or "cancelled". Changes nothing.
-#   studio-team form
-#       Opens the team settings form in the Studio panel (the Studio band
-#       and panel watch for this). Prints "form".
 #   studio-team set <KEY> <value>
 #       Sets one Studio setting (an empty value removes it). Keeps a copy of
 #       the settings file first (settings.json.studio-backup). Prints
 #       "set <KEY>" or "removed <KEY>". Takes effect in new sessions.
 #
 # Keys:
-#   STUDIO_TEAM_NAME           the team's name, for Studio's messages
-#   STUDIO_ALLOWED_ORGS        GitHub owners work may be uploaded to, comma-separated
-#   STUDIO_DESIGN_SYSTEMS      design systems, "Name | link" separated by ";"
-#   STUDIO_FIGMA_WRITE_PLACES  Figma teams or folders Studio may write to (not enforced yet)
-#   STUDIO_PROJECTS_FOLDER     where new projects go
+#   STUDIO_DESIGN_SYSTEMS  design systems, "Name | link" separated by ";"
+#   STUDIO_ALLOWED_ORGS    GitHub owners work may be uploaded to, comma-separated
+#                          (used by Studio's upload check; set by a team admin)
 
-KEYS="STUDIO_TEAM_NAME STUDIO_ALLOWED_ORGS STUDIO_DESIGN_SYSTEMS STUDIO_FIGMA_WRITE_PLACES STUDIO_PROJECTS_FOLDER"
+KEYS="STUDIO_DESIGN_SYSTEMS STUDIO_ALLOWED_ORGS"
 file="$HOME/.claude/settings.json"
 cmd="$1"; shift
 
@@ -57,41 +46,19 @@ case "$cmd" in
     fi
     rm -f "$tmp"
     ;;
-  json)
-    [ -f "$file" ] && jq -c '(.env // {}) as $e | {teamName: ($e.STUDIO_TEAM_NAME // ""), uploadPlaces: ($e.STUDIO_ALLOWED_ORGS // ""),
-      projectsFolder: ($e.STUDIO_PROJECTS_FOLDER // ""), figmaWritePlaces: ($e.STUDIO_FIGMA_WRITE_PLACES // ""),
-      designSystems: (($e.STUDIO_DESIGN_SYSTEMS // "") | split(";") | map(split("|") | map(gsub("^ +| +$"; "")) | select(.[0] != "" or (.[1] // "") != "") | {name: .[0], link: (.[1] // "")}))}' "$file" 2>/dev/null \
-      || echo '{"teamName":"","uploadPlaces":"","projectsFolder":"","figmaWritePlaces":"","designSystems":[]}'
-    ;;
   read)
     f="${1/#\~/$HOME}"
-    jq -e -c 'select(.studioTeam) | {teamName: (.teamName // ""), uploadPlaces: (.uploadPlaces // ""), projectsFolder: (.projectsFolder // ""),
-      figmaWritePlaces: (.figmaWritePlaces // ""), designSystems: [(.designSystems // [])[] | {name: (.name // ""), link: (.link // "")}]}' "$f" 2>/dev/null \
+    jq -e -r 'select(.studioTeam) | [(.designSystems // [])[] | select((.name // "") != "" or (.link // "") != "") | "\(.name // "") | \(.link // "")"] | join("; ")' "$f" 2>/dev/null \
       || echo "not-a-team-file"
     ;;
   export)
     dir="${1:-}"; dir="${dir/#\~/$HOME}"
     [ -z "$dir" ] && { [ -d "$HOME/Desktop" ] && dir="$HOME/Desktop" || dir="$HOME"; }
-    cur=$("$0" json)
-    name=$(printf '%s' "$cur" | jq -r 'if .teamName != "" then .teamName else (.uploadPlaces | split(",")[0] | sub("^(https?://)?(www\\.)?github\\.com/"; "") | split("/")[0]) end' | tr 'A-Z' 'a-z' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g')
-    out="$dir/${name:-team}.studio-team.json"
-    printf '%s' "$cur" | jq '{studioTeam: 1} + .' > "$out" && echo "saved $out"
-    ;;
-  pick-folder|pick-file)
-    if [ "$cmd" = pick-folder ]; then
-      script='POSIX path of (choose folder with prompt "Choose the folder where Studio should make new projects. You can make a new folder here too.")'
-    else
-      script='POSIX path of (choose file with prompt "Choose your team file (it ends in .studio-team.json).")'
-    fi
-    picked=$(osascript -e "$script" 2>/dev/null) || { echo "cancelled"; exit 0; }
-    picked="${picked%/}"
-    case "$picked" in "$HOME"/*) picked="~${picked#$HOME}" ;; "$HOME") picked="~" ;; esac
-    echo "$picked"
-    ;;
-  form)
-    echo "form"
+    ds=$( [ -f "$file" ] && jq -r '.env.STUDIO_DESIGN_SYSTEMS // ""' "$file" 2>/dev/null)
+    out="$dir/team.studio-team.json"
+    printf '%s' "$ds" | jq -R '{studioTeam: 1, designSystems: (split(";") | map(split("|") | map(gsub("^ +| +$"; "")) | select(.[0] != "" or (.[1] // "") != "") | {name: .[0], link: (.[1] // "")}))}' > "$out" && echo "saved $out"
     ;;
   *)
-    sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
     ;;
 esac

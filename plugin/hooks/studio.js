@@ -1,21 +1,15 @@
-// Studio mod: the band above the prompt and the Studio panel.
-// Design: Figma pages 01 (band) and 02 (panel). Plan: plans/phase-3-band-and-panel.md.
-// Works in the terminal and the Desktop Code tab; nothing draws in VS Code.
+// Studio mod: the band above the prompt and the Studio panel (D5 Mist).
+// The band shows the journey step; the panel follows the story. Claude fills
+// both in with the story tool. Works in the terminal and the Desktop Code tab;
+// nothing draws in VS Code.
 import { describe } from './studio/narrate.js'
-import { guessStage } from './studio/journey.js'
 import { drawBand } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
-import { TEAM_PANE, EMPTY, drawTeamForm, toSettings } from './studio/team-form.js'
 
 const PANE = 'studio'
-const PREVIEW_PORTS = [4321, 5173, 3000, 8080, 8000, 4173, 5000]
-const FIGMA_REQUEST = 'Send the current screen to Figma: take a picture of my private preview and add it to a Figma file I choose. Ask me which file, and confirm before writing anything.'
 
-// What Studio knows about the project (refreshed from git).
-let project = { project: '', exploration: '', isMain: true, ownSavePoints: 0, explorations: 0, lastSaveAt: 0, handedOver: false, handoverLabel: '', previewUrl: '', root: '', hasSavePoints: false, unsaved: false, unsavedCount: 0, lastSaveNote: '' }
-// What Claude is doing in this request.
-let live = { working: false, turnId: '', current: null, steps: [], todo: null, lastKind: null }
-let memory = 0
+// What Claude is doing in this request (for Stop and the working line).
+let live = { working: false, turnId: '', current: null }
 // The story card for this session: the story, the journey step, what needs
 // the designer, and the panel's sections. Claude fills it in with the story
 // tool (mcp__studio__story); Claude Code keeps it ($.store), so no project
@@ -62,17 +56,6 @@ function applyStory(card, e) {
   }))
   return next
 }
-let stageOverride = null
-// Which Studio is running, and whether a newer one is ready (bin/studio-version).
-let studio = { version: '', update: '' }
-let refreshing = null
-
-async function git($, args) {
-  try {
-    const r = await $.process.run(['git', ...args], { timeoutMs: 5000 })
-    return r.exitCode === 0 ? r.stdout.trim() : null
-  } catch { return null }
-}
 
 // The person's own default for where designs are made (bin/studio-prefs):
 // 'figma' (results in Figma, code only for a prototype) or 'prototype'.
@@ -85,101 +68,45 @@ async function loadPrefs($) {
   } catch {}
 }
 
-// The project's Studio notes (.studio/project.json, written by /setup), and
-// whether it has a prototype. Design work happens in Figma unless it does.
-let notes = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', hasPrototype: false, setUp: false }
+// The project's Studio notes (.studio/project.json, written by /setup), from
+// the folder Claude Code is open in, or the top of its git project.
+let notes = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', setUp: false }
 
-async function readNotes($, root) {
-  let n = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', hasPrototype: false, setUp: false }
+async function readNotes($) {
+  const cwd = String(await $.session.cwd())
+  const roots = [cwd]
   try {
-    const p = JSON.parse(await $.fs.read(root + '/.studio/project.json'))
-    n = { ...n, setUp: true, figmaUrl: p.targetFileUrl || '', figmaName: p.targetFileName || '', dsName: p.designSystemName || '', dsUrl: p.designSystemUrl || '' }
+    const r = await $.process.run(['git', 'rev-parse', '--show-toplevel'], { timeoutMs: 3000 })
+    const top = r.exitCode === 0 ? String(r.stdout || '').trim() : ''
+    if (top && top !== cwd) roots.push(top)
   } catch {}
-  try {
-    const r = await $.process.run(['find', root + '/prototype', '-type', 'f', '!', '-name', '.DS_Store', '-print', '-quit'], { timeoutMs: 3000 })
-    n.hasPrototype = r.exitCode === 0 && Boolean(String(r.stdout || '').trim())
-  } catch {}
+  let n = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', setUp: false }
+  for (const root of roots) {
+    try {
+      const p = JSON.parse(await $.fs.read(root + '/.studio/project.json'))
+      n = { setUp: true, figmaUrl: p.targetFileUrl || '', figmaName: p.targetFileName || '', dsName: p.designSystemName || '', dsUrl: p.designSystemUrl || '' }
+      break
+    } catch {}
+  }
   notes = n
 }
 
 function projectNote() {
+  const ds = notes.dsName ? ' Its design system is ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') + '; use its components, styles and variables.' : ' No design system is chosen yet.'
   if (prefs.designs === 'prototype') {
-    return 'Studio project note: the person has made prototypes their default. When they ask to design or build something, build it as a working prototype in prototype/ (HTML and CSS), using the design system' +
-      (notes.dsName ? ' ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') : '') + '. Work in Figma only when they ask or it’s needed' +
-      (notes.figmaUrl ? ', in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ')' : '') + '. They can switch back with `studio-prefs designs figma`.'
+    return 'Studio project note: the person has made coded prototypes their default. When they ask to design or build something, build it as a prototype in prototype/ (HTML and CSS), using the design system.' + ds +
+      ' Work in Figma only when they ask or it’s needed' + (notes.figmaUrl ? ', in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ')' : '') + '. They can switch back with `studio-prefs designs figma`.'
   }
-  const ds = notes.dsName ? ' Its design system is ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') + '; use its components, styles and variables.' : ' No design system is connected.'
   if (notes.figmaUrl) {
     return 'Studio project note: design work for this project happens in Figma, in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ').' + ds +
-      (notes.hasPrototype ? ' The project also has a prototype in prototype/; change it only when the person asks about the prototype.' : ' There is no prototype; only make HTML or CSS files if the person asks for a prototype.')
+      ' Only make HTML or CSS files if the person asks for a coded prototype.'
   }
-  return 'Studio project note: ' + (notes.setUp ? 'no Figma file is linked to this project yet.' : 'this folder hasn’t been set up with /setup, so no Figma file is linked.') +
-    ' If the person asks for design work, offer /setup to link their Figma file (or ask for its link). Only make HTML or CSS files if they ask for a prototype.' + (notes.dsName ? ds : '')
+  return 'Studio project note: ' + (notes.setUp ? 'no Figma file is chosen for this project yet.' : 'this project hasn’t been set up yet, so no Figma file or design system is chosen.') +
+    ' If the person asks for design work, offer /setup (a short chat) or ask for the Figma file’s link. Only make HTML or CSS files if they ask for a coded prototype.' + (notes.dsName ? ds : '')
 }
 
-async function refresh($) {
-  if (refreshing) return refreshing
-  refreshing = (async () => {
-    const cwd = await $.session.cwd()
-    const folder = String(cwd).split('/').filter(Boolean).pop() || 'project'
-    const next = { ...project, project: folder, previewUrl: await findPreview($) }
-    if ((await git($, ['rev-parse', '--is-inside-work-tree'])) !== 'true') {
-      project = { ...next, hasSavePoints: false, unsaved: false, unsavedCount: 0, lastSaveNote: '', isMain: true, exploration: '', ownSavePoints: 0, lastSaveAt: 0, handedOver: false, root: cwd }
-      await readNotes($, cwd)
-      return
-    }
-    const root = (await git($, ['rev-parse', '--show-toplevel'])) || cwd
-    const branch = (await git($, ['branch', '--show-current'])) || ''
-    const main = (await git($, ['rev-parse', '--verify', '-q', 'main'])) ? 'main' : ((await git($, ['rev-parse', '--verify', '-q', 'master'])) ? 'master' : '')
-    const isMain = !branch || branch === main
-    const own = !isMain && main ? Number(await git($, ['rev-list', '--count', main + '..HEAD'])) || 0 : 0
-    const status = (await git($, ['status', '--porcelain'])) || ''
-    const unsavedCount = status.split('\n').filter(Boolean).length
-    const unsaved = unsavedCount > 0
-    const last = Number(await git($, ['log', '-1', '--format=%ct'])) || 0
-    const lastSaveNote = (await git($, ['log', '-1', '--format=%s'])) || ''
-    const branches = ((await git($, ['branch', '--format=%(refname:short)'])) || '').split('\n').filter(b => b && b !== main)
-    let handedOver = false, handoverLabel = ''
-    const h = await git($, ['for-each-ref', 'refs/studio/handovers', '--sort=-creatordate', '--count=1', '--format=%(objectname)|%(creatordate:format:%d %b)'])
-    if (h && !isMain) {
-      const [obj, when] = h.split('|')
-      const onThis = (await git($, ['merge-base', '--is-ancestor', obj, 'HEAD'])) !== null
-      const onMain = main ? (await git($, ['merge-base', '--is-ancestor', obj, main])) !== null : false
-      if (onThis && !onMain) { handedOver = true; handoverLabel = String(when).replace(/^0/, '') }
-    }
-    await readNotes($, root)
-    project = { ...next, root, hasSavePoints: true, unsaved, unsavedCount, lastSaveNote, exploration: branch || main, isMain, ownSavePoints: own, explorations: branches.length, lastSaveAt: last * 1000, handedOver, handoverLabel }
-    try {
-      const saved = await $.store.get('stage:' + root)
-      stageOverride = typeof saved === 'string' ? saved : null
-    } catch { stageOverride = null }
-  })().finally(() => { refreshing = null })
-  return refreshing
-}
-
-async function checkVersion($) {
-  try {
-    const manifest = JSON.parse(await $.fs.read($.plugin.root + '/.claude-plugin/plugin.json'))
-    studio = { ...studio, version: String(manifest.version || '') }
-  } catch {}
-  try {
-    const r = await $.process.run([$.plugin.root + '/bin/studio-version', '--no-fetch'], { timeoutMs: 8000 })
-    const [status, , latest] = String(r.stdout || '').trim().split(' ')
-    studio = { ...studio, update: status === 'update-available' && latest ? latest : '' }
-  } catch {}
-}
-
-async function findPreview($) {
-  try {
-    const r = await $.process.run(['lsof', '-nP', '-iTCP', '-sTCP:LISTEN', '-Fn'], { timeoutMs: 3000 })
-    const ports = new Set((r.stdout.match(/:(\d+)\n/g) || []).map(m => Number(m.slice(1, -1))))
-    const port = PREVIEW_PORTS.find(p => ports.has(p))
-    return port ? 'http://localhost:' + port : ''
-  } catch { return '' }
-}
-
-function state(now) {
-  return { ...project, ...live, memory, story: storyCard, dsName: notes.dsName, figmaName: notes.figmaName, explainWords: words.explain, designs: prefs.designs, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
+function state() {
+  return { ...live, story: storyCard, dsName: notes.dsName, figmaName: notes.figmaName }
 }
 
 // Word explanations: on or off, and the words the person already knows
@@ -197,146 +124,14 @@ async function loadWords($) {
 }
 
 function wordsNote() {
-  if (!words.explain) return 'Studio word explanations are OFF: the person asked not to have technical words and file names explained. Use the friendly words, and explain only if they ask. If they want explanations back, run `studio-words on`.'
+  if (!words.explain) return 'Studio word explanations are OFF: the person said "don’t show again". Use plain words, and explain only if they ask. If they want explanations back, run `studio-words on`.'
   return 'Studio word explanations are ON: explain technical words and file names every time they come up, as the Studio voice says.' +
     (words.known.length ? ' The person already knows these, so do not explain them: ' + words.known.join(', ') + '.' : '')
 }
 
-// The team settings form (studio/team-form.js).
-const blankTeam = () => ({ step: 'choose', current: { ...EMPTY }, values: { ...EMPTY }, path: '', error: '', loadedFrom: '', exported: '', saving: false, fromSetup: false })
-let team = blankTeam()
-const copy = v => ({ ...EMPTY, ...v, designSystems: (v.designSystems || []).map(d => ({ name: d.name || '', link: d.link || '' })) })
-
-async function teamBin($, args) {
-  const r = await $.process.run([$.plugin.root + '/bin/studio-team', ...args], { timeoutMs: 8000 })
-  return { ok: r.exitCode === 0, out: String(r.stdout || '').trim() }
-}
-
-async function openTeam($, fromSetup) {
-  let current = { ...EMPTY }
-  try { const r = await teamBin($, ['json']); if (r.ok) current = copy(JSON.parse(r.out)) } catch {}
-  team = { ...blankTeam(), current, values: copy(current), fromSetup }
-  try { await $.ui.open({ id: TEAM_PANE, title: 'Team settings', focus: true }) } catch {}
-  $.ui.invalidate('ui.render')
-}
-
-function teamActions($) {
-  const redraw = () => $.ui.invalidate('ui.render')
-  // Always tell Claude, so a /setup in progress carries on however the form was opened.
-  const tell = text => { $.prompt.submit({ text }).catch(() => {}) }
-  return {
-    file: () => { team = { ...team, step: 'file', error: '' }; redraw() },
-    manual: () => { team = { ...team, step: 'edit', error: '', loadedFrom: '', values: copy(team.step === 'saved' ? team.values : team.current) }; redraw() },
-    back: () => { team = { ...team, step: 'choose', error: '' }; redraw() },
-    setPath: v => { team = { ...team, path: String(v || ''), error: '' } },
-    load: async v => {
-      const path = String(v || team.path || '').trim().replace(/^['"]|['"]$/g, '').replace(/\\ /g, ' ')
-      if (!path) { team = { ...team, error: 'Drag the team file into the box, or paste where it is.' }; return redraw() }
-      try {
-        const r = await teamBin($, ['read', path])
-        if (!r.ok || r.out === 'not-a-team-file') { team = { ...team, path, error: 'That isn’t a Studio team file, or it can’t be opened. Check the file, or type the settings in instead.' }; return redraw() }
-        team = { ...team, path, step: 'edit', error: '', loadedFrom: path.split('/').pop(), values: copy(JSON.parse(r.out)) }
-      } catch { team = { ...team, path, error: 'That file couldn’t be read. Check it, or type the settings in instead.' } }
-      redraw()
-    },
-    pickFolder: async () => {
-      try {
-        const r = await $.process.run([$.plugin.root + '/bin/studio-team', 'pick-folder'], { timeoutMs: 600000 })
-        const p = String(r.stdout || '').trim()
-        if (p && p !== 'cancelled') team = { ...team, values: { ...team.values, projectsFolder: p } }
-      } catch {}
-      redraw()
-    },
-    pickFile: async () => {
-      let p = ''
-      try {
-        const r = await $.process.run([$.plugin.root + '/bin/studio-team', 'pick-file'], { timeoutMs: 600000 })
-        p = String(r.stdout || '').trim()
-      } catch {}
-      if (p && p !== 'cancelled') return teamActions($).load(p)
-      redraw()
-    },
-    setField: (id, v) => { team = { ...team, values: { ...team.values, [id]: String(v || '') } }; if (id === 'figmaWritePlaces') redraw() },
-    setDs: (i, k, v) => {
-      const ds = team.values.designSystems.length ? [...team.values.designSystems] : [{ name: '', link: '' }]
-      ds[i] = { ...ds[i], [k]: String(v || '') }
-      team = { ...team, values: { ...team.values, designSystems: ds } }
-      if (k === 'link') redraw()
-    },
-    addDs: () => {
-      const ds = team.values.designSystems.length ? team.values.designSystems : [{ name: '', link: '' }]
-      team = { ...team, values: { ...team.values, designSystems: [...ds, { name: '', link: '' }] } }; redraw()
-    },
-    removeDs: i => { team = { ...team, values: { ...team.values, designSystems: team.values.designSystems.filter((_, j) => j !== i) } }; redraw() },
-    keep: () => { tell('The person kept the team settings already saved on this computer. If /setup is in progress, carry on with it.'); team = { ...team, step: 'saved', values: copy(team.current) }; redraw() },
-    save: async () => {
-      team = { ...team, saving: true, error: '' }; redraw()
-      try {
-        for (const [key, value] of toSettings(team.values)) {
-          const r = await teamBin($, ['set', key, value])
-          if (!r.ok) throw new Error(r.out)
-        }
-        const values = copy({ ...team.values, designSystems: team.values.designSystems.filter(d => d.name || d.link) })
-        team = { ...team, saving: false, step: 'saved', current: values, values }
-        const names = values.designSystems.map(d => d.name || d.link).join(', ')
-        tell('The person saved their team settings in the Studio form' + (names ? ', with design systems: ' + names : '') + '. If /setup is in progress, carry on with it.')
-      } catch {
-        team = { ...team, saving: false, error: 'The settings couldn’t be saved. Nothing has changed; try again.' }
-      }
-      redraw()
-    },
-    exportFile: async () => {
-      try {
-        const r = await teamBin($, ['export'])
-        team = { ...team, exported: r.ok && r.out.startsWith('saved ') ? r.out.slice(6) : '' }
-        if (!team.exported) team = { ...team, error: 'The team file couldn’t be saved. Try again.' }
-      } catch { team = { ...team, error: 'The team file couldn’t be saved. Try again.' } }
-      redraw()
-    },
-  }
-}
-
 function actionsFor($) {
-  const run = name => {
-    $.command.run({ command: name }).catch(() => $.prompt.submit({ text: '/' + name, asUser: true }).catch(() => {}))
-  }
   return {
-    run,
-    // The panel is usually open already (from the session's start), and opening
-    // an open pane doesn't bring it forward, so close it and open it again, on
-    // the Menu tab.
-    menu: async () => {
-      try { await $.ui.close({ id: PANE }) } catch {}
-      try { await $.ui.open({ id: PANE, title: 'Studio', focus: true }) } catch {}
-      $.ui.invalidate('ui.render')
-    },
-    show: () => run('preview'),
-    save: () => run('save'),
-    guide: () => run('guide'),
-    figma: () => { $.prompt.submit({ text: FIGMA_REQUEST, asUser: true }).catch(() => {}) },
     stop: () => { if (live.turnId) $.turn.abort({ turnId: live.turnId }).catch(() => {}) },
-    setStage: async stage => {
-      stageOverride = stage
-      try {
-        if (stage) await $.store.set('stage:' + project.root, stage)
-        else await $.store.delete('stage:' + project.root)
-      } catch {}
-      $.ui.invalidate('ui.render')
-    },
-    toggleDesigns: async () => {
-      const to = prefs.designs === 'prototype' ? 'figma' : 'prototype'
-      try { await $.process.run([$.plugin.root + '/bin/studio-prefs', 'designs', to], { timeoutMs: 5000 }) } catch {}
-      await loadPrefs($)
-      try { await $.ui.toast(prefs.designs === 'prototype' ? 'Designs will be built as prototypes; Figma only when needed' : 'Designs will be made in Figma; prototypes when you ask') } catch {}
-      $.ui.invalidate('ui.render')
-    },
-    toggleWords: async () => {
-      try { await $.process.run([$.plugin.root + '/bin/studio-words', words.explain ? 'off' : 'on'], { timeoutMs: 5000 }) } catch {}
-      await loadWords($)
-    await loadPrefs($)
-      try { await $.ui.toast(words.explain ? 'Studio will explain technical words again' : 'Studio won’t explain technical words. Turn it back on here any time.') } catch {}
-      $.ui.invalidate('ui.render')
-    },
   }
 }
 
@@ -344,13 +139,11 @@ export function register(on) {
   on('session.start', async ($, e, next) => {
     try { storyKey = 'story:' + (await $.session.id()); const saved = await $.store.get(storyKey); storyCard = saved && typeof saved === 'object' ? saved : null } catch { storyCard = null }
     try { await $.tool.register(STORY_TOOL) } catch {}
-    await refresh($)
-    checkVersion($).then(() => $.ui.invalidate('ui.render')).catch(() => {})
+    await readNotes($)
     await loadWords($)
-    try { await $.clock.every(30000, async () => { await refresh($); $.ui.invalidate('ui.render') }) } catch {}
+    await loadPrefs($)
     try { await $.ui.open({ id: PANE, title: 'Studio' }) } catch {}
     try { await $.command.register({ name: 'panel', description: 'Open the Studio panel', immediate: true }) } catch {}
-    try { await $.command.register({ name: 'team-settings', description: 'Your team’s Studio settings: load a team file or type them in', immediate: true }) } catch {}
     return next(e)
   })
 
@@ -359,21 +152,15 @@ export function register(on) {
     return {}
   })
 
-  on('command.run', { command: 'team-settings' }, async ($) => {
-    await openTeam($, false)
-    return {}
-  })
-
   on('turn.start', async ($, e, next) => {
-    live = { ...live, working: true, turnId: e.turnId, current: null, steps: [], todo: null }
+    live = { working: true, turnId: e.turnId, current: null }
     $.ui.invalidate('ui.render')
     return next(e)
   })
 
   on('turn.complete', async ($, e, next) => {
-    const steps = live.steps.map(x => x.status === 'now' ? { ...x, status: 'done' } : x)
-    live = { ...live, working: false, current: null, steps }
-    await refresh($)
+    live = { ...live, working: false, current: null }
+    await readNotes($)
     $.ui.invalidate('ui.render')
     return next(e)
   })
@@ -387,39 +174,21 @@ export function register(on) {
   })
 
   on('tool.call', async ($, e, next) => {
-    if (e.tool === 'mcp__studio__story') return next(e)
-    if (e.agentId) return next(e)
-    if (e.tool === 'TodoWrite' && Array.isArray(e.todos)) {
-      const items = e.todos.map(t => ({ label: t.status === 'in_progress' ? (t.activeForm || t.content) : t.content, status: t.status === 'completed' ? 'done' : t.status === 'in_progress' ? 'now' : 'upcoming' }))
-      const cur = e.todos.findIndex(t => t.status === 'in_progress')
-      live = { ...live, todo: { items, total: items.length, current: cur >= 0 ? cur + 1 : items.filter(i => i.status === 'done').length } }
-      $.ui.invalidate('ui.render')
-      return next(e)
-    }
-    // Claude records word and design choices with studio-words and studio-prefs; pick them up straight away.
-    if (e.tool === 'Bash' && /^studio-(words|prefs)\b/.test(String(e.command || '').trim())) {
+    if (e.tool === 'mcp__studio__story' || e.agentId) return next(e)
+    // Claude records choices with studio-words, studio-prefs and studio-project; pick them up straight away.
+    if (e.tool === 'Bash' && /^studio-(words|prefs|project)\b/.test(String(e.command || '').trim())) {
       const result = await next(e)
       await loadWords($)
       await loadPrefs($)
+      await readNotes($)
       $.ui.invalidate('ui.render')
-      return result
-    }
-    // /setup asks for the team form by running `studio-team form`.
-    if (e.tool === 'Bash' && String(e.command || '').trim() === 'studio-team form') {
-      const result = await next(e)
-      await openTeam($, true)
       return result
     }
     const d = describe(e)
     if (!d) return next(e)
-    const step = { label: d.label, status: 'now' }
-    live = { ...live, current: d, lastKind: d.kind, steps: [...live.steps, step].slice(-12) }
+    live = { ...live, current: d }
     $.ui.invalidate('ui.render')
-    const result = await next(e)
-    step.status = result && (result.isError || result.deny) ? 'failed' : 'done'
-    if (['save', 'exploration', 'snapshot', 'handover', 'preview'].includes(d.kind)) await refresh($)
-    $.ui.invalidate('ui.render')
-    return result
+    return next(e)
   }).catch(async ($, e, next) => next(e)) // Studio only narrates: if this hook fails, the step runs as normal
 
   on('prompt.compose', async ($, e, next) => {
@@ -427,16 +196,10 @@ export function register(on) {
     return { ...r, sections: [...r.sections, { id: 'studio:words', text: wordsNote(), scope: 'session' }, { id: 'studio:project', text: projectNote(), scope: 'session' }] }
   })
 
-  on('session.measure', async ($, e, next) => {
-    try { memory = (await $.session.usage()).context.percent || 0 } catch {}
-    $.ui.invalidate('ui.render')
-    return next(e)
-  })
-
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
     const el = $.ui.resolve(e)
-    const band = drawBand(el, { ...state(await $.clock.now()), surface: e.surface }, actionsFor($), e.props.bodyColumns)
+    const band = drawBand(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
     const rest = await next(e)
     return rest ? el.Box({ key: 'studio-band-wrap', flexDirection: 'column', children: [band, rest] }) : band
   })
@@ -444,12 +207,7 @@ export function register(on) {
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
     if (e.requestId !== PANE) return next(e)
     const el = $.ui.resolve(e)
-    return drawPane(el, { ...state(await $.clock.now()), surface: e.surface }, actionsFor($), e.props.bodyColumns)
-  })
-
-  on('ui.render', { component: 'Pane' }, async ($, e, next) => {
-    if (e.requestId !== TEAM_PANE) return next(e)
-    return drawTeamForm($.ui.resolve(e), team, teamActions($), e.props.bodyColumns)
+    return drawPane(el, { ...state(), surface: e.surface }, actionsFor($), e.props.bodyColumns)
   })
 
   on('ui.render', { component: 'Spinner' }, async ($, e, next) => {

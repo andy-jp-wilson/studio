@@ -1,6 +1,6 @@
 ---
 name: go-back
-description: Restore the designer's files to a Studio snapshot or save point, i.e. undo Claude's recent changes. Use when they say undo, go back, revert, or "put it back how it was".
+description: Restore the designer's files on this computer to a Studio snapshot or an earlier saved version, i.e. undo Claude's recent changes to files (for Figma work, point them to Figma's undo and version history). Use when they say undo, go back, revert, or "put it back how it was".
 allowed-tools:
   - Bash(git rev-parse:*)
   - Bash(git status:*)
@@ -13,11 +13,11 @@ allowed-tools:
 
 # Go back to before a change
 
-Studio keeps hidden snapshots under `refs/studio/snapshots/`, one before each request in which Claude changed files. Visible save points are ordinary commits.
+Studio keeps hidden snapshots under `refs/studio/snapshots/`, one before each request in which Claude changed files. Earlier saved versions are ordinary commits. This is for files on this computer; for Figma work, explain Figma's own undo (Cmd+Z) and version history (File ▸ Show version history) instead.
 
 1. **List the recent places they could go back to**, newest first, and pick the most likely one:
    - snapshots: `git for-each-ref refs/studio/snapshots --sort=-creatordate --count=5 --format='%(refname)|%(creatordate:relative)|%(contents:subject)'`
-   - save points: `git log -5 --format='%h|%cr|%s'`
+   - earlier saved versions: `git log -5 --format='%h|%cr|%s'`
 
    If it's obvious (they said "undo that"), use the newest snapshot. Otherwise show 2 or 3 options in plain words, e.g. "Before 'make the sign-up screen calmer' (5 minutes ago)".
 2. **Show what would change back**: `git diff --stat <target>`, described in plain words.
@@ -28,4 +28,4 @@ Studio keeps hidden snapshots under `refs/studio/snapshots/`, one before each re
    - mention any files Claude created after the snapshot. Ask before removing those.
 5. **Reply:** "✓ Back to how it was before '…'. If you change your mind, say 'go back' again to return."
 
-Never use `git reset --hard`, and never delete snapshots or save points.
+Never use `git reset --hard`, and never delete snapshots or saved versions.

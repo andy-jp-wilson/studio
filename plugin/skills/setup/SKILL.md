@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Get a designer ready to work with Studio, one step at a time. Checks the Figma connection, confirms the Figma account, creates or prepares the project folder, links the design system file and the target Figma file, and remembers the answers. Use when the designer types /setup, is starting a new project, or asks how to get set up or whether everything is connected.
+description: Get a designer ready to work with Studio in a short chat. Checks Figma is connected and it's the right account, then asks which design system and which Figma file the project uses, and remembers the answers. Use when the designer types /setup, is starting a new project, or asks how to get set up or whether everything is connected.
 allowed-tools:
   - mcp__plugin_figma_figma__whoami
   - mcp__plugin_figma_figma__get_metadata
@@ -10,141 +10,80 @@ allowed-tools:
 
 # /setup: getting ready
 
-Walk the person through seven steps, **one at a time**, in the Studio voice. Before each step say in one line what it's for. After each step show a tick and move on. Never rush several questions into one message.
+A short chat, not a form: four questions, **one at a time**, in the Studio voice. Before each, say in one line what it's for; after each, show a tick and move on. Use Claude Code's question buttons where there are a few clear choices.
 
 **Figma tools.** Figma may be connected through the Figma plugin or through Claude's own Figma connector; use whichever has the tools (`whoami`, `get_metadata`, `get_libraries`, `get_screenshot`, `create_new_file`). If the Figma plugin's tools are the ones connected and it offers `create_session`, call it with the file key before that file's other tools, as its instructions say.
 
-Use the helper `studio-project` (already allowed) for all reading and writing of setup notes and folders. It never moves, overwrites or deletes anything.
+Use the helper `studio-project` (already allowed) to read and remember answers. It keeps them in `.studio/project.json` (a hidden folder where Studio keeps its notes about this project) in the folder Claude Code is open in, and never moves, overwrites or deletes anything. No folder layout is needed: the work lives in Figma.
 
-## 0. Where things stand
+## Where things stand
 
-Run `studio-project status`. It prints JSON with `project` (this folder's answers and `done` steps), `computer` (what's been confirmed on this computer) and `missing` (layout folders not here yet).
+Run `studio-project status` and `studio-team show` (the team's design systems, as `STUDIO_DESIGN_SYSTEMS=Name | link; …`, or `none`).
 
-Also run `studio-team show` for the team's settings (lines like `STUDIO_DESIGN_SYSTEMS=…`, or `none`). They're set in step 1; use them where the steps below say so. If there are none, carry on: Studio works without them.
+- If everything is done, show a short tick list and ask whether they want to **recheck** Figma or **change** an answer. Don't redo steps unasked.
+- If nothing is done on this computer yet (`computer` is empty), start with a short welcome, three lines at most: "Studio works inside Claude Code, the version of Claude that connects to Figma and your design system. That's what lets it build your designs in Figma from a Jira story, check them and get them ready for developers. For quick idea exploration, Claude Design is great too; `/guide which Claude` explains when to use which."
+- Then say: "Four quick questions." Skip any already answered for this project, but always check Figma is connected (it's quick).
 
-- If everything is done, say so with a short tick list and ask whether they want to **recheck** (the team settings, Figma connection and account again) or **change** an answer. Don't redo steps unasked.
-- If nothing is done yet on this computer (`computer` is empty), start with a short welcome, three lines at most: "Studio works inside Claude Code, the version of Claude that works with real files on your computer and connects to Figma and your design system. That's what lets it check your designs and hand them over to developers. For quick idea exploration, Claude Design is great too; `/guide which Claude` explains when to use which."
-- Then say: "Setup has seven short steps. You're on step N." Skip steps already done in this project, but always do the Figma connection check (it's quick).
+## 1. Is Figma connected?
 
-## 1. Team settings
-
-Say: "First, your team's settings: your design systems, where projects go, and where work may be shared. All optional."
-
-- **Already set** (`studio-team show` listed some): show them as a short list in plain words and ask "Keep these, or change them?" Keep: a tick, move on. Change: open the form, below.
-- **Not set:** open the form.
-
-**Opening the form:** run `studio-team form`. It opens the **Team settings** form in the Studio panel. Say: "I've opened the team settings form in the Studio panel. If someone on your team shared a team file, choose **Load a team file** (recommended); otherwise choose **Type them in**." Then wait. When a message says the settings were saved or kept (or the person says so), run `studio-team show`, show a tick, and move on. If it still shows nothing, the form hasn't been saved yet: say so gently and wait.
-
-**Without the panel** (for example in VS Code), or if they'd rather do it here:
-- Ask whether they have a team file (recommended). If so, they drag it into the conversation; run `studio-team read <path>`, show what's in it in plain words, and ask before saving.
-- Otherwise ask for each setting in turn, each optional: projects folder on this computer (if they're unsure how to give one: leave it empty for `~/studio-projects`, type one starting with `~/`, or in Finder right-click the folder, hold Option and choose Copy as Pathname), Figma project folder (destination), as a Figma folder link, GitHub repository (or organisation) work may be uploaded to, with a one-line explanation of GitHub, and each design system's name and Figma link.
-- Save each with `studio-team set <KEY> "<value>"` (keys: `STUDIO_ALLOWED_ORGS`, `STUDIO_PROJECTS_FOLDER`, `STUDIO_FIGMA_WRITE_PLACES`, `STUDIO_DESIGN_SYSTEMS` as `Name | link` joined with `; `).
-
-No team settings at all is fine: say Studio works without them, and move on. They're saved on this computer only; nothing is uploaded.
-
-## 2. Figma connection
-
-Say: "Next, checking that Studio can reach Figma."
-
-Call the Figma `whoami` tool (from either Figma connection).
+Call the Figma `whoami` tool.
 - It works: "✓ Figma is connected." Run `studio-project done connection`.
-- It fails, or there's no Figma tool in either connection: "Figma isn't connected yet." Then:
+- It fails, or there's no Figma tool: "Figma isn't connected yet." Then:
   1. Type `/mcp`
   2. Choose **figma**, then **Authenticate**, and sign in in the browser
   3. Come back and say "done"
-  Wait for them, then try again. If the Figma plugin isn't installed at all, say Studio needs the official Figma plugin and that you can install it if they'd like (ask first).
+  Wait, then try again. If the Figma plugin isn't installed at all, say Studio needs the official Figma plugin and offer to install it (ask first).
 
-## 3. The right Figma account
+## 2. Is it the right account?
 
-Show who's signed in, from `whoami`: name, email and the plans (teams or organisations) they belong to, e.g.
-"Signed in as **Sam Rivera** (sam@company.com), on **Acme** and **Personal**."
+Show who's signed in, from `whoami`: name, email and the teams or organisations they belong to, e.g. "Signed in as **Sam Rivera** (sam@company.com), on **Acme** and **Personal**."
 
-- If `computer.figmaAccount` already names this same account, say "✓ Same Figma account as before." and move on.
+- If `computer.figmaAccount` already names this account: "✓ Same Figma account as before."
 - Otherwise ask: "Is this the account you use for work?"
   - Yes: `studio-project set figmaAccount "<name> (<email>)"`, then `studio-project done account`.
   - No: explain how to switch (in `/mcp`, choose figma, **Clear authentication**, then authenticate again with the work account), wait, and check again.
 
-The person confirms; Studio doesn't enforce a particular account.
+## 3. Which design system?
 
-## 4. Project folder
+If the team has a design systems list:
+- One: "Your team uses **<name>**. Is that the one for this project?"
+- Several: "Which design system is this project using?" with each by name as a choice (a team may have a newer one and an older one still in use). They can also say none, or paste a different link.
 
-Ask: "Do you want to start a **new project**, or set up **this folder** (<folder name>)?" If the current folder is the home folder, Desktop, Downloads or Documents itself, recommend a new project.
+If there's no list, ask whether someone on the team shared a **team file** (a small file ending in `.studio-team.json`); that's the recommended way. If they drag one in, run `studio-team read <path>`, show the design systems in it, and ask before saving them for every project on this computer with `studio-team set STUDIO_DESIGN_SYSTEMS "<what it printed>"` (Claude Code asks them to allow it). Otherwise ask: "Does this project use a design system or component library? If so, paste the Figma link to its library file." Don't name or suggest any particular one. No design system is fine: say Studio works without one, and move on.
 
-**New project**
-1. Ask for a short name, e.g. "onboarding". Use lowercase and hyphens; turn spaces into hyphens.
-2. Suggest a home for it: `STUDIO_PROJECTS_FOLDER` if the team set one, otherwise `~/studio-projects/`, unless they say otherwise.
-3. Explain the layout in one short list, and ask if they'd like it (they can say no and keep their own):
-   - `prototype/`: the prototype's code, the screens you preview
-   - `prototype/assets/`: images, icons and fonts
-   - `handover/`: the project's handover for developers, made by `/handover`
-   - `README.md`: what the project is, with links to its Figma file and design system
-4. Run `studio-project new "<parent>" "<name>"`. `exists` means a folder with that name is already there: don't touch it; offer a different name or to set that folder up instead.
-5. From now on, pass the new folder as the last argument to every `studio-project set` and `done` call.
-6. `studio-project done folder <new folder>`.
+Check the link: it must be a `figma.com/design/…` or `figma.com/file/…` link. Call `get_metadata` with its file key (no node id) to read its pages; if that fails, explain plainly (the link may be wrong, or this account can't open it) and ask for another. Show the file name and pages and ask "Is **<name>** the design system this project uses?" (skip that question for one picked from the team's list, but still read it, so a broken link is caught).
 
-**This folder**
-- If `missing` is empty: "✓ This folder already has the Studio layout."
-- Otherwise list what would be added (nothing is moved or replaced) and ask. If yes, run `studio-project layout`. If no, that's fine; carry on.
-- `studio-project done folder`.
+Then `studio-project set designSystemUrl "<link>"`, `studio-project set designSystemName "<name>"`, `studio-project done designSystem`. Studio will never change this file.
 
-## 5. Design system file
+## 4. Which Figma file?
 
-Say: "Next, the design system your designs use."
+Say: "Last one: the Figma file where this project's designs live. It's normally one file with several pages."
 
-If the team set `STUDIO_DESIGN_SYSTEMS` (entries `Name | link`, separated by `;`):
-- One design system: "Your team uses **<name>**. Is that the one for this project?"
-- More than one: "Which design system is this project using?" and list them by name (a team may have a newer one and an older one still in use). They can also say none, or paste a different link.
+Offer:
+- **A file that already exists:** paste its link. Check it as in step 3, and if its first page has something on it, show a small picture (`get_screenshot` on that page; skip quietly if it fails). Ask "Is this the right file?"
+- **A new file in your Drafts:** load the `figma:figma-create-new-file` skill first and follow it; name it after the project (e.g. "Onboarding"). Their choice is their yes. It can be moved into a team project in Figma later.
 
-Otherwise ask: "Does this project use a design system or component library? If so, paste the Figma link to its library file." Don't name or suggest any particular design system. If they don't have one, that's fine: say Studio will work without one, mark the step done and move on.
+Then `studio-project set targetFileUrl "<link>"`, `studio-project set targetFileName "<name>"`, `studio-project done targetFile`.
 
-Check it:
-- It must be a `figma.com/design/...` or `figma.com/file/...` link. Take the file key from it.
-- Call the Figma `get_metadata` tool with that file key (no node id) to read its pages. If it fails, explain plainly (the link may be wrong, or this account can't open it) and ask for another link.
-- Show the file name (from the link, as readable words) and its pages, and ask: "Is **<file name>** the design system this project uses?"
-- For one picked from the team's list, use the team's name for it and skip that question; still read its pages, so a broken link is caught.
-- Yes: `studio-project set designSystemUrl "<link>"`, `studio-project set designSystemName "<name>"`, `studio-project done designSystem`.
+If a design system was chosen, call `get_libraries` on the file. If the design system isn't added to it, say so gently and explain how to turn it on in Figma: open the file, **Assets** panel, **Libraries** (the book icon), find the design system, **Add to file**. A tip, not a blocker.
 
-## 6. Target Figma file
-
-Say: "Last Figma step: the file where this project's designs live."
-
-Ask, as a short list:
-- **Use a file that already exists:** paste its link.
-- **Create a new file in <folder name>:** only if the team set a Figma project folder (`STUDIO_FIGMA_WRITE_PLACES`).
-- **Create a new file in your Drafts:** quickest; it can be moved into a project folder in Figma later.
-
-**An existing file**: check it as in step 5. Show the file name and its pages. If the first page has something on it, also show a small picture of it (Figma `get_screenshot` on that page's id; skip quietly if it fails). Ask: "Is this the right file?"
-
-**A new file**: load the `figma:figma-create-new-file` skill first and follow it. Name the file after the project (e.g. "Onboarding"). For the plan, use the organisation in the folder link (`figma.com/files/<org id>/…` is `organization::<org id>`), else `whoami`'s plans, asking which if there's more than one.
-- In the team's folder: pass the folder's id as `projectId` (the number after `/folder/` or `/project/` in the link). If Figma refuses it, say so plainly and offer Drafts instead.
-- In Drafts: no `projectId`.
-The person's choice is their yes; then show the new file's link.
-
-Then:
-- `studio-project set targetFileUrl "<link>"`, `studio-project set targetFileName "<name>"`, `studio-project done targetFile`.
-- If a design system was linked, call the Figma `get_libraries` tool on the target file. If the design system isn't among the libraries added to it, say so gently and explain how to turn it on in Figma: open the file, **Assets** panel, **Libraries** (the book icon), find the design system, **Add to file**. This is a tip, not a blocker.
-
-## 7. Summary
+## Done
 
 Finish with a tick list, e.g.
 
-✓ Team settings: Acme Design System, design work in acme/design-work
 ✓ Figma connected
 ✓ Account: Sam Rivera (sam@company.com)
-✓ Project: onboarding, with the Studio layout
 ✓ Design system: Acme Design System
 ✓ Figma file: Onboarding
 
-Studio remembers these in the project's `.studio` folder, and the README now links to both Figma files. Nothing was uploaded: nothing left this computer, apart from the Figma file if one was created.
+Studio remembers these on this computer; nothing was uploaded (sent anywhere online), apart from the new Figma file if one was made.
 
-Then the next step:
-- If a **new folder** was made: it needs to be opened before Studio can work in it. In the Claude app: start a **New** session and choose the folder. In the terminal: `cd` into it and start `claude`. Then `/start` sets up save points there.
-- Otherwise suggest asking for a design change: Studio works in the project's Figma file, with its design system, and only makes a prototype when asked.
+Then the next step: "Paste a Jira story whenever you're ready, and I'll play the brief back. Adding its Confluence technical design is optional, but encouraged."
 
 ## Rules
 
-- One step at a time; wait for answers.
+- One question at a time; wait for answers.
 - When saving a Figma link, keep it up to the file name and drop anything from `?` onwards.
-- Friendly words; no em dashes; no raw helper output or tool errors.
+- Plain words; no em dashes; no raw helper output or tool errors.
 - Ask before creating anything in Figma, and before installing anything.
-- Never upload anything; setup stays on this computer (apart from a new Figma file, after a yes).
+- Never upload anything, and never change the design system file.

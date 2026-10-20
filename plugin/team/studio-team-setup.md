@@ -1,37 +1,34 @@
 # Setting Studio up for your team
 
-Studio works for one designer on their own, but it's better when everyone on a team has the same settings. This guide explains how.
+Studio works for one designer on their own. A team only needs to share one thing, the list of design systems it uses, so everyone chooses from the same list.
 
-## What the team settings are
+## The team setting
 
 | Setting | What it does |
 |---|---|
-| Projects folder on this computer | A folder on each designer's own computer where Studio makes new projects, so everyone's are in the same, easy-to-find place. Defaults to `~/studio-projects`; **Choose a folder…** in the form opens the Mac's folder picker. |
-| Figma project folder (destination) | A link to the team's Figma folder where new project files go. Open the folder in Figma and copy the link from the address bar. When Studio makes a project's Figma file, it offers this folder or the designer's Drafts. In a later version Studio will refuse to change files anywhere else. |
-| GitHub repository | GitHub is a website where teams store and share project files. If your team uses it, this is the repository (or organisation) designers' work may go to; Studio never uploads anywhere else. Leave it empty to keep all work on each designer's computer. |
-| Design systems | Every design system your team uses, each with its Figma library link. Designers choose one for each project. |
+| Design systems | Every design system your team uses, each with its Figma library link. Designers choose one for each project during `/setup`, and Studio never changes those files. |
 
-None of them are required. They're saved on each designer's computer, in Claude Code's own settings, and nothing is uploaded, so nothing is sent to GitHub or anywhere online.
+It's saved on each designer's computer, in Claude Code's own settings. Nothing is uploaded, so nothing is sent to GitHub or anywhere online.
 
 ## How it works
 
-1. **One person sets them up first.** They run `/setup` in Studio. At the first step, Team settings, they choose **Type them in**, fill in the form and save.
-2. **They save a copy for the team.** In the same form, **Save a copy for the team** makes a small team file on their Desktop, ending in `.studio-team.json`.
+1. **One person adds the design systems.** They run `/setup` in Studio and, at "Which design system?", paste each design system's Figma link. Claude saves the list (Claude Code asks them to allow it).
+2. **They save a copy for the team.** They ask Claude to "save a team file". It runs `studio-team export`, which makes `team.studio-team.json` on their Desktop.
 3. **They share the file** with the team, however the team usually shares files.
-4. **Each designer loads it.** They run `/setup`, choose **Load a team file** (recommended), choose the file (or drag it into the box), check the settings and save. Typing them in works too.
+4. **Each designer drags it in** during `/setup`, at "Which design system?", and allows Claude to save it.
 
-The form can be opened again any time with `/team-settings`.
+## For a team admin (optional)
+
+Studio's upload check can be limited to the team's own GitHub: set `STUDIO_ALLOWED_ORGS` (for example `"acme"` or `"acme/design-work"`) in Claude Code's settings `env`, ideally in company-managed settings so it can't be removed. Without it, Studio asks before every upload.
 
 ## Checklists
 
 ### For the person setting up the team
 
 - [ ] Studio is installed on your computer
-- [ ] You know your team's GitHub repository, if work should be shared there
 - [ ] You have the Figma library link for each design system your team uses
-- [ ] You've decided where new projects should go on each computer, and copied the link to the Figma project folder where new project files should go
-- [ ] You've run `/setup`, chosen **Type them in**, and saved the team settings
-- [ ] You've clicked **Save a copy for the team** and found the file on your Desktop
+- [ ] You've run `/setup` and added the design systems
+- [ ] You've asked Claude to save a team file and found it on your Desktop
 - [ ] You've shared the file with your designers, along with this guide
 
 ### For each designer
@@ -39,6 +36,5 @@ The form can be opened again any time with `/team-settings`.
 - [ ] Studio is installed on your computer
 - [ ] You have the team file from your team
 - [ ] You've opened the Claude app, gone to the **Code** tab, and run `/setup`
-- [ ] At Team settings, you chose **Load a team file**, checked the settings and saved
-- [ ] You've finished the rest of `/setup`: Figma, your project, its design system and its Figma file
-- [ ] You've restarted the Claude app, so every part of Studio uses the new settings
+- [ ] At "Which design system?", you dragged the team file in and allowed it to be saved
+- [ ] You've finished the rest of `/setup`: Figma, your account, the design system and the Figma file

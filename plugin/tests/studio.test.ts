@@ -28,7 +28,7 @@ const PANE = (surface: 'terminal' | 'desktop' = 'desktop') => ({
 // Stubs every Claude Code answer the mod needs, and records what it asked for.
 function setup(on: any, git: Record<string, string> = {}) {
   const map = { ...GIT, ...git }
-  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[], tools: [] as string[] }
+  const calls = { commands: [] as string[], prompts: [] as string[], aborts: [] as string[], store: new Map<string, unknown>(), spinner: [] as any[], team: [] as string[][], words: [] as string[][], wordsOff: false, designs: 'figma', opened: [] as any[], closed: [] as string[], tools: [] as string[], registered: [] as string[] }
   on('session.start', () => ({ cwd: '/work/onboarding' }))
   on('session.cwd', () => ({ value: '/work/onboarding' }))
   on('session.usage', () => ({ value: { startedAt: 0, context: { tokens: 1, window: 2, percent: 42 }, rateLimits: [], cost: 0 } }))
@@ -73,7 +73,7 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('tool.register', ($: any, e: any) => { calls.tools.push(e.name); return { value: { tool: 'mcp__studio__' + e.name } } })
   on('clock.every', () => ({ value: {} }))
   on('ui.open', ($: any, e: any) => { calls.opened.push(e); return { value: { isPlaced: true } } })
-  on('command.register', () => ({ value: undefined }))
+  on('command.register', ($: any, e: any) => { calls.registered.push(e.name); return { value: undefined } })
   on('store.get', ($: any, e: any) => ({ value: calls.store.get(e.key) }))
   on('store.set', ($: any, e: any) => { calls.store.set(e.key, e.value); return { value: undefined } })
   on('store.delete', ($: any, e: any) => { calls.store.delete(e.key); return { value: undefined } })
@@ -89,125 +89,17 @@ function setup(on: any, git: Record<string, string> = {}) {
   return calls
 }
 
-const TEAM = (surface: 'terminal' | 'desktop' = 'desktop') => ({
-  plugin: 'studio', component: 'Pane', requestId: 'studio-team', surface,
-  viewport: { columns: 160, rows: 60 },
-  props: { title: 'Team settings', isFocused: true, bodyColumns: 56, placement: 'dock', scroll: { offset: 0, bodyRows: 56 }, view: {} },
-}) as const
-const TEAM_FILE = JSON.stringify({ teamName: 'Acme Design', uploadPlaces: 'acme', projectsFolder: '', figmaWritePlaces: '',
-  designSystems: [{ name: 'Acme DS', link: 'https://www.figma.com/design/aaa/Acme' }, { name: 'Acme Classic', link: 'https://www.figma.com/design/bbb/Classic' }] })
-
 const NOTES = JSON.stringify({ targetFileUrl: 'https://www.figma.com/design/abc/Onboarding', targetFileName: 'Onboarding', designSystemName: 'Acme DS', designSystemUrl: 'https://www.figma.com/design/ds/Acme' })
 
 const start = ($: any) => $.session.start({ surface: 'terminal', isInteractive: true, cwd: '/work/onboarding' })
-// One finished request, so the band shows the journey rather than the welcome.
-const pastWelcome = async ($: any) => {
-  await start($)
-  await $.turn.start({ turnId: 't0' })
-  await $.turn.complete({ turnId: 't0', answer: '', durationMs: 1, isAborted: false, usage: null })
-}
-const UNSAVED = { 'status --porcelain': ' M styles.css' }
-
 test('the working line uses the plain wording', async ($, on) => {
   const calls = setup(on)
   await start($)
   await $.turn.start({ turnId: 't1' })
-  await $.tool.call({ tool: 'Bash', command: 'git commit -m "Calmer heading"' })
+  await $.tool.call({ tool: 'mcp__plugin_figma_figma__use_figma', fileKey: 'abc', code: '' })
   await $.ui.mount({ plugin: 'studio', component: 'Spinner', requestId: 'main', surface: 'terminal', viewport: { columns: 100, rows: 30 },
     props: { word: 'Sauteing', message: null, suffix: '…', mode: 'tool-use' } } as any)
-  expect(calls.spinner.at(-1).message).toBe('Making a save point')
-})
-
-test('the team form offers a team file (recommended) or typing, and typing saves only on this computer', async ($, on) => {
-  const calls = setup(on)
-  await start($)
-  expect(await $.command.run({ command: 'team-settings', args: '' })).toEqual({})
-  for (const surface of ['terminal', 'desktop'] as const) {
-    const ui = await $.ui.mount(TEAM(surface))
-    expect(await ui.find({ key: 'load' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: 'Recommended' })).toBeDefined()
-    expect(await ui.find({ key: 'type' })).toBeDefined()
-    await ui.unmount()
-  }
-  const ui = await $.ui.mount(TEAM())
-  await ui.press({ key: 'type' })
-  await ui.input({ key: 'f-uploadPlaces', text: 'acme, acme-labs' })
-  await ui.input({ key: 'f-figmaWritePlaces', text: 'Product Design' })
-  expect(await ui.find({ type: 'Text', text: 'This doesn’t look like a Figma link yet.' })).toBeDefined()
-  await ui.input({ key: 'f-figmaWritePlaces', text: 'https://www.figma.com/files/team/1/project/2' })
-  expect(await ui.find({ type: 'Text', text: 'This doesn’t look like a Figma link yet.' })).toBeUndefined()
-  await ui.input({ key: 'ds-name-0', text: 'Acme DS' })
-  await ui.input({ key: 'ds-link-0', text: 'not a link' })
-  expect(await ui.find({ type: 'Text', text: 'This doesn’t look like a Figma link yet.' })).toBeDefined()
-  await ui.input({ key: 'ds-link-0', text: 'https://www.figma.com/design/aaa/Acme' })
-  await ui.press({ key: 'save' })
-  const sets = calls.team.filter(c => c[0] === 'set')
-  expect(sets.find(c => c[1] === 'STUDIO_TEAM_NAME')).toBeUndefined()
-  expect(sets).toContainEqual(['set', 'STUDIO_ALLOWED_ORGS', 'acme,acme-labs'])
-  expect(sets).toContainEqual(['set', 'STUDIO_DESIGN_SYSTEMS', 'Acme DS | https://www.figma.com/design/aaa/Acme'])
-  expect(await ui.find({ type: 'Text', text: '✓ Team settings saved on this computer' })).toBeDefined()
-  expect(calls.prompts.at(-1)).toMatch(/saved their team settings/)
-  await ui.press({ key: 'export' })
-  expect(await ui.find({ type: 'Text', text: '✓ Team file saved: /Users/sam/Desktop/acme-design.studio-team.json' })).toBeDefined()
-})
-
-test('loading a team file fills the form for checking; a wrong file says so', async ($, on) => {
-  setup(on, { 'team-read': TEAM_FILE })
-  await start($)
-  await $.command.run({ command: 'team-settings', args: '' })
-  const ui = await $.ui.mount(TEAM())
-  await ui.press({ key: 'load' })
-  await ui.input({ key: 'file-path', text: '~/Desktop/acme-design.studio-team.json' })
-  expect(await ui.find({ type: 'Text', text: 'Check your team’s settings' })).toBeDefined()
-  expect(await ui.find({ key: 'ds-name-1' })).toBeDefined()
-})
-
-test('a file that isn’t a team file is refused calmly', async ($, on) => {
-  setup(on)
-  await start($)
-  await $.command.run({ command: 'team-settings', args: '' })
-  const ui = await $.ui.mount(TEAM())
-  await ui.press({ key: 'load' })
-  await ui.input({ key: 'file-path', text: '/Users/sam/Desktop/notes.txt' })
-  expect(await ui.find({ type: 'Text', text: 'That isn’t a Studio team file, or it can’t be opened. Check the file, or type the settings in instead.' })).toBeDefined()
-})
-
-test('/setup opens the form by running studio-team form, and saving tells Claude to carry on', async ($, on) => {
-  const calls = setup(on, { 'team-read': TEAM_FILE })
-  await start($)
-  await $.tool.call({ tool: 'Bash', command: 'studio-team form' })
-  const ui = await $.ui.mount(TEAM())
-  await ui.press({ key: 'load' })
-  await ui.input({ key: 'file-path', text: '~/Desktop/acme-design.studio-team.json' })
-  await ui.press({ key: 'save' })
-  expect(calls.prompts.at(-1)).toMatch(/saved their team settings.*Acme DS, Acme Classic.*carry on with it/)
-})
-
-test('Choose a folder and Choose the file use the Mac pickers', async ($, on) => {
-  const calls = setup(on, { 'team-pick-folder': '~/Documents/Design projects', 'team-pick-file': '~/Desktop/acme.studio-team.json', 'team-read': TEAM_FILE })
-  await start($)
-  await $.command.run({ command: 'team-settings', args: '' })
-  const ui = await $.ui.mount(TEAM())
-  await ui.press({ key: 'type' })
-  await ui.press({ key: 'pick-folder' })
-  await ui.press({ key: 'save' })
-  expect(calls.team.filter(c => c[0] === 'set')).toContainEqual(['set', 'STUDIO_PROJECTS_FOLDER', '~/Documents/Design projects'])
-  await ui.press({ key: 'saved-change' })
-  await ui.press({ key: 'edit-back' })
-  await ui.press({ key: 'load' })
-  await ui.press({ key: 'pick-file' })
-  expect(calls.team).toContainEqual(['read', '~/Desktop/acme.studio-team.json'])
-  expect(await ui.find({ type: 'Text', text: 'Check your team’s settings' })).toBeDefined()
-})
-
-test('cancelling the picker changes nothing', async ($, on) => {
-  setup(on)
-  await start($)
-  await $.command.run({ command: 'team-settings', args: '' })
-  const ui = await $.ui.mount(TEAM())
-  await ui.press({ key: 'load' })
-  await ui.press({ key: 'pick-file' })
-  expect(await ui.find({ key: 'file-path' })).toBeDefined()
+  expect(calls.spinner.at(-1).message).toBe('Working in Figma')
 })
 
 const COMPOSE = { model: 'claude-opus-5-5', promptModel: 'claude-opus-5-5', surfaces: ['desktop'], tools: [], outputStyle: null, traits: [], sections: [] }
@@ -220,15 +112,7 @@ test('design work defaults to Figma: Claude is told the project file', async ($,
   const note = r.sections.find((x: any) => x.id === 'studio:project').text
   expect(note).toMatch(/happens in Figma, in "Onboarding" \(https:\/\/www\.figma\.com\/design\/abc\/Onboarding\)/)
   expect(note).toMatch(/Acme DS/)
-  expect(note).toMatch(/only make HTML or CSS files if the person asks for a prototype/)
-})
-
-test('with a prototype, Claude knows about it', async ($, on) => {
-  setup(on, { 'project-notes': NOTES, '/work/onboarding/prototype -type f ! -name .DS_Store -print -quit': '/work/onboarding/prototype/index.html' })
-  on('prompt.compose', () => ({ sections: [] }))
-  await start($)
-  const r: any = await $.prompt.compose(COMPOSE)
-  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/also has a prototype/)
+  expect(note).toMatch(/Only make HTML or CSS files if the person asks for a coded prototype/)
 })
 
 test('without Studio notes, Claude is told to offer /setup and not to make HTML unasked', async ($, on) => {
@@ -236,7 +120,7 @@ test('without Studio notes, Claude is told to offer /setup and not to make HTML 
   on('prompt.compose', () => ({ sections: [] }))
   await start($)
   const r: any = await $.prompt.compose(COMPOSE)
-  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/hasn’t been set up with \/setup.*Only make HTML or CSS files if they ask for a prototype/)
+  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/hasn’t been set up yet.*offer \/setup.*Only make HTML or CSS files if they ask for a coded prototype/)
 })
 
 test('the band is status only: waiting for a Jira story, in Mist, with the Studio mark', async ($, on) => {
@@ -335,4 +219,20 @@ test('Claude is still told the word and project notes before each reply', async 
   const r: any = await $.prompt.compose(COMPOSE2)
   const ids = r.sections.map((x: any) => x.id)
   expect(ids).toEqual(expect.arrayContaining(['studio:words', 'studio:project']))
+})
+
+test('only /panel is registered as a command; the cut commands are gone', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  expect(calls.registered).toEqual(['panel'])
+})
+
+test('“don’t show again” takes effect before the next reply', async ($, on) => {
+  const calls = setup(on)
+  on('prompt.compose', () => ({ sections: [] }))
+  await start($)
+  calls.wordsOff = true // what studio-words off records
+  await $.tool.call({ tool: 'Bash', command: 'studio-words off' })
+  const r: any = await $.prompt.compose(COMPOSE2)
+  expect(r.sections.find((x: any) => x.id === 'studio:words').text).toMatch(/OFF: the person said "don’t show again"/)
 })

@@ -27,9 +27,9 @@ elif match 'EACCES|Permission denied|Operation not permitted|EPERM'; then
 elif match 'ENOTFOUND|ECONNREFUSED|ETIMEDOUT|Could not resolve host|network is unreachable|getaddrinfo'; then
   note="This error means the step could not reach the internet or a server. The user's files are unchanged. Checking the connection or trying again later usually fixes it."
 elif match 'CONFLICT|Merge conflict|merge conflict|both modified'; then
-  note="This means two explorations changed the same part of a file (a clash, which developers call a merge conflict). Nothing is lost. The user needs to choose which version to keep, and Claude can show both side by side."
+  note="This means two versions changed the same part of a file (a clash, which developers call a merge conflict). Nothing is lost. The user needs to choose which version to keep, and Claude can show both side by side."
 elif match 'not a git repository'; then
-  note="This means the folder does not keep save points yet. The user's files are unchanged. The /start command can set save points up."
+  note="This means the folder does not keep a history of versions (git). The user's files are unchanged. Work in Figma isn't affected; Figma keeps its own version history."
 elif match 'npm ERR!|ERR_PNPM|yarn error|Cannot find module'; then
   note="This error came from the project's packages (ready-made code the project borrows). The user's own work is unchanged. Downloading the packages again (npm install) often fixes it."
 else
