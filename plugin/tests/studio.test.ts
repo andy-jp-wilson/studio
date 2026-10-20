@@ -59,9 +59,11 @@ function setup(on: any, git: Record<string, string> = {}) {
     const out = map[rest.join(' ')]
     return { value: out === undefined ? { exitCode: 1, stdout: '', stderr: '' } : { exitCode: 0, stdout: out + '\n', stderr: '' } }
   })
-  on('fs.read', ($: any, e: any) => map['version'] && String(e.path).endsWith('/.claude-plugin/plugin.json')
-    ? { value: JSON.stringify({ name: 'studio', version: map['version'] }) }
-    : { deny: 'missing' })
+  on('fs.read', ($: any, e: any) => {
+    if (map['version'] && String(e.path).endsWith('/.claude-plugin/plugin.json')) return { value: JSON.stringify({ name: 'studio', version: map['version'] }) }
+    if (map['project-notes'] && String(e.path).endsWith('/.studio/project.json')) return { value: map['project-notes'] }
+    return { deny: 'missing' }
+  })
   on('clock.now', () => ({ value: NOW }))
   on('clock.every', () => ({ value: {} }))
   on('ui.open', () => ({ value: { isPlaced: true } }))
@@ -428,4 +430,38 @@ test('the panel switches word explanations off and on, and Claude is told before
   expect(r.sections.find((x: any) => x.id === 'studio:words').text).toMatch(/OFF/)
   await ui.press({ key: 'pane-words' })
   expect(calls.words).toContainEqual(['on'])
+})
+
+const NOTES = JSON.stringify({ targetFileUrl: 'https://www.figma.com/design/abc/Onboarding', targetFileName: 'Onboarding', designSystemName: 'Acme DS', designSystemUrl: 'https://www.figma.com/design/ds/Acme' })
+
+test('design work defaults to Figma: Claude is told the project file, and the band links to it', async ($, on) => {
+  setup(on, { 'project-notes': NOTES })
+  on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
+  await start($)
+  const r: any = await $.prompt.compose(COMPOSE)
+  const note = r.sections.find((x: any) => x.id === 'studio:project').text
+  expect(note).toMatch(/happens in Figma, in "Onboarding" \(https:\/\/www\.figma\.com\/design\/abc\/Onboarding\)/)
+  expect(note).toMatch(/Acme DS/)
+  expect(note).toMatch(/only make HTML or CSS files if the person asks for a prototype/)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ type: 'Link' })).toBeDefined()
+  expect(await ui.find({ key: 'band-preview' })).toBeUndefined()
+})
+
+test('with a prototype, Claude knows about it and the band offers Preview', async ($, on) => {
+  setup(on, { 'project-notes': NOTES, '/work/onboarding/prototype -type f ! -name .DS_Store -print -quit': '/work/onboarding/prototype/index.html' })
+  on('prompt.compose', () => ({ sections: [] }))
+  await start($)
+  const r: any = await $.prompt.compose(COMPOSE)
+  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/also has a prototype/)
+  const ui = await $.ui.mount(BAND(120))
+  expect(await ui.find({ key: 'band-preview' })).toBeDefined()
+})
+
+test('without Studio notes, Claude is told to offer /setup and not to make HTML unasked', async ($, on) => {
+  setup(on)
+  on('prompt.compose', () => ({ sections: [] }))
+  await start($)
+  const r: any = await $.prompt.compose(COMPOSE)
+  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/hasn’t been set up with \/setup.*Only make HTML or CSS files if they ask for a prototype/)
 })

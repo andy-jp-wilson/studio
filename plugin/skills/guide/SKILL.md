@@ -10,7 +10,7 @@ If they named a topic ($ARGUMENTS), such as "save points", "panel", "/handover" 
 
 ## What Studio is
 
-Studio makes Claude Code clearer and calmer for designers. You ask for changes in your own words, like "make the heading softer", and Claude says what it will do, does it one step at a time, shows what changed, and tells you how to go back.
+Studio makes Claude Code clearer and calmer for designers. You ask for changes in your own words, like "make the heading softer", and Claude works on your design in Figma, using your design system; it only makes a coded prototype when you ask for one. Claude says what it will do, does it one step at a time, shows what changed, and tells you how to go back.
 
 ## Which Claude for what
 
@@ -40,7 +40,7 @@ Claude comes in a few forms, and it's fair to wonder why a designer would use on
 
 - **Your journey:** Explore (trying ideas), Refine (polishing one), Build (handed over to the team).
 - **Now:** what Claude is doing, in plain words.
-- **Buttons:** 1 Preview, 2 Save point (only when needed), 3 Stop (while Claude works). Click, or type the number alone in an empty prompt.
+- **Buttons:** 1 Open in Figma (or Preview, once there's a prototype), 2 Save point (only when needed), 3 Stop (while Claude works). Click, or type the number alone in an empty prompt.
 
 ## The Studio panel
 
@@ -52,7 +52,7 @@ Beside the conversation in Desktop, or at the side of a wide terminal (type `/pa
 |---|---|
 | `/setup` | Get ready: check Figma, confirm your account, set up the project folder, and link your design system and Figma file |
 | `/start` | Where you left off, and what to do next |
-| `/preview` | Open your private preview, the design running on your computer |
+| `/preview` | Open your private preview of a prototype (only when the project has one) |
 | `/save` | Make a save point now |
 | `/explore` | Try an idea safely in a new exploration |
 | `/handover` | Hand finished work to your team: changelog, Figma page, developer pack |

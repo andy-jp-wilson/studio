@@ -139,7 +139,7 @@ Studio remembers these in the project's `.studio` folder, and the README now lin
 
 Then the next step:
 - If a **new folder** was made: it needs to be opened before Studio can work in it. In the Claude app: start a **New** session and choose the folder. In the terminal: `cd` into it and start `claude`. Then `/start` sets up save points there.
-- Otherwise suggest `/start` or `/preview`.
+- Otherwise suggest asking for a design change: Studio works in the project's Figma file, with its design system, and only makes a prototype when asked.
 
 ## Rules
 

@@ -54,8 +54,11 @@ function updateNote(el, s) {
 }
 
 function buttons(el, s, actions) {
-  const { Box, Button } = el
-  const list = [Button({ key: 'band-preview', label: 'Preview', hotkey: '1', plain: true, onPress: actions.show })]
+  const { Box, Button, Link } = el
+  // Designs live in Figma; Preview is for projects with a prototype.
+  const list = [s.figmaUrl && !s.hasPrototype
+    ? Link({ key: 'band-figma', href: s.figmaUrl, label: 'Open in Figma' })
+    : Button({ key: 'band-preview', label: 'Preview', hotkey: '1', plain: true, onPress: actions.show })]
   // Save point appears only when there's something new worth keeping.
   if (s.unsaved && !s.working) list.push(Button({ key: 'band-save', label: 'Save point', hotkey: '2', plain: true, onPress: actions.save }))
   if (s.working) list.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))

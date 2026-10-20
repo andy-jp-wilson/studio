@@ -32,6 +32,33 @@ async function git($, args) {
   } catch { return null }
 }
 
+// The project's Studio notes (.studio/project.json, written by /setup), and
+// whether it has a prototype. Design work happens in Figma unless it does.
+let notes = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', hasPrototype: false, setUp: false }
+
+async function readNotes($, root) {
+  let n = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', hasPrototype: false, setUp: false }
+  try {
+    const p = JSON.parse(await $.fs.read(root + '/.studio/project.json'))
+    n = { ...n, setUp: true, figmaUrl: p.targetFileUrl || '', figmaName: p.targetFileName || '', dsName: p.designSystemName || '', dsUrl: p.designSystemUrl || '' }
+  } catch {}
+  try {
+    const r = await $.process.run(['find', root + '/prototype', '-type', 'f', '!', '-name', '.DS_Store', '-print', '-quit'], { timeoutMs: 3000 })
+    n.hasPrototype = r.exitCode === 0 && Boolean(String(r.stdout || '').trim())
+  } catch {}
+  notes = n
+}
+
+function projectNote() {
+  const ds = notes.dsName ? ' Its design system is ' + notes.dsName + (notes.dsUrl ? ' (' + notes.dsUrl + ')' : '') + '; use its components, styles and variables.' : ' No design system is connected.'
+  if (notes.figmaUrl) {
+    return 'Studio project note: design work for this project happens in Figma, in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ').' + ds +
+      (notes.hasPrototype ? ' The project also has a prototype in prototype/; change it only when the person asks about the prototype.' : ' There is no prototype; only make HTML or CSS files if the person asks for a prototype.')
+  }
+  return 'Studio project note: ' + (notes.setUp ? 'no Figma file is linked to this project yet.' : 'this folder hasn’t been set up with /setup, so no Figma file is linked.') +
+    ' If the person asks for design work, offer /setup to link their Figma file (or ask for its link). Only make HTML or CSS files if they ask for a prototype.' + (notes.dsName ? ds : '')
+}
+
 async function refresh($) {
   if (refreshing) return refreshing
   refreshing = (async () => {
@@ -40,6 +67,7 @@ async function refresh($) {
     const next = { ...project, project: folder, previewUrl: await findPreview($) }
     if ((await git($, ['rev-parse', '--is-inside-work-tree'])) !== 'true') {
       project = { ...next, hasSavePoints: false, unsaved: false, unsavedCount: 0, lastSaveNote: '', isMain: true, exploration: '', ownSavePoints: 0, lastSaveAt: 0, handedOver: false, root: cwd }
+      await readNotes($, cwd)
       return
     }
     const root = (await git($, ['rev-parse', '--show-toplevel'])) || cwd
@@ -61,6 +89,7 @@ async function refresh($) {
       const onMain = main ? (await git($, ['merge-base', '--is-ancestor', obj, main])) !== null : false
       if (onThis && !onMain) { handedOver = true; handoverLabel = String(when).replace(/^0/, '') }
     }
+    await readNotes($, root)
     project = { ...next, root, hasSavePoints: true, unsaved, unsavedCount, lastSaveNote, exploration: branch || main, isMain, ownSavePoints: own, explorations: branches.length, lastSaveAt: last * 1000, handedOver, handoverLabel }
     try {
       const saved = await $.store.get('stage:' + root)
@@ -92,7 +121,7 @@ async function findPreview($) {
 }
 
 function state(now) {
-  return { ...project, ...live, memory, welcome, explainWords: words.explain, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
+  return { ...project, ...live, memory, welcome, explainWords: words.explain, figmaUrl: notes.figmaUrl, hasPrototype: notes.hasPrototype, studioVersion: studio.version, studioUpdate: studio.update, stageOverride, stage: stageOverride || guessStage(project), now }
 }
 
 // Word explanations: on or off, and the words the person already knows
@@ -311,7 +340,7 @@ export function register(on) {
 
   on('prompt.compose', async ($, e, next) => {
     const r = await next(e)
-    return { ...r, sections: [...r.sections, { id: 'studio:words', text: wordsNote(), scope: 'session' }] }
+    return { ...r, sections: [...r.sections, { id: 'studio:words', text: wordsNote(), scope: 'session' }, { id: 'studio:project', text: projectNote(), scope: 'session' }] }
   })
 
   on('session.measure', async ($, e, next) => {
