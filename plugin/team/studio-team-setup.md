@@ -10,6 +10,8 @@ Studio works for one designer on their own. A team only needs to share one thing
 
 It's saved on each designer's computer, in Claude Code's own settings. Nothing is uploaded, so nothing is sent to GitHub or anywhere online.
 
+Studio comes with no design systems of its own. Each team makes its own team file with its own design systems, and shares it only with its own designers.
+
 ## How it works
 
 1. **One person adds the design systems.** They run `/setup` in Studio and, at "Which design system?", paste each design system's Figma link. Claude saves the list (Claude Code asks them to allow it).
