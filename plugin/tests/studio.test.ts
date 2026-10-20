@@ -146,9 +146,8 @@ test('once work starts, the dot and progress take the stage colour, or ochre whe
   let band = await $.ui.mount(BAND(120, 'desktop'))
   expect(await band.find({ type: 'Svg' })).toBeUndefined()
   expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#E07A6E')
-  expect((await band.find({ type: 'Text', text: '▬▬' }) as any)?.props.color).toBe('#E07A6E')
   const bars: any[] = await band.findAll({ type: 'Text', text: '▬' }) as any
-  // nine steps (find matches the long current one too): five done or current in coral, four still to do in grey
+  // nine equal steps: five done or current in coral, four still to do in grey
   expect(bars.map(b => b.props.color)).toEqual(['#E07A6E', '#E07A6E', '#E07A6E', '#E07A6E', '#E07A6E', '#D6D6DC', '#D6D6DC', '#D6D6DC', '#D6D6DC'])
   expect(await band.find({ type: 'Text', text: 'The design' })).toBeDefined()
   await band.unmount()

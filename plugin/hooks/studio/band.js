@@ -20,7 +20,7 @@ export function statusParts(s) {
 // A still progress bar of nine steps, made of text. Several styles while the
 // user chooses (Studio lab, Progress page); 'bars' is the default.
 export const PROGRESS_STYLES = {
-  bars: { name: 'Bars', done: '▬', now: '▬▬', todo: '▬', gap: '\u2005' }, // a quarter-width space: a touch wider than thin (chosen 2026-10-20)
+  bars: { name: 'Bars', done: '▬', now: '▬', todo: '▬', gap: '\u2005' }, // all the same width; the current step is the last coloured one // a quarter-width space: a touch wider than thin (chosen 2026-10-20)
   dots: { name: 'Dots', done: '●', now: '◉', todo: '○', gap: '\u2009' },
   small: { name: 'Small dots', done: '•', now: '●', todo: '·', gap: '\u2009' },
   squares: { name: 'Squares', done: '■', now: '■', todo: '□', gap: '\u2009' },
