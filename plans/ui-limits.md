@@ -68,3 +68,7 @@ Figma page **15 Redesign · proposal** (`54:2`), 20 October 2026: the band with 
 | Buttons while redrawing 10 times a second | **Stop working** after the first press |
 
 What this means: movement has to be made of text characters, redrawn by Studio. Keep it slow (a few times a second, not ten), and only while Claude is working, when the designer isn't clicking in the panel; stop it the moment Claude stops. Pictures stay still. /reload-plugins stops a lab timer that's still running.
+
+## Rounded corners (tested 20 October 2026)
+
+Mods have no corner radius, but a Box with `borderStyle: 'round'` and `borderColor` set to its own background colour draws as a rounded box in the app. Studio's panel cards use this (Studio 0.4.3).
