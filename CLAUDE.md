@@ -12,7 +12,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 ## Decisions
 - **Project folder:** `~/code/projects/studio/` (2026-10-12).
 - **Figma connection:** the official `figma@claude-plugins-official` plugin (already installed at user scope). It uses the remote MCP server at `https://mcp.figma.com/mcp`, which is required for writing to the canvas.
-- **Figma design file:** (Studio's design file in Figma; link kept out of the repository) (file key `<design-file-key>`).
+- **Figma design file:** (Studio's design file in Figma; link kept out of the repository) (file key `<design-file-key>`). **Reorganised 2026-10-20:** 00 Cover (C3 logo, tagline, the core), 01 Foundations (`73:2`: logo components, Mist and stage colour variables, type sizes, parts, what the app decides), 02 Designer journey (`33:2`, recoloured to Mist), 03 Studio 0.4.7 · as built (`66:2`), a divider, then every earlier page as "Archive · …". Page numbers mentioned in older notes below refer to the old order.
 
 - **Palette:** "Paper & clay" (2026-10-12).
   - Light: bg #F7F4EE · text #2A2723 · accent clay #C2643D · success sage #5E7D5B · warning ochre #B8862B · error rust #B4523F · info dusk #4F6D8F

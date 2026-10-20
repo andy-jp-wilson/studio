@@ -1,26 +1,12 @@
 {
   "fileKey": "<design-file-key>",
   "pages": {
-    "00 Cover & principles": "0:1",
-    "01 Terminal": "3:2",
-    "02 Desktop panel": "3:3",
-    "03 Conversation examples": "3:4",
-    "04 Journeys": "3:5",
-    "05 Handover": "14:2",
-    "06 Designer journey": "33:2",
-    "07 Wireframes": "36:2",
-    "08 Concepts": "38:2",
-    "09 Directions D and E": "40:2",
-    "10 Light concepts": "41:2",
-    "11 Mixed concepts": "42:2",
-    "12 Gallery, softened": "43:2",
-    "13 Full visuals · D5 Mist": "47:2",
-    "14 As built · Studio 0.3.1": "52:2",
-    "15 Redesign · proposal": "54:2",
-    "16 Logo · explorations": "61:2",
-    "17 Logo · A and C": "62:2",
-    "18 As built · Studio 0.4": "66:2",
-    "19 Starting screen · explorations": "70:2"
+    "00 Cover": "0:1",
+    "01 Foundations": "73:2",
+    "02 Designer journey": "33:2",
+    "03 Studio 0.4.7 · as built": "66:2",
+    "---": "divider",
+    "Archive · (18 pages, oldest first)": "see the file"
   },
   "collections": {
     "Primitives": "VariableCollectionId:3:6",
@@ -136,5 +122,6 @@
     "Studio logo / 16": "63:8",
     "Studio logo / 32": "63:14",
     "Studio logo / 96": "63:20"
-  }
+  },
+  "reorganised": "2026-10-20: current pages 00 to 03, then a divider, then every earlier page renamed \"Archive · …\". Logo components (Studio logo / 16, 32, 96) now on 01 Foundations."
 }
