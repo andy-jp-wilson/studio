@@ -54,7 +54,9 @@ function card(el, sec, i, color, actions, answers) {
     Text({ key: key + '-send-or', color: MIST.muted, size: 'footnote', children: ['or answer in the chat'] }),
   ] }))
   return Box({ key, flexDirection: 'column', rowGap: 0, paddingX: 2, paddingY: sec.ask ? 2 : 1, backgroundColor: MIST.card,
-    ...(needs ? { borderStyle: 'round', borderColor: MIST.needs } : {}), children })
+    // Rounded corners: mods have no corner radius, so every card gets the app's
+    // rounded border, in the card's own grey (ochre when it needs you).
+    borderStyle: 'round', borderColor: needs ? MIST.needs : MIST.card, children })
 }
 
 function storyHead(el, st) {
