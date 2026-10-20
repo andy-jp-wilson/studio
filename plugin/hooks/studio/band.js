@@ -42,5 +42,6 @@ export function drawBand(el, s, actions, columns) {
   ]
   if (s.working) row.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
 
-  return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 1, width, backgroundColor: MIST.surface, children: row })
+  // Fills the whole band area: full width, with room above and below the status.
+  return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 2, paddingY: 1, width: '100%', minWidth: width, flexGrow: 1, backgroundColor: MIST.surface, children: row })
 }
