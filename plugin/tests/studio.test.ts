@@ -266,7 +266,10 @@ test('items can link to their frame in Figma, and checklist items can ask Claude
   const pane = await $.ui.mount(PANE())
   const links: any[] = await pane.findAll({ type: 'Link' }) as any
   expect(links.length).toBe(1)
-  expect(await pane.find({ type: 'Text', text: '☐' })).toBeDefined()
+  expect(await pane.find({ type: 'Svg' })).toBeDefined() // a drawn checkbox in the app
+  const term = await $.ui.mount(PANE('terminal'))
+  expect(await term.find({ type: 'Text', text: '☐' })).toBeDefined() // ☐ in the terminal
+  await term.unmount()
   await pane.press({ key: 'sec-1-i0-act' })
   expect(calls.prompts.at(-1)).toBe('Mock up the presentation for stakeholders in Figma')
 })

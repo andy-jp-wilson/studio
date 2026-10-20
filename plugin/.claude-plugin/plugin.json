@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "studio",
   "displayName": "Studio",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Clearer, calmer Claude Code for designers: Claude builds your Jira story in Figma with your design system, checks it and gets it ready for developers, in plain words and with nothing changed without your say-so.",
   "author": { "name": "Andrew Wilson" },
   "keywords": ["design", "designers", "figma", "prototyping"],

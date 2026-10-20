@@ -11,10 +11,23 @@ import { progress } from './band.js'
 const GLYPH = { done: '✓', now: '●', todo: '○', need: '!', none: '—' }
 const CHECK = { done: '☑', todo: '☐', now: '☐', need: '☐', none: '—' }
 
+// Drawn checkboxes for checklists in the app (the terminal keeps ☑ and ☐): a
+// rounded square in the stage colour with a white tick when done, a grey
+// rounded outline when to do, a grey dash when it doesn't apply.
+function checkbox(state, color) {
+  const box = state === 'done'
+    ? `<rect x="3" y="3" width="18" height="18" rx="5" fill="${color}"/><path d="M8 12.5l2.8 2.8L16.5 9.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`
+    : state === 'none'
+      ? `<path d="M7 12h10" stroke="${MIST.line}" stroke-width="2.2" stroke-linecap="round"/>`
+      : `<rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="${state === 'need' ? MIST.needs : MIST.line}" stroke-width="1.8"/>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">${box}</svg>`
+}
+
 function itemRow(el, it, i, key, ctx) {
-  const { Box, Text, Link, Button } = el
+  const { Box, Text, Link, Button, Svg } = el
   const state = it.state || 'plain'
   const glyph = (ctx.checklist ? CHECK : GLYPH)[state] || ''
+  const drawn = ctx.checklist && ctx.surface !== 'terminal'
   const glyphColor = state === 'need' ? MIST.needs : state === 'todo' || state === 'none' || state === 'muted' ? MIST.line : ctx.color
   const textColor = state === 'need' || ctx.needs ? MIST.needsText : state === 'muted' || state === 'none' ? MIST.muted : MIST.text
   const weight = state === 'now' || state === 'strong' ? 'semibold' : ctx.needs && ctx.ask ? 'medium' : 'regular'
@@ -25,7 +38,10 @@ function itemRow(el, it, i, key, ctx) {
   const body = [Text({ key: k + '-t', color: textColor, weight, wrap: 'wrap', children: [String(it.text || '')] })]
   if (it.sub) body.push(Text({ key: k + '-s', color: MIST.muted, size: 'footnote', wrap: 'wrap', children: [String(it.sub)] }))
   const rows = [Box({ key: k, flexDirection: 'row', columnGap: 1, children: [
-    ...(glyph ? [Text({ key: k + '-g', color: glyphColor, weight: 'semibold', children: [glyph] })] : []),
+    ...(drawn
+      // A new name for each look, so the app never shows an old picture
+      ? [Svg({ key: k + '-box-' + (state === 'todo' || state === 'now' ? 'todo' : state) + '-' + ctx.color.slice(1), source: checkbox(state, ctx.color), alt: state === 'done' ? 'Done' : state === 'none' ? 'Not needed' : 'To do', width: 2, height: 1 })]
+      : glyph ? [Text({ key: k + '-g', color: glyphColor, weight: 'semibold', children: [glyph] })] : []),
     Box({ key: k + '-body', flexDirection: 'column', flexGrow: 1, flexShrink: 1, children: body }),
     ...right,
   ] })]
@@ -38,13 +54,13 @@ function itemRow(el, it, i, key, ctx) {
   return rows
 }
 
-function card(el, sec, i, color, actions, answers) {
+function card(el, sec, i, color, actions, answers, surface) {
   const { Box, Text, Button } = el
   const key = 'sec-' + i
   const needs = Boolean(sec.needs)
   const items = (sec.items || []).map(it => typeof it === 'string' ? { text: it } : it)
   const questions = sec.ask ? items.map((it, j) => ({ text: it.text, key: key + '-i' + j })) : []
-  const ctx = { needs, ask: Boolean(sec.ask), checklist: Boolean(sec.checklist), color, actions, answers, questions }
+  const ctx = { needs, ask: Boolean(sec.ask), checklist: Boolean(sec.checklist), color, actions, answers, questions, surface }
   const children = [
     Text({ key: key + '-title', size: 'heading', weight: 'semibold', color: needs ? MIST.needsText : MIST.text, children: [String(sec.title || '')] }),
     ...items.flatMap((it, j) => itemRow(el, it, j, key, ctx)),
@@ -92,7 +108,7 @@ export function drawPane(el, s, actions, columns) {
     const list = Array.isArray(st.sections) ? st.sections : []
     // What needs the designer comes first.
     const ordered = [...list.filter(x => x && x.needs), ...list.filter(x => x && !x.needs)]
-    ordered.forEach((sec, i) => children.push(card(el, sec, i, color, actions, s.answers || {})))
+    ordered.forEach((sec, i) => children.push(card(el, sec, i, color, actions, s.answers || {}, s.surface)))
   }
   return Box({ key: 'studio-pane', flexDirection: 'column', rowGap: 1, width: Math.max(20, columns || 40), children })
 }
