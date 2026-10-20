@@ -367,7 +367,7 @@ test('the band is status only: waiting for a Jira story, in Mist, with the Studi
     await ui.unmount()
   }
   const app = await $.ui.mount(BAND(120, 'desktop'))
-  expect(await app.find({ type: 'Svg' })).toBeDefined()
+  expect(await app.find({ type: 'Text', text: '●' })).toBeDefined()
 })
 
 test('while Claude works, the band offers Stop, and Stop stops the turn', async ($, on) => {

@@ -17,15 +17,11 @@ export const MIST = {
 }
 
 // The Studio mark: a coral dot centred on the lowercase s of "studio".
-// Desktop draws the dot as a picture, sized to the line of text, with the dot
-// lowered to the letters' x-height; the terminal uses a coral ● character.
-const DOT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="16" viewBox="0 0 8 16"><circle cx="4" cy="9.5" r="3.5" fill="${MIST.coral}"/></svg>`
-
+// A coral ● character on every surface: the Desktop band doesn't draw Svg
+// pictures (seen 2026-10-20), and ● sits at the letters' x-height anyway.
 export function mark(el, surface, key = 'mark') {
-  const { Box, Text, Svg } = el
-  const dot = surface === 'desktop' && Svg
-    ? Svg({ key: key + '-dot', source: DOT_SVG, alt: '', width: 8, height: 16 })
-    : Text({ key: key + '-dot', color: MIST.coral, children: ['●'] })
+  const { Box, Text } = el
+  const dot = Text({ key: key + '-dot', color: MIST.coral, children: ['●'] })
   return Box({ key, flexDirection: 'row', columnGap: 1, alignItems: 'center', children: [
     dot,
     Text({ key: key + '-word', color: MIST.text, bold: true, children: ['studio'] }),
