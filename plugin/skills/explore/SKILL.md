@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Start a new exploration (a git branch) to try an idea safely, or list and switch between explorations. Use when the designer wants to try something, compare ideas or go back to another idea.
+description: Start a new exploration (a git branch) to try an idea safely, or list and switch between explorations. Design work for the idea goes where the person's "Designs go to" setting says (Figma by default, on its own page). Use when the designer wants to try something, compare ideas or go back to another idea.
 argument-hint: "[name of idea]"
 allowed-tools:
   - Bash(git rev-parse:*)
@@ -22,6 +22,12 @@ Call `main` or `master` the **main design**, not an exploration.
 2. If there are unsaved changes (`git status --short`), ask whether to save them first, in the current exploration, before branching off. If yes, follow the `/save` steps.
 3. Create it and switch to it: `git switch -c <name>`.
 4. Reply: "You're now on a new exploration called **bolder-button**. Your earlier work is safe on **<previous>**." The first time, add a "New word" note: developers call an exploration a branch.
+5. **If the idea is something to design or build** (e.g. "create a test screen", "try a bolder button"), carry on with it, following Studio's project note on where designs go:
+   - **Figma (the default):** make it in the project's Figma file, on a new page named after the exploration (e.g. "Exploration · bolder-button"), so the main design isn't touched. As with any first change to the Figma file in a conversation, say what you'll make and where, and wait for a yes. Don't create HTML or CSS files.
+   - **Prototype (if the person made prototypes their default):** build it in `prototype/` on this exploration.
+   - **No Figma file linked:** offer `/setup` to link one, or ask whether they'd like a prototype instead.
+
+An exploration keeps files on this computer separate; work in Figma lives on its own page, so it's separate there too.
 
 ## Without a name
 
