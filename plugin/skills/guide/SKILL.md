@@ -1,16 +1,35 @@
 ---
 name: guide
-description: Explain Studio in plain language: what it is, what the band and panel show, each command, and the friendly words. Use when the designer types /guide, asks for help, or asks what Studio is or how it works.
+description: Explain Studio in plain language: what it is, which Claude tool to use for what (Claude chat, Claude Design, Claude Code), what the band and panel show, each command, and the friendly words. Use when the designer types /guide, asks for help, asks what Studio is or how it works, or asks why they're using Claude Code or when to use Claude Design instead.
 argument-hint: "[topic]"
 ---
 
 # /guide: Studio, explained
 
-If they named a topic ($ARGUMENTS), such as "save points", "panel" or "/handover", explain just that part in a few lines, then stop. Otherwise show the guide below, as written, and end with the closing line. Don't use em dashes.
+If they named a topic ($ARGUMENTS), such as "save points", "panel", "/handover" or "which Claude", explain just that part in a few lines, then stop. For "which Claude" (or Claude Design, or why Claude Code), show the whole "Which Claude for what" section. Otherwise show the guide below, as written, and end with the closing line. Don't use em dashes.
 
 ## What Studio is
 
 Studio makes Claude Code clearer and calmer for designers. You ask for changes in your own words, like "make the heading softer", and Claude says what it will do, does it one step at a time, shows what changed, and tells you how to go back.
+
+## Which Claude for what
+
+Claude comes in a few forms, and it's fair to wonder why a designer would use one built for code. Each is good at something different:
+
+- **Claude (chat)**, for thinking it through: research, writing and checking copy, critique, summaries. It doesn't touch your files.
+- **Claude Design**, for exploring ideas fast: wireframes, quick prototypes, decks and one-pagers, to try directions and get people aligned early. You'll find it in Claude itself.
+- **Claude Code, where Studio lives**, for real work: it works on the files on your computer, runs a private preview, and connects to Figma and your design system. That's what lets it check designs, write handovers developers can rely on, and turn a design into a working prototype.
+
+| I want to… | Use |
+|---|---|
+| Think through a problem, write copy, summarise research | Claude (chat) |
+| Try a few directions quickly, or show an early idea | Claude Design |
+| Check a Figma flow against the design system, or hand it over to developers | Claude Code, with Studio |
+| Turn a design into a working prototype | Claude Code, with Studio (you can start in Claude Design and bring it here) |
+
+**Why Claude Code?** It sounds like a tool for developers, and it is one; that's the point. It works where developers work, so what you make arrives in a form they can use. Studio makes it clearer, calmer and safer: friendly words, a snapshot before every change, and nothing uploaded unless you ask.
+
+**Working in Figma?** Claude Code connects to Figma directly, so it can read your designs and your design system and write handover pages into your file. Claude Design doesn't send work to Figma, so for a Figma-first team, Claude Code with Studio is the bridge.
 
 ## Your work is always safe
 

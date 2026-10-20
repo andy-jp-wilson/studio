@@ -19,7 +19,8 @@ Use the helper `studio-project` (already allowed) for all reading and writing of
 Run `studio-project status`. It prints JSON with `project` (this folder's answers and `done` steps), `computer` (what's been confirmed on this computer) and `missing` (layout folders not here yet).
 
 - If everything is done, say so with a short tick list and ask whether they want to **recheck** (run steps 1 and 2 again) or **change** an answer. Don't redo steps unasked.
-- Otherwise say: "Setup has six short steps. You're on step N." Skip steps already done in this project, but always do step 1 (it's quick).
+- If nothing is done yet on this computer (`computer` is empty), start with a short welcome, three lines at most: "Studio works inside Claude Code, the version of Claude that works with real files on your computer and connects to Figma and your design system. That's what lets it check your designs and hand them over to developers. For quick idea exploration, Claude Design is great too; `/guide which Claude` explains when to use which."
+- Then say: "Setup has six short steps. You're on step N." Skip steps already done in this project, but always do step 1 (it's quick).
 
 ## 1. Figma connection
 
