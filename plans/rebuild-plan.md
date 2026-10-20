@@ -1,6 +1,16 @@
 # Rebuilding Studio to match the approved design
 
-Status: **approved** (2026-10-20). R1 built (Studio 0.2.29), waiting for the user to try it in the app.
+Status: **approved** (2026-10-20). **R1 done** (Studio 0.2.33); **next: R2**.
+
+## Where we are (for the next session)
+
+- **R1 (band) is built and in the app,** after three rounds of fixes from the user's screenshots:
+  - The dot is a coral ● character; the band can't draw Svg pictures.
+  - The top line was removed: one-sided borders aren't possible, and drawn line characters didn't match the design.
+  - Studio sets no background in the band: the app draws its own rounded grey box around it, and a second colour never lined up.
+- **Lesson:** the Desktop band is the app's box; Studio controls only what's inside. Check limits like this in the app early, before matching a Figma design exactly.
+- **Next, R2:** the story card (Claude updates it through a helper; kept by Claude Code itself, so no project folder is needed) and the panel rebuilt to follow the story, in Mist, as on Figma page 13. Remove the panel's Journey, Menu and Glossary tabs and its switches. Try it in the app early, with screenshots.
+
 
 Built from what's agreed: the core and jobs (`plans/core-jobs.md`), the requirements and journey (`plans/requirements-and-journey.md`), your keep/cut calls (`plans/studio-today.md`), and the approved visuals (Figma page 13, D5 Mist). Nothing new is added; anything unclear is a question at the end.
 
