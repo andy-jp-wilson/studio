@@ -1,8 +1,9 @@
 // Studio: the band above the prompt (Figma page 13, D5 Mist).
-//   ────────────────────────────────────────────────────────────── (grey line)
 //   ● studio  Step 5 of 9 · The design · building screen 3 of 6        [Stop]
 // Status only: which step of the journey, and how it's going. When something
-// needs the designer, the line turns coral and the last part sits on a tint.
+// needs the designer, the last part sits on a coral tint. (No top line: the
+// app can't draw a one-sided border, and drawn line characters didn't match
+// the design, so it was removed, 2026-10-20.)
 // Stop appears only while Claude is working. Pure drawing.
 import { MIST, mark } from './mist.js'
 
@@ -21,7 +22,6 @@ export function drawBand(el, s, actions, columns) {
   const { Box, Text, Button } = el
   const { parts, needs } = statusParts(s)
   const width = Math.max(20, columns || 80)
-  const line = Text({ key: 'band-line', color: needs ? MIST.coral : MIST.line, wrap: 'truncate-end', children: [(needs ? '━' : '─').repeat(width)] })
 
   const status = []
   parts.forEach((p, i) => {
@@ -42,8 +42,5 @@ export function drawBand(el, s, actions, columns) {
   ]
   if (s.working) row.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
 
-  return Box({ key: 'studio-band', flexDirection: 'column', width, backgroundColor: MIST.surface, children: [
-    line,
-    Box({ key: 'band-row', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 1, children: row }),
-  ] })
+  return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 1, width, backgroundColor: MIST.surface, children: row })
 }
