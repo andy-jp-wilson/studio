@@ -103,7 +103,7 @@ export function drawPane(el, s, actions, columns) {
     // The starting screen (Figma page 19, A · Welcome): the logo, the name and
     // tagline, three steps to start, the project, and a footer.
     const { Text, Svg, Button } = el
-    children.push(Box({ key: 'welcome', flexDirection: 'column', rowGap: 1, paddingX: 1, paddingY: 1, children: [
+    children.push(Box({ key: 'welcome', flexDirection: 'column', paddingX: 1, paddingY: 1, children: [
       ...(s.surface === 'terminal' ? [] : [Svg({ key: 'welcome-logo-tight', source: logoTight(80), alt: 'Studio', width: 80, height: 80 })]),
       Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
       Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
