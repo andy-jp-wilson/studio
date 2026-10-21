@@ -28,13 +28,13 @@ You can skip ahead or go back at any point; just say so.
 
 ## The band and the panel
 
-- **The band** (above where you type) shows where you are: "Step 5 of 9 · The design · building screen 3 of 6". When something needs you, it says so in coral. **Stop** appears while Claude is working.
-- **The Studio panel** (beside the conversation; `/panel` opens it) follows the story: the story, then whatever matters at this step, with what needs you first.
+- **The band** (above where you type) shows the Studio logo before any work, then where you are: "Step 5 of 9 · The design · building screen 3 of 5", with a dot and progress bars in the stage's colour (dusk blue for the brief, coral for the design, sage for ready for developers). When something needs you, they turn ochre. **Stop** appears while Claude is working. The hint under where you type says what to do at each step.
+- **The Studio panel** (beside the conversation; `/panel` opens it) starts with a welcome, then follows the story: the story and its progress, then cards for whatever matters at this step, with what needs you first, outlined in ochre. You can answer Claude's questions there, open the Figma page, and tick off the handover checklist.
 
 ## Your work is safe
 
 - **Design system files are never changed.** Studio refuses any change to them, even if asked.
-- **Nothing changes in Figma without your say-so.** Before Claude's first change to a Figma file in a conversation, Claude Code asks you to allow it.
+- **Nothing changes in Figma without your say-so.** Before Claude's first change to a Figma file in a conversation, Studio asks you in plain words ("Work in … in Figma?").
 - **Jira and Confluence are read only.** Claude never changes anything there.
 - **Undo:** in Figma, use its undo or version history. For files on this computer, say "go back".
 - **Nothing is uploaded** (sent to GitHub or anywhere online) unless you ask, and Studio checks where it's going first.
