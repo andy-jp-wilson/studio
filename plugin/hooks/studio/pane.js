@@ -103,13 +103,12 @@ export function drawPane(el, s, actions, columns) {
     // The starting screen (Figma page 19, A · Welcome): the logo, the name and
     // tagline, three steps to start, the project, and a footer.
     const { Text, Svg, Button } = el
-    // A lockup: the logo beside the word, with the tagline under the word.
-    children.push(Box({ key: 'welcome', flexDirection: 'row', columnGap: 2, alignItems: 'center', paddingX: 1, paddingY: 1, children: [
-      ...(s.surface === 'terminal' ? [] : [Svg({ key: 'welcome-lockup-logo', source: logoTight(40), alt: 'Studio', width: 40, height: 40 })]),
-      Box({ key: 'welcome-words', flexDirection: 'column', flexShrink: 1, children: [
-        Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
-        Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
-      ] }),
+    // The logo above the word (its margin trimmed so its left edge lines up
+    // with the text), a line of space, then the name and tagline.
+    children.push(Box({ key: 'welcome', flexDirection: 'column', paddingX: 1, paddingY: 1, children: [
+      ...(s.surface === 'terminal' ? [] : [Box({ key: 'welcome-logo-box', marginBottom: 1, children: [Svg({ key: 'welcome-logo-tight', source: logoTight(80), alt: 'Studio', width: 80, height: 80 })] })]),
+      Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
+      Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
     ] }))
     const steps = ['Paste a Jira story', 'Answer Claude’s questions', 'Review the design in Figma']
     children.push(Box({ key: 'start', flexDirection: 'column', paddingX: 2, paddingY: 1, backgroundColor: MIST.card, borderStyle: 'round', borderColor: MIST.card, children: [
