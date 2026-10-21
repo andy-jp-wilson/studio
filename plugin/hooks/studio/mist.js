@@ -30,6 +30,10 @@ export const stageOf = step => STAGES.find(s => s.steps.includes(step)) || STAGE
 // in charcoal with the coral dot, on a 24-unit grid. Light corners in dark mode.
 export const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><style>.c{fill:none;stroke:${MIST.text};stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}@media (prefers-color-scheme: dark){.c{stroke:#ECE7DE}}</style><path class="c" d="M2 8.5V4.5A2.5 2.5 0 0 1 4.5 2H8.5"/><path class="c" d="M15.5 2H19.5A2.5 2.5 0 0 1 22 4.5V8.5"/><path class="c" d="M22 15.5V19.5A2.5 2.5 0 0 1 19.5 22H15.5"/><path class="c" d="M8.5 22H4.5A2.5 2.5 0 0 1 2 19.5V15.5"/><circle cx="12" cy="12" r="3.5" fill="${MIST.coral}"/></svg>`
 
+// The logo with its built-in margin trimmed, so its edges line up with text
+// beside or under it (the corners' outer edge is at 0.8 of 24, stroke included).
+export const logoTight = size => LOGO_SVG.replace('width="24" height="24" viewBox="0 0 24 24"', `width="${size}" height="${size}" viewBox="0.8 0.8 22.4 22.4"`)
+
 // The Studio mark in the band. Before any work: the logo (a picture in the
 // app; a coral ● in the terminal, which has no pictures). Once work starts:
 // a still ● in the stage's colour, or ochre when something needs you.

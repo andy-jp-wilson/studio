@@ -5,7 +5,7 @@
 // in Figma, questions can be answered here, and checklist items can ask Claude
 // for the next step. Claude fills it in with the story tool. No background of
 // its own: the app draws the panel's box and its "Studio" header.
-import { MIST, stageOf, LOGO_SVG } from './mist.js'
+import { MIST, stageOf, logoTight } from './mist.js'
 import { progress } from './band.js'
 
 const GLYPH = { done: '✓', now: '●', todo: '○', need: '!', none: '—' }
@@ -103,8 +103,8 @@ export function drawPane(el, s, actions, columns) {
     // The starting screen (Figma page 19, A · Welcome): the logo, the name and
     // tagline, three steps to start, the project, and a footer.
     const { Text, Svg, Button } = el
-    children.push(Box({ key: 'welcome', flexDirection: 'column', paddingX: 1, paddingY: 1, children: [
-      ...(s.surface === 'terminal' ? [] : [Svg({ key: 'welcome-logo', source: LOGO_SVG.replace('width="24" height="24"', 'width="96" height="96"'), alt: 'Studio', width: 96, height: 96 })]),
+    children.push(Box({ key: 'welcome', flexDirection: 'column', rowGap: 1, paddingX: 1, paddingY: 1, children: [
+      ...(s.surface === 'terminal' ? [] : [Svg({ key: 'welcome-logo-tight', source: logoTight(80), alt: 'Studio', width: 80, height: 80 })]),
       Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
       Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
     ] }))
