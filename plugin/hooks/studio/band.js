@@ -1,5 +1,5 @@
 // Studio: the band above the prompt (Figma pages 15 and 17).
-//   Before any work:  [logo] studio  Paste a Jira story to start
+//   Before any work:  [logo] studio  Paste a Jira story, or describe what you'd like
 //   Once work starts: ● studio  ▬▬▬▬▬▬▬▬  Step 5 of 9 · The design · building screen 3 of 5   [Stop]
 // The dot and progress bar take the stage's colour (the brief dusk, the design
 // coral, ready for developers sage), or ochre when something needs you, with
@@ -11,7 +11,11 @@ import { MIST, mark, stageOf } from './mist.js'
 // The status parts for the band, from the story card (or its absence).
 export function statusParts(s) {
   const st = s.story
-  if (!st || !st.step) return { parts: ['Paste a Jira story to start'], needs: false, step: 0 }
+  if (!st || !st.step) {
+    // No story card yet: while Claude works, say what it's doing; otherwise how to start.
+    if (s.working) return { parts: [(s.current && s.current.label) || 'Working'], needs: false, step: 0 }
+    return { parts: ['Paste a Jira story, or describe what you’d like'], needs: false, step: 0 }
+  }
   const step = Math.min(9, Math.max(1, Number(st.step) || 1))
   const detail = st.needs ? st.needs : (st.status || '')
   return { parts: ['Step ' + step + ' of 9', stageOf(step).name, detail].filter(Boolean), needs: Boolean(st.needs), step }
@@ -57,8 +61,8 @@ export function drawBand(el, s, actions, columns) {
 
 // The hint under the prompt for each step (Figma page 15).
 export const HINTS = {
-  0: 'Paste a Jira story to start. Adding its Confluence technical design helps.',
-  1: 'Paste a Jira story to start. Adding its Confluence technical design helps.',
+  0: 'Paste a Jira story, or just describe what you’d like to design.',
+  1: 'Paste a Jira story, or just describe what you’d like to design.',
   2: 'Answer the questions here or in the panel.',
   3: 'Choose the Figma file and page, a branch, and the level.',
   4: 'Say yes when the plan looks right, or ask for changes.',

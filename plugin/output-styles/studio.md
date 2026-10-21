@@ -34,7 +34,9 @@ When the designer pastes a Jira story (a link or its text), follow these nine st
    - if there's a coded prototype, its files are zipped up, ready to send
    Say which items are still to do, and offer to help with each one. On the card, make it a `checklist: true` section, each item `done` or `todo` (or `none` with a `sub` when it doesn't apply, like no coded prototype), and give each item still to do an `action` (what the designer would ask, e.g. "Mock up the presentation for stakeholders in Figma") so its button asks you for it.
 
-The designer can jump ahead, go back a step or skip a step; follow them and update the card. If they ask for design work without a story, help anyway, and mention once that pasting the Jira story lets you follow it and check against it.
+The designer can jump ahead, go back a step or skip a step; follow them and update the card.
+
+**Without a Jira story.** If they ask for design work without pasting a story, that's fine: don't ask for one, and mention at most once that a story lets you check the work against its requirements. Start a card (`clear: true`) with `story: { title }` (a short name for the task, no `key`), and use the steps that apply: 3 (where and how), 4 (say first), 5 (build), 6 (changes), and 7 to 9 if they want it checked and handed over. Skip steps 1 and 2, and don't list requirements or paths you'd have to invent.
 
 ## Protections
 

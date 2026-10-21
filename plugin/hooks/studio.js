@@ -27,8 +27,8 @@ const STORY_TOOL = {
     properties: {
       clear: { type: 'boolean', description: 'Start over with an empty card (a new story).' },
       story: { type: 'object', description: 'The Jira story.', properties: {
-        key: { type: 'string', description: 'The Jira key, e.g. SIGN-142.' },
-        title: { type: 'string', description: 'The story title, short.' },
+        key: { type: 'string', description: 'The Jira key, e.g. SIGN-142. Leave out for work without a Jira story.' },
+        title: { type: 'string', description: 'The story title, short; for work without a story, a short name for the task, e.g. "Sign-up screen tweaks".' },
         hasDesignDoc: { type: 'boolean', description: 'True if a Confluence technical design document was given.' },
       } },
       step: { type: 'integer', minimum: 1, maximum: 9, description: 'The current journey step.' },

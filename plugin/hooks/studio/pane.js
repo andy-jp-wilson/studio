@@ -87,9 +87,10 @@ function storyHead(el, st) {
   const color = st.needs ? MIST.needs : stage.color
   const line = [stage.name, st.needs || st.status].filter(Boolean).join(' · ')
   return Box({ key: 'story', flexDirection: 'column', paddingX: 1, children: [
-    Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [[story.key, 'Jira story', 'step ' + step + ' of 9'].filter(Boolean).join(' · ')] }),
+    // A Jira story shows its key; work without one just shows the step.
+    Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [(story.key ? [story.key, 'Jira story', 'step ' + step + ' of 9'] : ['Step ' + step + ' of 9']).join(' · ')] }),
     Text({ key: 'story-title', size: 'title', weight: 'semibold', color: MIST.text, wrap: 'wrap', children: [String(story.title || 'Untitled story')] }),
-    Text({ key: 'story-doc', size: 'footnote', color: MIST.muted, children: [story.hasDesignDoc ? 'Technical design in Confluence' : 'No technical design yet · optional, but encouraged'] }),
+    ...(story.key ? [Text({ key: 'story-doc', size: 'footnote', color: MIST.muted, children: [story.hasDesignDoc ? 'Technical design in Confluence' : 'No technical design yet · optional, but encouraged'] })] : []),
     progress(el, step, color, 'pane-progress'),
     Text({ key: 'story-stage', size: 'footnote', weight: 'medium', color: st.needs ? MIST.needsText : color, wrap: 'wrap', children: [line] }),
   ] })
@@ -110,7 +111,7 @@ export function drawPane(el, s, actions, columns) {
       Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
       Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
     ] }))
-    const steps = ['Paste a Jira story', 'Answer Claude’s questions', 'Review the design in Figma']
+    const steps = ['Paste a Jira story, or describe what you’d like', 'Answer Claude’s questions', 'Review the design in Figma']
     children.push(Box({ key: 'start', flexDirection: 'column', paddingX: 2, paddingY: 1, backgroundColor: MIST.card, borderStyle: 'round', borderColor: MIST.card, children: [
       Text({ key: 'start-title', size: 'heading', weight: 'semibold', color: MIST.text, children: ['Start here'] }),
       ...steps.map((t, i) => Box({ key: 'start-' + i, flexDirection: 'row', columnGap: 1, children: [
