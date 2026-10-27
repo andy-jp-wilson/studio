@@ -8,7 +8,8 @@
 #       plus "computer": what's been confirmed on this computer. {} when unset.
 #   studio-project set <key> <value> [dir]
 #       Records one answer. Keys: figmaAccount, designSystemUrl,
-#       designSystemName, targetFileUrl, targetFileName. figmaAccount is also
+#       designSystemName, targetFileUrl, targetFileName, template (done or
+#       skipped: the project template in Figma). figmaAccount is also
 #       remembered for this computer. Prints "set <key>".
 #   studio-project done <step> [dir]
 #       Marks a setup step done: connection, account, designSystem,
@@ -35,7 +36,7 @@ case "$cmd" in
     ;;
   set)
     key="$1"; value="$2"; dir="${3:-$PWD}"
-    case "$key" in figmaAccount|designSystemUrl|designSystemName|targetFileUrl|targetFileName) ;; *) echo "unknown-key $key"; exit 1 ;; esac
+    case "$key" in figmaAccount|designSystemUrl|designSystemName|targetFileUrl|targetFileName|template) ;; *) echo "unknown-key $key"; exit 1 ;; esac
     write_key "$(notes "$dir")" "$key" "$value"
     [ "$key" = figmaAccount ] && write_key "$COMPUTER" figmaAccount "$value"
     echo "set $key"

@@ -107,15 +107,22 @@ async function readNotes($) {
     const top = r.exitCode === 0 ? String(r.stdout || '').trim() : ''
     if (top && top !== cwd) roots.push(top)
   } catch {}
-  let n = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', setUp: false }
+  let n = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', template: '', setUp: false }
   for (const root of roots) {
     try {
       const p = JSON.parse(await $.fs.read(root + '/.studio/project.json'))
-      n = { setUp: true, figmaUrl: p.targetFileUrl || '', figmaName: p.targetFileName || '', dsName: p.designSystemName || '', dsUrl: p.designSystemUrl || '' }
+      n = { setUp: true, figmaUrl: p.targetFileUrl || '', figmaName: p.targetFileName || '', dsName: p.designSystemName || '', dsUrl: p.designSystemUrl || '', template: p.template || '' }
       break
     } catch {}
   }
   notes = n
+}
+
+// The project template (skills/template): offered once per project.
+function templateNote() {
+  if (notes.template === 'done') return ' The project template is set up in this file: concepting work goes on its Concept page and visual design on its Final design page.'
+  if (notes.template === 'skipped') return ' The designer chose not to use the project template; only set it up if they ask.'
+  return ' The project template isn’t set up yet: offer it once (the template skill), at the end of the brief or when design work starts.'
 }
 
 function projectNote() {
@@ -126,7 +133,7 @@ function projectNote() {
   }
   if (notes.figmaUrl) {
     return 'Studio project note: design work for this project happens in Figma, in "' + (notes.figmaName || 'the project file') + '" (' + notes.figmaUrl + ').' + ds +
-      ' Only make HTML or CSS files if the person asks for a coded prototype.'
+      ' Only make HTML or CSS files if the person asks for a coded prototype.' + templateNote()
   }
   return 'Studio project note: ' + (notes.setUp ? 'no Figma file is chosen for this project yet.' : 'this project hasn’t been set up yet, so no Figma file or design system is chosen.') +
     ' If the person asks for design work, offer /setup (a short chat) or ask for the Figma file’s link. Only make HTML or CSS files if they ask for a coded prototype.' + (notes.dsName ? ds : '')

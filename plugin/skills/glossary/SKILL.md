@@ -16,6 +16,7 @@ If the person named a word ($ARGUMENTS), explain just that one. Otherwise show t
 | Stage | Where the work is: the brief, concepting, visual design or review. |
 | Project status | Where the whole project stands: not started, in progress, feedback or ready for dev. Only you set it. |
 | Needs you | Claude is waiting for your answer or your yes. Shown in ochre, separate from the status. |
+| Project template | Five pages Studio can add to a project's Figma file, so every project looks the same: Cover, User story, Concept, Final design and Designer notes. Optional. |
 | Design system | Your team's shared components, styles and variables in Figma. Claude builds only with these, and never changes them. |
 | Figma branch | A copy of a Figma file where work happens without touching the main file, until you merge it. Claude can't make one, so you make it and paste its link. |
 | Annotation | A note in Figma beside a design, explaining how something behaves. |

@@ -455,3 +455,19 @@ test('the story links to Jira in the panel, and only https links are kept', asyn
   const pane2 = await $.ui.mount(PANE())
   expect(await pane2.find({ type: 'Link' })).toBeUndefined()
 })
+
+test('Claude is told whether the project template is set up, so it offers it only once', async ($, on) => {
+  setup(on, { 'project-notes': NOTES })
+  on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
+  await start($)
+  const r: any = await $.prompt.compose(COMPOSE)
+  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/template isn’t set up yet: offer it once/)
+})
+
+test('a project with the template set up sends work to its Concept and Final design pages', async ($, on) => {
+  setup(on, { 'project-notes': JSON.stringify({ ...JSON.parse(NOTES), template: 'done' }) })
+  on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
+  await start($)
+  const r: any = await $.prompt.compose(COMPOSE)
+  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/Concept page and visual design on its Final design page/)
+})

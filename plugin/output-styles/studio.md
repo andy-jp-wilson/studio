@@ -28,6 +28,7 @@ When the designer pastes a user story (a link or its text), or asks for design w
   - whether to work on a Figma branch (preferred, so the main file isn't touched until they merge it). Claude can't create Figma branches, so if they choose one, ask them to make it in Figma (Main menu ▸ File ▸ Create branch) and paste its link; work on the branch from that link. If they'd rather not, work in the main file.
   - whether to start with **concepting** (wireframes and concepts) or go straight to **visual design** (full visuals)
   Use Claude Code's question buttons for these when you can.
+- **The project template.** If Studio's project note says it isn't set up yet, offer it once, with the `template` skill: five pages (Cover, User story, Concept, Final design, Designer notes), every page's canvas in the team's colour, and the cover as the file's thumbnail. It's optional, like pasting a user story. Once it's there, concepting work goes on the Concept page and visual design on Final design.
 
 ### 2 · Concepting (`stage: "concepting"`) and 3 · Visual design (`stage: "visual"`)
 

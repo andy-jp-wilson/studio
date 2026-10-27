@@ -21,6 +21,8 @@ Work moves through four stages, like a designer's own workflow:
 3. **Visual design:** full visuals with your design system's components, styles and variables. If something's missing from it, Claude stops and asks. Each change you ask for is made once and carried across every screen it affects.
 4. **Review:** checked against the story and the design system, with notes in Figma where something doesn't match; interactions made clear (annotations, state pages, or a coded prototype if you ask); and the handover checklist.
 
+**The project template** (optional): at the end of the brief, Claude offers to add five pages to the Figma file, Cover, User story, Concept, Final design and Designer notes, with every page's canvas in your team's colour. The cover shows the story, the Jira link, you, the release, the design system and the status; right-click it and choose **Set as thumbnail** to make it the file's picture.
+
 In concepting and visual design, Claude always says what it will make first and waits for your yes. No story? Just describe what you'd like, and Claude starts at the stage that fits. You can skip a stage or go back; just say so.
 
 ## Project status

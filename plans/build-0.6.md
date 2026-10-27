@@ -1,6 +1,6 @@
 # Build plan: Studio 0.6, project template, designer notes and pick-up
 
-Status: **approved** (27 October 2026; cover 1920 × 1200, template pages first). **T1 built** (0.5.2): team settings `STUDIO_TEAM_LOGO` (a Figma component link with node-id, checked) and `STUDIO_CANVAS_COLOR` (#RRGGBB, default #F5F5F5) in `studio-team` (set, show, read and export; older team files still read), asked once in `/setup` under Team extras; the story card keeps an https `story.link`, and the panel shows **Open in Jira ↗** under the title ("Open user story ↗" for other links). 27 tests pass. Built only from the Figma proposals **Proposal · Team notes and pick-up** (`107:7`) and **Proposal · Project template** (`112:7`), and the decisions in CLAUDE.md. Nothing is built until approved.
+Status: **approved** (27 October 2026; cover 1920 × 960, template pages first). **T1 built** (0.5.2): team settings `STUDIO_TEAM_LOGO` (a Figma component link with node-id, checked) and `STUDIO_CANVAS_COLOR` (#RRGGBB, default #F5F5F5) in `studio-team` (set, show, read and export; older team files still read), asked once in `/setup` under Team extras; the story card keeps an https `story.link`, and the panel shows **Open in Jira ↗** under the title ("Open user story ↗" for other links). 27 tests pass. **T2 built** (0.5.3): the `template` skill with two fixed Figma scripts, `build-template.js` (pages first, canvas on every page, a new file's empty Page 1 becomes the Cover, the cover at 1920 × 960 with the logo strip when the team logo's library is added to the file) and `story-page.js` (the User story page, nothing invented); `studio-project set template done|skipped`, and Studio's project note tells Claude to offer it once. **Not possible:** Figma's connection can't set a file's thumbnail, so the designer right-clicks the Cover frame, Set as thumbnail. Tried for real in a Drafts file "Studio template test" (made-up SIGN-142); the logo strip isn't tried yet (needs a published logo in a library). 29 tests pass. Built only from the Figma proposals **Proposal · Team notes and pick-up** (`107:7`) and **Proposal · Project template** (`112:7`), and the decisions in CLAUDE.md. Nothing is built until approved.
 
 ## What it does
 
@@ -48,5 +48,5 @@ Each ends with you trying it in the app, and a pause.
 
 ## Decided
 
-1. **Cover size:** 1920 × 1200.
+1. **Cover size:** 1920 × 960.
 2. **Template pages go first,** before any existing pages.
