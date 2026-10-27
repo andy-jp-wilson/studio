@@ -7,6 +7,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - Plan each phase and get approval before starting it. Pause at the end of every phase.
 - **Deleting and overwriting while building Studio** (2026-10-20): fine without asking inside this project folder and Claude's scratch folder, since Studio is being used to build itself. Still ask before deleting or overwriting anything outside them (e.g. `~/.claude`, other projects, the practice project's own history) or anything that can't be got back from a save point. Studio's own delete guardrails are for the designers who'll use it, not for this work.
 - If a feature doesn't exist or works differently from the brief, say so plainly and suggest the closest alternative.
+- **Say "user story", not "Jira story"** (2026-10-27). Jira is only where it lives; keep "Jira" for the tool itself ("Open in Jira", "the Jira link"). Changed across Studio in 0.5.1.
 - **Keep real story details out of git** (2026-10-20). Real Jira keys, titles, requirements, Confluence content and company links never go into Studio's code, tests, plans or commit messages; use made-up examples (SIGN-142 "Faster sign-up", Acme Design System). Check with `git grep` before committing or uploading.
 
 ## Decisions

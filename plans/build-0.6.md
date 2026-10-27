@@ -4,7 +4,7 @@ Status: **draft for the user's approval** (27 October 2026). Built only from the
 
 ## What it does
 
-- **A project template**, offered at the start and optional, like pasting a Jira story: five pages in the project's Figma file, the cover as the file's thumbnail, and every page's canvas in the team's canvas colour (#F5F5F5 by default).
+- **A project template**, offered at the start and optional, like pasting a user story: five pages in the project's Figma file, the cover as the file's thumbnail, and every page's canvas in the team's canvas colour (#F5F5F5 by default).
 - **Designer notes**, one page per project, kept up to date by Claude when you ask, so a colleague (or cover for annual leave) can pick the project up.
 - **Pick-up:** "pick up SIGN-142" reads the designer notes and carries on from them.
 - **The story links to Jira** in the panel ("Open in Jira ↗").
@@ -25,7 +25,7 @@ Each ends with you trying it in the app, and a pause.
 
 ### T2. The project template
 
-- Offered when a project starts (after a Jira story is pasted, or when you describe new work in a file with no template yet), and any time you ask ("set up the project template").
+- Offered when a project starts (after a user story is pasted, or when you describe new work in a file with no template yet), and any time you ask ("set up the project template").
 - Studio's question says what will happen before anything changes. On yes, Claude:
   - adds the pages **Cover, User story, Concept, Final design, Designer notes**, in that order, before any pages already in the file (which stay as they are)
   - sets **every page's canvas** to the team's canvas colour

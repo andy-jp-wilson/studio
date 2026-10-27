@@ -10,7 +10,7 @@ If the person named a word ($ARGUMENTS), explain just that one. Otherwise show t
 
 | Word | In one sentence |
 |---|---|
-| Jira story | The piece of work: what a user wants, why, and how we'll know it's done (the acceptance criteria). Studio reads it and never changes it. |
+| User story | The piece of work, written in Jira: what a user wants, why, and how we'll know it's done (the acceptance criteria). Studio reads it and never changes it. |
 | Technical design | The Confluence page developers write about how the story will be built. Optional, but it helps Claude check the design. Read only. |
 | Path | One way a user can go through the story, like "email already used, then sign in". |
 | Stage | Where the work is: the brief, concepting, visual design or review. |

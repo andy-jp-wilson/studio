@@ -21,7 +21,7 @@ Use the helper `studio-project` (already allowed) to read and remember answers. 
 Run `studio-project status` and `studio-team show` (the team's design systems, as `STUDIO_DESIGN_SYSTEMS=Name | link; …`, or `none`).
 
 - If everything is done, show a short tick list and ask whether they want to **recheck** Figma or **change** an answer. Don't redo steps unasked.
-- If nothing is done on this computer yet (`computer` is empty), start with a short welcome, three lines at most: "Studio works inside Claude Code, the version of Claude that connects to Figma and your design system. That's what lets it build your designs in Figma from a Jira story, check them and get them ready for developers. For quick idea exploration, Claude Design is great too; `/guide which Claude` explains when to use which."
+- If nothing is done on this computer yet (`computer` is empty), start with a short welcome, three lines at most: "Studio works inside Claude Code, the version of Claude that connects to Figma and your design system. That's what lets it build your designs in Figma from a user story, check them and get them ready for developers. For quick idea exploration, Claude Design is great too; `/guide which Claude` explains when to use which."
 - Then say: "Four quick questions." Skip any already answered for this project, but always check Figma is connected (it's quick).
 
 ## 1. Is Figma connected?
@@ -78,7 +78,7 @@ Finish with a tick list, e.g.
 
 Studio remembers these on this computer; nothing was uploaded (sent anywhere online), apart from the new Figma file if one was made.
 
-Then the next step: "Paste a Jira story whenever you're ready, and I'll play the brief back. Adding its Confluence technical design is optional, but encouraged."
+Then the next step: "Paste a user story whenever you're ready, and I'll play the brief back. Adding its Confluence technical design is optional, but encouraged."
 
 ## Rules
 

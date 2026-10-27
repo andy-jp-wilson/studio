@@ -87,7 +87,7 @@ function storyHead(el, st, actions) {
   const stage = stageIndex(st.stage)
   const status = st.projectStatus || 'In progress'
   return Box({ key: 'story', flexDirection: 'column', rowGap: 0, paddingX: 1, children: [
-    ...(story.key ? [Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [story.key + ' · Jira story'] })] : []),
+    ...(story.key ? [Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [story.key + ' · User story'] })] : []),
     Text({ key: 'story-title', size: 'title', weight: 'semibold', color: MIST.text, wrap: 'wrap', children: [String(story.title || 'Untitled story')] }),
     ...(story.key ? [Text({ key: 'story-doc', size: 'footnote', color: MIST.muted, children: [story.hasDesignDoc ? 'Technical design in Confluence' : 'No technical design yet · optional, but encouraged'] })] : []),
     Box({ key: 'story-status', flexDirection: 'row', columnGap: 1, alignItems: 'center', marginTop: 1, children: [
@@ -120,7 +120,7 @@ export function drawPane(el, s, actions, columns) {
       Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
       Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
     ] }))
-    const steps = ['Paste a Jira story, or describe what you’d like', 'Answer Claude’s questions', 'Review the design in Figma']
+    const steps = ['Paste a user story, or describe what you’d like', 'Answer Claude’s questions', 'Review the design in Figma']
     children.push(Box({ key: 'start', flexDirection: 'column', paddingX: 2, paddingY: 1, backgroundColor: MIST.card, borderStyle: 'round', borderColor: MIST.card, children: [
       Text({ key: 'start-title', size: 'heading', weight: 'semibold', color: MIST.text, children: ['Start here'] }),
       ...steps.map((t, i) => Box({ key: 'start-' + i, flexDirection: 'row', columnGap: 1, children: [

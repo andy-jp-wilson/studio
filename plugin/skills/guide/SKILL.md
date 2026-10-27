@@ -1,6 +1,6 @@
 ---
 name: guide
-description: Explain Studio in plain language: what it is, the four stages from a Jira story to handover and the project status, what the band and panel show, how Studio keeps work safe, which Claude tool to use for what (Claude chat, Claude Design, Claude Code), and the commands. Use when the designer types /guide, asks for help, asks what Studio is or how it works, or asks why they're using Claude Code or when to use Claude Design instead.
+description: Explain Studio in plain language: what it is, the four stages from a user story to handover and the project status, what the band and panel show, how Studio keeps work safe, which Claude tool to use for what (Claude chat, Claude Design, Claude Code), and the commands. Use when the designer types /guide, asks for help, asks what Studio is or how it works, or asks why they're using Claude Code or when to use Claude Design instead.
 argument-hint: "[topic]"
 ---
 
@@ -10,13 +10,13 @@ If they named a topic ($ARGUMENTS), such as "the stages", "status", "panel", "br
 
 ## What Studio is
 
-Studio makes Claude an extension of you. Paste a Jira story, and Claude builds the design in Figma, from wireframes and concepts to full visuals, using only your design system. It follows the story's requirements (and its Confluence technical design, if you add it), covers every path the story describes, keeps every screen consistent, and makes the interactions clear, so what developers build matches the design. You decide; Claude proposes and does the work.
+Studio makes Claude an extension of you. Paste a user story, and Claude builds the design in Figma, from wireframes and concepts to full visuals, using only your design system. It follows the story's requirements (and its Confluence technical design, if you add it), covers every path the story describes, keeps every screen consistent, and makes the interactions clear, so what developers build matches the design. You decide; Claude proposes and does the work.
 
 ## The stages
 
 Work moves through four stages, like a designer's own workflow:
 
-1. **The brief:** paste the Jira story (its Confluence technical design is optional, but encouraged). Claude plays it back: the requirements, the paths, and questions for anything unclear. It never fills a gap itself. Then you choose where in Figma, whether to use a Figma branch (you make it and paste its link; Claude can't make one), and whether to start with concepting or go straight to visual design.
+1. **The brief:** paste the user story (its Confluence technical design is optional, but encouraged). Claude plays it back: the requirements, the paths, and questions for anything unclear. It never fills a gap itself. Then you choose where in Figma, whether to use a Figma branch (you make it and paste its link; Claude can't make one), and whether to start with concepting or go straight to visual design.
 2. **Concepting:** wireframes and concepts in Figma, to explore directions.
 3. **Visual design:** full visuals with your design system's components, styles and variables. If something's missing from it, Claude stops and asks. Each change you ask for is made once and carried across every screen it affects.
 4. **Review:** checked against the story and the design system, with notes in Figma where something doesn't match; interactions made clear (annotations, state pages, or a coded prototype if you ask); and the handover checklist.
@@ -56,7 +56,7 @@ Claude comes in a few forms, and it's fair to wonder why a designer would use on
 |---|---|
 | Think through a problem, write copy, summarise research | Claude (chat) |
 | Try a few directions quickly, or show an early idea | Claude Design |
-| Design a Jira story in Figma with the design system, check it, and get it ready for developers | Claude Code, with Studio · *Recommended* |
+| Design a user story in Figma with the design system, check it, and get it ready for developers | Claude Code, with Studio · *Recommended* |
 | Turn a design into a coded prototype | Claude Code, with Studio · *Recommended* |
 
 **Why Claude Code?** It sounds like a tool for developers, and it is one; that's the point. It works where developers work, so what you make arrives in a form they can use. Studio makes it clearer, calmer and safer.
@@ -81,4 +81,4 @@ Studio only needs one team setting: the list of design systems. The first person
 
 ---
 
-Closing line: "Paste a Jira story whenever you're ready. Try `/guide the stages` to learn about one part."
+Closing line: "Paste a user story whenever you're ready. Try `/guide the stages` to learn about one part."

@@ -21,13 +21,13 @@ let storyKey = ''
 const STATES = ['done', 'now', 'todo', 'need', 'muted', 'none', 'plain', 'strong']
 const STORY_TOOL = {
   name: 'story',
-  description: 'Update the Studio story card that the designer sees in the Studio band and panel. Call it when a Jira story is pasted or a task starts, and whenever the stage, what needs the designer, or the panel sections change. Stages: brief (read the story, play it back, choose where), concepting (wireframes and concepts), visual (full visuals with the design system, and the designer’s changes), review (check against the story, interactions, handover checklist). The project status (Not started, In progress, Feedback, Ready for dev) belongs to the designer: you can’t set it, only suggest a change with suggestStatus, which asks them. Use short, plain wording and no em dashes. Fields you leave out stay as they were; send the whole list of sections whenever you change any. Set clear to true to start a new story.',
+  description: 'Update the Studio story card that the designer sees in the Studio band and panel. Call it when a user story is pasted or a task starts, and whenever the stage, what needs the designer, or the panel sections change. Stages: brief (read the story, play it back, choose where), concepting (wireframes and concepts), visual (full visuals with the design system, and the designer’s changes), review (check against the story, interactions, handover checklist). The project status (Not started, In progress, Feedback, Ready for dev) belongs to the designer: you can’t set it, only suggest a change with suggestStatus, which asks them. Use short, plain wording and no em dashes. Fields you leave out stay as they were; send the whole list of sections whenever you change any. Set clear to true to start a new story.',
   inputSchema: {
     type: 'object',
     properties: {
       clear: { type: 'boolean', description: 'Start over with an empty card (a new story).' },
-      story: { type: 'object', description: 'The Jira story.', properties: {
-        key: { type: 'string', description: 'The Jira key, e.g. SIGN-142. Leave out for work without a Jira story.' },
+      story: { type: 'object', description: 'The user story (from Jira).', properties: {
+        key: { type: 'string', description: 'The Jira key, e.g. SIGN-142. Leave out for work without a user story.' },
         title: { type: 'string', description: 'The story title, short; for work without a story, a short name for the task, e.g. "Sign-up screen tweaks".' },
         hasDesignDoc: { type: 'boolean', description: 'True if a Confluence technical design document was given.' },
       } },
