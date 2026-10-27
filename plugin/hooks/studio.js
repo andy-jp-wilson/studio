@@ -32,7 +32,7 @@ const STORY_TOOL = {
         hasDesignDoc: { type: 'boolean', description: 'True if a Confluence technical design document was given.' },
       } },
       step: { type: 'integer', minimum: 1, maximum: 9, description: 'The current journey step.' },
-      status: { type: 'string', description: 'How the step is going, a few words, e.g. "building screen 3 of 6".' },
+      status: { type: 'string', description: 'A few words on the step, with no counts or progress detail. Not shown in the band.' },
       needs: { type: 'string', description: 'What is waiting for the designer, a few words, e.g. "2 questions for you". Empty string when nothing is.' },
       sections: { type: 'array', description: 'The panel sections for this step, in order (do not repeat the story itself).', items: { type: 'object', properties: {
         title: { type: 'string' },

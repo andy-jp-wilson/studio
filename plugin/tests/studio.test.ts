@@ -243,7 +243,8 @@ test('Claude’s story updates fill the panel: the story, its progress, and what
   await $.tool.call({ tool: 'mcp__studio__story', step: 5, status: 'building screen 3 of 6', needs: '' })
   const pane2 = await $.ui.mount(PANE())
   expect(await pane2.find({ type: 'Text', text: 'Faster sign-up' })).toBeDefined()
-  expect(await pane2.find({ type: 'Text', text: 'The design · building screen 3 of 6' })).toBeDefined()
+  expect(await pane2.find({ type: 'Text', text: 'The design' })).toBeDefined()
+  expect(await pane2.find({ type: 'Text', text: 'The design · building screen 3 of 6' })).toBeUndefined() // no progress detail
 })
 
 test('questions can be answered in the panel, and the answers go to Claude as the designer’s message', async ($, on) => {

@@ -1,6 +1,6 @@
 // Studio: the band above the prompt (Figma pages 15 and 17).
 //   Before any work:  [logo] studio  Paste a Jira story, or describe what you'd like
-//   Once work starts: ● studio  ▬▬▬▬▬▬▬▬  Step 5 of 9 · The design · building screen 3 of 5   [Stop]
+//   Once work starts: ● studio  ▬▬▬▬▬▬▬▬  Step 5 of 9 · The design   [Stop]
 // The dot and progress bar take the stage's colour (the brief dusk, the design
 // coral, ready for developers sage), or ochre when something needs you, with
 // those words in ochre too. Nothing moves. Stop appears only while Claude is
@@ -17,7 +17,8 @@ export function statusParts(s) {
     return { parts: ['Paste a Jira story, or describe what you’d like'], needs: false, step: 0 }
   }
   const step = Math.min(9, Math.max(1, Number(st.step) || 1))
-  const detail = st.needs ? st.needs : (st.status || '')
+  // No progress detail (e.g. screen counts): only what's waiting for the designer, if anything.
+  const detail = st.needs || ''
   return { parts: ['Step ' + step + ' of 9', stageOf(step).name, detail].filter(Boolean), needs: Boolean(st.needs), step }
 }
 

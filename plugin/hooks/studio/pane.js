@@ -85,7 +85,7 @@ function storyHead(el, st) {
   const step = Math.min(9, Math.max(1, Number(st.step) || 1))
   const stage = stageOf(step)
   const color = st.needs ? MIST.needs : stage.color
-  const line = [stage.name, st.needs || st.status].filter(Boolean).join(' · ')
+  const line = [stage.name, st.needs].filter(Boolean).join(' · ')
   return Box({ key: 'story', flexDirection: 'column', paddingX: 1, children: [
     // A Jira story shows its key; work without one just shows the step.
     Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [(story.key ? [story.key, 'Jira story', 'step ' + step + ' of 9'] : ['Step ' + step + ' of 9']).join(' · ')] }),
