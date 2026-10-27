@@ -35,6 +35,9 @@ export const STAGE_LIST = [
   { id: 'review', name: 'Review' },
 ]
 export const PROJECT_STATUSES = ['Not started', 'In progress', 'Feedback', 'Ready for dev']
+// The dot's colour shows the project status.
+export const STATUS_COLOR = { 'Not started': MIST.line, 'In progress': MIST.coral, 'Feedback': MIST.brief, 'Ready for dev': MIST.ready }
+export const stageIndex = id => Math.max(0, STAGE_LIST.findIndex(s => s.id === id))
 // Until the band and panel are redrawn (S2, S3), each stage is shown as one of the old steps.
 export const STAGE_STEP = { brief: 2, concepting: 4, visual: 5, review: 8 }
 export const stageOfStep = step => step <= 3 ? 'brief' : step <= 4 ? 'concepting' : step <= 6 ? 'visual' : 'review'

@@ -150,26 +150,30 @@ test('before any work, the band shows the logo and how to start', async ($, on) 
   expect(await term.find({ type: 'Text', text: '●' })).toBeDefined()
 })
 
-test('once work starts, the dot and progress take the stage colour, or ochre when something needs you', async ($, on) => {
-  setup(on)
+test('once work starts, the band shows the stage and the project status, with what needs you in ochre', async ($, on) => {
+  const calls = setup(on)
   await start($)
-  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 5, status: 'building screen 3 of 5' })
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, stage: 'visual' })
   let band = await $.ui.mount(BAND(120, 'desktop'))
   expect(await band.find({ type: 'Svg' })).toBeUndefined()
-  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#E07A6E')
-  const bars: any[] = await band.findAll({ type: 'Text', text: '▬' }) as any
-  // nine equal steps: five done or current in coral, four still to do in grey
-  expect(bars.map(b => b.props.color)).toEqual(['#E07A6E', '#E07A6E', '#E07A6E', '#E07A6E', '#E07A6E', '#D6D6DC', '#D6D6DC', '#D6D6DC', '#D6D6DC'])
-  expect(await band.find({ type: 'Text', text: 'The design' })).toBeDefined()
+  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#E07A6E') // in progress: coral
+  expect(await band.find({ type: 'Text', text: 'Visual design' })).toBeDefined()
+  expect(await band.find({ type: 'Text', text: 'In progress' })).toBeDefined()
+  expect(await band.find({ type: 'Text', text: 'Step 5 of 9' })).toBeUndefined() // no step numbers
+  const bars: any[] = await band.findAll({ type: 'Text', text: '▬▬' }) as any
+  // four stages: two done in grey, visual design charcoal, review light
+  expect(bars.map(b => b.props.color)).toEqual(['#7E7E88', '#7E7E88', '#40404A', '#D6D6DC'])
   await band.unmount()
-  await $.tool.call({ tool: 'mcp__studio__story', step: 2, needs: '3 questions for you' })
+  await $.tool.call({ tool: 'mcp__studio__story', stage: 'brief', needs: '3 questions for you' })
   band = await $.ui.mount(BAND(120, 'desktop'))
-  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#B8862B')
+  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#E07A6E') // still the status colour
   expect((await band.find({ type: 'Text', text: '3 questions for you' }) as any)?.props.color).toBe('#8E6516')
   await band.unmount()
-  await $.tool.call({ tool: 'mcp__studio__story', step: 8, needs: '' })
+  calls.askAnswer = 'Yes, mark it feedback'
+  await $.tool.call({ tool: 'mcp__studio__story', stage: 'visual', needs: '', suggestStatus: 'Feedback' })
   band = await $.ui.mount(BAND(120, 'desktop'))
-  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#5E7D5B')
+  expect((await band.find({ type: 'Text', text: '●' }) as any)?.props.color).toBe('#4F6D8F') // feedback: dusk blue
+  expect(await band.find({ type: 'Text', text: 'Feedback' })).toBeDefined()
 })
 
 test('the hint under the prompt follows the step, and steps aside while typing', async ($, on) => {
@@ -179,9 +183,12 @@ test('the hint under the prompt follows the step, and steps aside while typing',
   const HINT = (isDraft: boolean) => ({ plugin: 'studio', component: 'PromptHint', requestId: 'hint', surface: 'desktop', viewport: { columns: 120, rows: 40 }, props: { isDraft, isWorking: false, hint: 'Claude’s own hint' } }) as any
   await (await $.ui.mount(HINT(false))).unmount()
   expect(seen.at(-1).hint).toBe('Paste a Jira story, or just describe what you’d like to design.')
-  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, step: 2 })
+  await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up' }, stage: 'visual' })
   await (await $.ui.mount(HINT(false))).unmount()
-  expect(seen.at(-1).hint).toBe('Answer the questions here or in the panel.')
+  expect(seen.at(-1).hint).toBe('Ask for changes in your own words. Each one is carried across every screen.')
+  await $.tool.call({ tool: 'mcp__studio__story', needs: 'your review' })
+  await (await $.ui.mount(HINT(false))).unmount()
+  expect(seen.at(-1).hint).toBe('Claude is waiting for you. Answer here, or in the panel.')
   await (await $.ui.mount(HINT(true))).unmount()
   expect(seen.at(-1).hint).toBe('Claude’s own hint')
 })

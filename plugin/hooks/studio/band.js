@@ -1,25 +1,34 @@
-// Studio: the band above the prompt (Figma pages 15 and 17).
+// Studio: the band above the prompt (Figma page 04, stages and status).
 //   Before any work:  [logo] studio  Paste a Jira story, or describe what you'd like
-//   Once work starts: ● studio  ▬▬▬▬▬▬▬▬  Step 5 of 9 · The design   [Stop]
-// The dot and progress bar take the stage's colour (the brief dusk, the design
-// coral, ready for developers sage), or ochre when something needs you, with
-// those words in ochre too. Nothing moves. Stop appears only while Claude is
-// working. No background or top line of Studio's own: the app draws the band's
-// box. Pure drawing.
-import { MIST, mark, stageOf } from './mist.js'
+//   Once work starts: ● studio  ▬▬ ▬▬ ▬▬ ▬▬  Visual design · In progress · your review   [Stop]
+// The dot shows the project status (grey not started, coral in progress, dusk
+// blue feedback, sage ready for dev). Four segments show the stages: done grey,
+// current charcoal, later light. What needs the designer is in ochre words.
+// No step numbers and no progress detail. Nothing moves. Stop only while
+// Claude works. No background of Studio's own: the app draws the band's box.
+import { MIST, mark, STAGE_LIST, STATUS_COLOR, stageIndex } from './mist.js'
 
 // The status parts for the band, from the story card (or its absence).
 export function statusParts(s) {
   const st = s.story
-  if (!st || !st.step) {
+  if (!st || !st.stage) {
     // No story card yet: while Claude works, say what it's doing; otherwise how to start.
-    if (s.working) return { parts: [(s.current && s.current.label) || 'Working'], needs: false, step: 0 }
-    return { parts: ['Paste a Jira story, or describe what you’d like'], needs: false, step: 0 }
+    if (s.working) return { parts: [(s.current && s.current.label) || 'Working'], needs: false, stage: -1 }
+    return { parts: ['Paste a Jira story, or describe what you’d like'], needs: false, stage: -1 }
   }
-  const step = Math.min(9, Math.max(1, Number(st.step) || 1))
-  // No progress detail (e.g. screen counts): only what's waiting for the designer, if anything.
-  const detail = st.needs || ''
-  return { parts: ['Step ' + step + ' of 9', stageOf(step).name, detail].filter(Boolean), needs: Boolean(st.needs), step }
+  const stage = stageIndex(st.stage)
+  return { parts: [STAGE_LIST[stage].name, st.projectStatus || 'In progress', st.needs || ''].filter(Boolean), needs: Boolean(st.needs), stage, status: st.projectStatus || 'In progress' }
+}
+
+// Four segments, one per stage: done stages grey, the current one charcoal, later ones light.
+export function stageBar(el, stage, key = 'band-stages') {
+  const { Box, Text } = el
+  const parts = []
+  STAGE_LIST.forEach((_, i) => {
+    if (i) parts.push(Text({ key: key + '-gap-' + i, children: ['\u2005'] }))
+    parts.push(Text({ key: key + '-' + i, color: i < stage ? MIST.muted : i === stage ? MIST.text : MIST.control, children: ['▬▬'] }))
+  })
+  return Box({ key, flexDirection: 'row', children: parts })
 }
 
 // A still progress bar of nine steps, made of text: equal bars with a
@@ -38,43 +47,42 @@ export function progress(el, step, color, key = 'band-progress') {
 
 export function drawBand(el, s, actions, columns) {
   const { Box, Text, Button } = el
-  const { parts, needs, step } = statusParts(s)
+  const { parts, needs, stage, status } = statusParts(s)
   const width = Math.max(20, columns || 80)
-  const color = !step ? null : needs ? MIST.needs : stageOf(step).color
+  const started = stage >= 0
 
-  const status = []
+  const words = []
   parts.forEach((p, i) => {
-    if (i) status.push(Text({ key: 'sep-' + i, color: MIST.muted, children: [' · '] }))
-    const last = i === parts.length - 1
-    if (!step) status.push(Text({ key: 'status-' + i, color: MIST.muted, wrap: 'truncate-end', children: [p] }))
-    else if (last && needs) status.push(Box({ key: 'status-needs', children: [Text({ key: 'status-' + i, color: MIST.needsText, bold: true, wrap: 'truncate-end', children: [p] })] }))
-    else status.push(Text({ key: 'status-' + i, color: last ? MIST.text : MIST.muted, bold: last, wrap: 'truncate-end', children: [p] }))
+    if (i) words.push(Text({ key: 'sep-' + i, color: MIST.muted, children: [' · '] }))
+    const isNeeds = needs && i === parts.length - 1
+    if (!started) words.push(Text({ key: 'status-' + i, color: MIST.muted, wrap: 'truncate-end', children: [p] }))
+    else if (isNeeds) words.push(Box({ key: 'status-needs', children: [Text({ key: 'status-' + i, color: MIST.needsText, bold: true, wrap: 'truncate-end', children: [p] })] }))
+    else words.push(Text({ key: 'status-' + i, color: i === 0 ? MIST.text : MIST.muted, bold: i === 0, wrap: 'truncate-end', children: [p] }))
   })
 
   const row = [
-    mark(el, s.surface, 'band-mark', color),
-    ...(step && width >= 60 ? [progress(el, step, color)] : []),
-    Box({ key: 'status', flexDirection: 'row', flexGrow: 1, flexShrink: 1, children: status }),
+    mark(el, s.surface, 'band-mark', started ? STATUS_COLOR[status] : null),
+    ...(started && width >= 60 ? [stageBar(el, stage)] : []),
+    Box({ key: 'status', flexDirection: 'row', flexGrow: 1, flexShrink: 1, children: words }),
   ]
   if (s.working) row.push(Button({ key: 'band-stop', label: 'Stop', hotkey: '3', plain: true, onPress: actions.stop }))
   return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 2, alignItems: 'center', width, children: row })
 }
 
-// The hint under the prompt for each step (Figma page 15).
+// The hint under the prompt: what to do now, by stage (Figma page 04).
 export const HINTS = {
-  0: 'Paste a Jira story, or just describe what you’d like to design.',
-  1: 'Paste a Jira story, or just describe what you’d like to design.',
-  2: 'Answer the questions here or in the panel.',
-  3: 'Choose the Figma file and page, a branch, and the level.',
-  4: 'Say yes when the plan looks right, or ask for changes.',
-  5: 'Claude is building in Figma. Press Stop to pause it.',
-  6: 'Ask for changes in your own words. Each one is carried across every screen.',
-  7: 'Claude is checking the screens against the story.',
-  8: 'Annotations or state pages next. A coded prototype only if you ask.',
-  9: 'Tick off the handover checklist in the panel.',
+  none: 'Paste a Jira story, or just describe what you’d like to design.',
+  needs: 'Claude is waiting for you. Answer here, or in the panel.',
+  working: 'Claude is working. Press Stop to pause it.',
+  brief: 'Answer Claude’s questions, and say where in Figma the work should go.',
+  concepting: 'Ask for changes in your own words, or say when it’s ready for visual design.',
+  visual: 'Ask for changes in your own words. Each one is carried across every screen.',
+  review: 'Tick off the handover checklist in the panel, or ask Claude to help with it.',
 }
 export function hintFor(s) {
   const st = s.story
-  const step = st && st.step ? Math.min(9, Math.max(1, Number(st.step) || 1)) : 0
-  return HINTS[step]
+  if (!st || !st.stage) return HINTS.none
+  if (st.needs) return HINTS.needs
+  if (s.working) return HINTS.working
+  return HINTS[st.stage] || HINTS.none
 }
