@@ -5,8 +5,8 @@
 // in Figma, questions can be answered here, and checklist items can ask Claude
 // for the next step. Claude fills it in with the story tool. No background of
 // its own: the app draws the panel's box and its "Studio" header.
-import { MIST, stageOf, logoTight } from './mist.js'
-import { progress } from './band.js'
+import { MIST, logoTight, STAGE_LIST, PROJECT_STATUSES, STATUS_COLOR, stageIndex } from './mist.js'
+import { stageBar } from './band.js'
 
 const GLYPH = { done: '✓', now: '●', todo: '○', need: '!', none: '—' }
 const CHECK = { done: '☑', todo: '☐', now: '☐', need: '☐', none: '—' }
@@ -44,7 +44,7 @@ function itemRow(el, it, i, key, ctx) {
   const rows = [Box({ key: k, flexDirection: 'row', columnGap: 1, children: [
     ...(drawn
       // A new name for each look, so the app never shows an old picture
-      ? [Svg({ key: k + '-box-' + (state === 'todo' || state === 'now' ? 'todo' : state) + '-' + ctx.color.slice(1), source: checkbox(state, ctx.color), alt: state === 'done' ? 'Done' : state === 'none' ? 'Not needed' : 'To do', width: 16, height: 16 })]
+      ? [Svg({ key: k + '-box-' + (state === 'todo' || state === 'now' ? 'todo' : state) + '-sage', source: checkbox(state, MIST.ready), alt: state === 'done' ? 'Done' : state === 'none' ? 'Not needed' : 'To do', width: 16, height: 16 })]
       : glyph ? [Text({ key: k + '-g', color: glyphColor, weight: 'semibold', children: [glyph] })] : []),
     Box({ key: k + '-body', flexDirection: 'column', flexGrow: 1, flexShrink: 1, children: body }),
     ...right,
@@ -79,21 +79,30 @@ function card(el, sec, i, color, actions, answers, surface) {
     borderStyle: 'round', borderColor: needs ? MIST.needs : MIST.card, children })
 }
 
-function storyHead(el, st) {
-  const { Box, Text } = el
+// The top of the panel (Figma page 04): the story, the project status (a
+// dropdown only the designer uses), the four stage segments, and the stage.
+function storyHead(el, st, actions) {
+  const { Box, Text, Select } = el
   const story = st.story || {}
-  const step = Math.min(9, Math.max(1, Number(st.step) || 1))
-  const stage = stageOf(step)
-  const color = st.needs ? MIST.needs : stage.color
-  const line = [stage.name, st.needs].filter(Boolean).join(' · ')
-  return Box({ key: 'story', flexDirection: 'column', paddingX: 1, children: [
-    // A Jira story shows its key; work without one just shows the step.
-    Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [(story.key ? [story.key, 'Jira story', 'step ' + step + ' of 9'] : ['Step ' + step + ' of 9']).join(' · ')] }),
+  const stage = stageIndex(st.stage)
+  const status = st.projectStatus || 'In progress'
+  return Box({ key: 'story', flexDirection: 'column', rowGap: 0, paddingX: 1, children: [
+    ...(story.key ? [Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [story.key + ' · Jira story'] })] : []),
     Text({ key: 'story-title', size: 'title', weight: 'semibold', color: MIST.text, wrap: 'wrap', children: [String(story.title || 'Untitled story')] }),
     ...(story.key ? [Text({ key: 'story-doc', size: 'footnote', color: MIST.muted, children: [story.hasDesignDoc ? 'Technical design in Confluence' : 'No technical design yet · optional, but encouraged'] })] : []),
-    progress(el, step, color, 'pane-progress'),
-    Text({ key: 'story-stage', size: 'footnote', weight: 'medium', color: st.needs ? MIST.needsText : color, wrap: 'wrap', children: [line] }),
+    Box({ key: 'story-status', flexDirection: 'row', columnGap: 1, alignItems: 'center', marginTop: 1, children: [
+      Text({ key: 'story-status-dot', color: STATUS_COLOR[status], children: ['●'] }),
+      Select({ key: 'story-status-select', label: 'Status', value: status, options: PROJECT_STATUSES.map(v => ({ value: v, label: v })), onSelect: v => actions.setStatus(v) }),
+    ] }),
+    stageBar(el, stage, 'pane-stages'),
+    Text({ key: 'story-stage', size: 'footnote', weight: 'medium', color: st.needs ? MIST.needsText : MIST.text, wrap: 'wrap', children: [[STAGE_LIST[stage].name, st.needs].filter(Boolean).join(' · ')] }),
   ] })
+}
+
+// The Stages card: done, current, still to come.
+function stagesCard(st) {
+  const stage = stageIndex(st.stage)
+  return { title: 'Stages', items: STAGE_LIST.map((x, i) => ({ text: x.name, state: i < stage ? 'done' : i === stage ? 'now' : 'todo' })) }
 }
 
 export function drawPane(el, s, actions, columns) {
@@ -128,13 +137,13 @@ export function drawPane(el, s, actions, columns) {
       Button({ key: 'footer-guide', label: 'How Studio works', plain: true, onPress: () => actions.guide() }),
     ] }))
   } else {
-    const step = Math.min(9, Math.max(1, Number(st.step) || 1))
-    const color = stageOf(step).color
-    children.push(storyHead(el, st))
+    children.push(storyHead(el, st, actions))
     const list = Array.isArray(st.sections) ? st.sections : []
-    // What needs the designer comes first.
-    const ordered = [...list.filter(x => x && x.needs), ...list.filter(x => x && !x.needs)]
-    ordered.forEach((sec, i) => children.push(card(el, sec, i, color, actions, s.answers || {}, s.surface)))
+    const needing = list.filter(x => x && x.needs)
+    // What needs the designer comes first: Claude's own cards, or a Needs you card.
+    const firsts = needing.length ? needing : st.needs ? [{ title: 'Needs you', needs: true, items: [{ text: String(st.needs).replace(/^./, c => c.toUpperCase()) }] }] : []
+    const ordered = [...firsts, stagesCard(st), ...list.filter(x => x && !x.needs)]
+    ordered.forEach((sec, i) => children.push(card(el, sec, i, MIST.coral, actions, s.answers || {}, s.surface)))
   }
   return Box({ key: 'studio-pane', flexDirection: 'column', rowGap: 1, width: Math.max(20, columns || 40), children })
 }

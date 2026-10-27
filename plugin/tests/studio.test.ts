@@ -236,7 +236,7 @@ test('Claude’s story updates fill the panel: the story, its progress, and what
   expect(await band.find({ type: 'Text', text: '2 questions for you' })).toBeDefined()
   await band.unmount()
   const pane = await $.ui.mount(PANE())
-  expect(await pane.find({ type: 'Text', text: 'SIGN-142 · Jira story · step 2 of 9' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'SIGN-142 · Jira story' })).toBeDefined()
   expect((await pane.find({ type: 'Text', text: 'Faster sign-up' }) as any)?.props.size).toBe('title')
   expect(await pane.find({ type: 'Text', text: 'Technical design in Confluence' })).toBeDefined()
   expect((await pane.find({ type: 'Text', text: 'Questions for you' }) as any)?.props.color).toBe('#8E6516')
@@ -250,8 +250,8 @@ test('Claude’s story updates fill the panel: the story, its progress, and what
   await $.tool.call({ tool: 'mcp__studio__story', step: 5, status: 'building screen 3 of 6', needs: '' })
   const pane2 = await $.ui.mount(PANE())
   expect(await pane2.find({ type: 'Text', text: 'Faster sign-up' })).toBeDefined()
-  expect(await pane2.find({ type: 'Text', text: 'The design' })).toBeDefined()
-  expect(await pane2.find({ type: 'Text', text: 'The design · building screen 3 of 6' })).toBeUndefined() // no progress detail
+  expect(await pane2.find({ type: 'Text', text: 'Visual design' })).toBeDefined()
+  expect(await pane2.find({ type: 'Text', text: 'Visual design · building screen 3 of 6' })).toBeUndefined() // no progress detail
 })
 
 test('questions can be answered in the panel, and the answers go to Claude as the designer’s message', async ($, on) => {
@@ -280,7 +280,7 @@ test('items can link to their frame in Figma, and checklist items can ask Claude
   const term = await $.ui.mount(PANE('terminal'))
   expect(await term.find({ type: 'Text', text: '☐' })).toBeDefined() // ☐ in the terminal
   await term.unmount()
-  await pane.press({ key: 'sec-1-i0-act' })
+  await pane.press({ key: 'sec-2-i0-act' }) // after the Stages card and Screens
   expect(calls.prompts.at(-1)).toBe('Mock up the presentation for stakeholders in Figma')
 })
 
@@ -399,7 +399,7 @@ test('without a Jira story, the band says what Claude is doing, and a task card 
   await band.unmount()
   await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { title: 'Sign-up screen tweaks' }, step: 5, status: 'building' })
   const pane = await $.ui.mount(PANE())
-  expect(await pane.find({ type: 'Text', text: 'Step 5 of 9' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Visual design' })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: 'Sign-up screen tweaks' })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: 'No technical design yet · optional, but encouraged' })).toBeUndefined()
 })
@@ -425,4 +425,19 @@ test('Claude can’t set the status; a suggestion asks the designer, and only Ye
   r = await $.tool.call({ tool: 'mcp__studio__story', suggestStatus: 'Ready for dev' })
   expect(String(r.result)).toMatch(/now Ready for dev/)
   expect(calls.store.get('story:sess-1')).toMatchObject({ projectStatus: 'Ready for dev' })
+})
+
+test('the panel shows the status dropdown, the Stages card and a Needs you card', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SIGN-142', title: 'Faster sign-up' }, stage: 'visual', needs: 'your review' })
+  const pane = await $.ui.mount(PANE())
+  expect(await pane.find({ type: 'Text', text: 'Needs you' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Your review' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Stages' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'Concepting' })).toBeDefined()
+  expect(await pane.find({ type: 'Text', text: 'step 5 of 9' })).toBeUndefined()
+  // Choosing in the dropdown changes the status straight away
+  await pane.select({ key: 'story-status-select', value: 'Feedback' })
+  expect(calls.store.get('story:sess-1')).toMatchObject({ projectStatus: 'Feedback' })
 })

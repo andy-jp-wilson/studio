@@ -31,20 +31,6 @@ export function stageBar(el, stage, key = 'band-stages') {
   return Box({ key, flexDirection: 'row', children: parts })
 }
 
-// A still progress bar of nine steps, made of text: equal bars with a
-// quarter-width space between them; done and current in colour, the rest grey.
-const BAR = '▬', GAP = '\u2005'
-
-export function progress(el, step, color, key = 'band-progress') {
-  const { Box, Text } = el
-  const parts = []
-  for (let i = 1; i <= 9; i++) {
-    if (i > 1) parts.push(Text({ key: key + '-gap-' + i, children: [GAP] }))
-    parts.push(Text({ key: key + '-' + i, color: i <= step ? color : MIST.control, children: [BAR] }))
-  }
-  return Box({ key, flexDirection: 'row', children: parts })
-}
-
 export function drawBand(el, s, actions, columns) {
   const { Box, Text, Button } = el
   const { parts, needs, stage, status } = statusParts(s)

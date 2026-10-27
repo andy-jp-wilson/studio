@@ -18,14 +18,6 @@ export const MIST = {
   needsText: '#8E6516',    // words that need you, darker ochre for contrast
 }
 
-// The three stages of the journey, by step.
-export const STAGES = [
-  { name: 'The brief', steps: [1, 2, 3], color: MIST.brief },
-  { name: 'The design', steps: [4, 5, 6], color: MIST.coral },
-  { name: 'Ready for developers', steps: [7, 8, 9], color: MIST.ready },
-]
-export const stageOf = step => STAGES.find(s => s.steps.includes(step)) || STAGES[0]
-
 // Studio 0.5 (Figma page 04): four stages that follow a designer's workflow,
 // and a project status that only the designer sets.
 export const STAGE_LIST = [
