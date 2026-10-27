@@ -1,5 +1,5 @@
 // Studio: the band above the prompt (Figma page 04, stages and status).
-//   Before any work:  [logo] studio  Paste a user story, or describe what you'd like
+//   Before any work:  [logo] studio  Paste a user story, or describe what you'd like to do
 //   Once work starts: ● studio  ▬▬ ▬▬ ▬▬ ▬▬  Visual design · In progress · your review   [Stop]
 // The dot shows the project status (grey not started, coral in progress, dusk
 // blue feedback, sage ready for dev). Four segments show the stages: done grey,
@@ -14,7 +14,7 @@ export function statusParts(s) {
   if (!st || !st.stage) {
     // No story card yet: while Claude works, say what it's doing; otherwise how to start.
     if (s.working) return { parts: [(s.current && s.current.label) || 'Working'], needs: false, stage: -1 }
-    return { parts: ['Paste a user story, or describe what you’d like'], needs: false, stage: -1 }
+    return { parts: ['Paste a user story, or describe what you’d like to do'], needs: false, stage: -1 }
   }
   const stage = stageIndex(st.stage)
   return { parts: [STAGE_LIST[stage].name, st.projectStatus || 'In progress', st.needs || ''].filter(Boolean), needs: Boolean(st.needs), stage, status: st.projectStatus || 'In progress' }
@@ -57,7 +57,7 @@ export function drawBand(el, s, actions, columns) {
 
 // The hint under the prompt: what to do now, by stage (Figma page 04).
 export const HINTS = {
-  none: 'Paste a user story, or just describe what you’d like to design.',
+  none: 'Paste a user story, or describe what you’d like to do.',
   needs: 'Claude is waiting for you. Answer here, or in the panel.',
   working: 'Claude is working. Press Stop to pause it.',
   brief: 'Answer Claude’s questions, and say where in Figma the work should go.',

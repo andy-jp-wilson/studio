@@ -122,7 +122,7 @@ export function drawPane(el, s, actions, columns) {
       Text({ key: 'welcome-name', size: 'title', weight: 'semibold', color: MIST.text, children: ['Studio'] }),
       Text({ key: 'welcome-tagline', color: MIST.muted, wrap: 'wrap', children: ['Clearer, calmer Claude Code for designers'] }),
     ] }))
-    const steps = ['Paste a user story, or describe what you’d like', 'Answer Claude’s questions', 'Review the design in Figma']
+    const steps = ['Paste a user story, or describe what you’d like to do', 'Answer Claude’s questions', 'Review the design in Figma']
     children.push(Box({ key: 'start', flexDirection: 'column', paddingX: 2, paddingY: 1, backgroundColor: MIST.card, borderStyle: 'round', borderColor: MIST.card, children: [
       Text({ key: 'start-title', size: 'heading', weight: 'semibold', color: MIST.text, children: ['Start here'] }),
       ...steps.map((t, i) => Box({ key: 'start-' + i, flexDirection: 'row', columnGap: 1, children: [
