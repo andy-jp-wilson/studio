@@ -17,6 +17,8 @@ If the person named a word ($ARGUMENTS), explain just that one. Otherwise show t
 | Project status | Where the whole project stands: not started, in progress, feedback or ready for dev. Only you set it. |
 | Needs you | Claude is waiting for your answer or your yes. Shown in ochre, separate from the status. |
 | Project template | Five pages Studio can add to a project's Figma file, so every project looks the same: Cover, User story, Concept, Final design and Designer notes. Optional. |
+| Designer notes | A page in the project's Figma file saying where it stands: stage, status, decisions, open questions, what's next. Claude updates it only when you say yes. |
+| Pick up | Carrying on someone else's project: say "pick up SIGN-142" and Claude reads their Designer notes (without changing anything) and plays back where it's at. |
 | Design system | Your team's shared components, styles and variables in Figma. Claude builds only with these, and never changes them. |
 | Figma branch | A copy of a Figma file where work happens without touching the main file, until you merge it. Claude can't make one, so you make it and paste its link. |
 | Annotation | A note in Figma beside a design, explaining how something behaves. |

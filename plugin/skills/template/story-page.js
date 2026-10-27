@@ -32,6 +32,7 @@ const text = (chars, size, style, color, width) => {
   t.fontName = { family: 'Inter', style }
   t.fontSize = size
   t.characters = chars
+  t.name = chars
   t.fills = solid(color)
   t.lineHeight = { unit: 'PERCENT', value: 140 }
   if (width) { t.resize(width, t.height); t.textAutoResize = 'HEIGHT' }

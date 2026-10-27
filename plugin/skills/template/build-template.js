@@ -60,6 +60,7 @@ const text = (chars, size, style, color, width) => {
   t.fontName = { family: 'Inter', style }
   t.fontSize = size
   t.characters = chars
+  t.name = chars
   t.fills = solid(color)
   if (width) { t.resize(width, t.height); t.textAutoResize = 'HEIGHT' }
   return t

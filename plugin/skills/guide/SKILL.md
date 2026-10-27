@@ -38,6 +38,11 @@ The **status** is for the whole project, and only you set it:
 - **The band** (above where you type) shows the Studio logo before any work, then the stage and status, for example "Visual design · In progress". The dot's colour is the status: grey not started, coral in progress, dusk blue feedback, sage ready for dev. Four segments show the stages. Anything waiting for you is added in ochre. **Stop** appears while Claude is working, and the hint under where you type says what to do next.
 - **The Studio panel** (beside the conversation; `/panel` opens it) starts with a welcome, then follows the story: the title, the status dropdown, the stages, and cards for what matters now, with what needs you first, outlined in ochre. You can answer Claude's questions there, open the Figma page, and tick off the handover checklist.
 
+## Passing work on
+
+- **Leave notes for the team:** say it any time, for example before annual leave. Claude updates the **Designer notes** page in the project's Figma file: where it stands, decisions, open questions, what's next, key frames and history, plus the cover's status. It asks first, every time. Studio also offers it when you set the status to Feedback or Ready for dev.
+- **Pick up a project:** say "pick up SIGN-142" and give the Figma file. Claude reads the notes without changing anything, fills in the panel and plays back where it's at.
+
 ## Your work is safe
 
 - **Design system files are never changed.** Studio refuses any change to them, even if asked.

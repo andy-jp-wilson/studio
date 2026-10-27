@@ -139,6 +139,11 @@ function projectNote() {
     ' If the person asks for design work, offer /setup (a short chat) or ask for the Figma file’s link. Only make HTML or CSS files if they ask for a coded prototype.' + (notes.dsName ? ds : '')
 }
 
+// Designer notes (skills/notes): offered when the status becomes one of these.
+const NOTES_MOMENTS = ['Feedback', 'Ready for dev']
+const NOTES_YES = 'Yes, update the notes'
+const notesQuestion = (card, status) => 'You marked ' + ((card.story && (card.story.key || card.story.title)) || 'this project') + ' as ' + status + '. Update the Designer notes, so the team can see where it’s at?'
+
 // Figma files the designer said yes to in this conversation (Studio's own question).
 let figmaYes = new Set()
 let sessionId = ''
@@ -209,9 +214,16 @@ function actionsFor($) {
     // The designer sets the project status (the panel's dropdown, in S3).
     setStatus: async status => {
       if (!PROJECT_STATUSES.includes(status) || !storyCard) return
+      const changed = status !== storyCard.projectStatus
       storyCard = { ...storyCard, projectStatus: status }
       try { if (storyKey) await $.store.set(storyKey, storyCard) } catch {}
       $.ui.invalidate('ui.render')
+      // Shared for feedback, or ready for dev: a natural moment to leave notes for the team.
+      if (changed && NOTES_MOMENTS.includes(status) && notes.figmaUrl) {
+        let answer = ''
+        try { answer = await $.ui.ask(notesQuestion(storyCard, status), [NOTES_YES, 'Not now']) } catch { answer = '' }
+        if (answer === NOTES_YES) $.prompt.submit({ text: 'Leave notes for the team.', asUser: true }).catch(() => {})
+      }
     },
     // A checklist item's button: the designer asks Claude for that next step.
     ask: text => { $.prompt.submit({ text: String(text), asUser: true }).catch(() => {}) },
@@ -263,7 +275,11 @@ export function register(on) {
       const yes = 'Yes, mark it ' + e.suggestStatus.toLowerCase()
       let answer = ''
       try { answer = await $.ui.ask(question, [yes, 'Not yet']) } catch { answer = '' }
-      if (answer === yes) { storyCard = { ...storyCard, projectStatus: e.suggestStatus }; asked = ' The designer said yes: the project status is now ' + e.suggestStatus + '.' }
+      if (answer === yes) {
+        storyCard = { ...storyCard, projectStatus: e.suggestStatus }
+        asked = ' The designer said yes: the project status is now ' + e.suggestStatus + '.' +
+          (NOTES_MOMENTS.includes(e.suggestStatus) && notes.figmaUrl ? ' Offer once to leave notes for the team (the notes skill), so whoever picks the project up can see where it is.' : '')
+      }
       else asked = ' The designer didn’t change the project status' + (answer && answer !== 'Not yet' ? ' and said: "' + answer + '"' : '') + '; it stays ' + storyCard.projectStatus + '.'
       try { if (storyKey) await $.store.set(storyKey, storyCard) } catch {}
       $.ui.invalidate('ui.render')

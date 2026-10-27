@@ -471,3 +471,28 @@ test('a project with the template set up sends work to its Concept and Final des
   const r: any = await $.prompt.compose(COMPOSE)
   expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/Concept page and visual design on its Final design page/)
 })
+
+test('setting the status to Feedback offers to update the Designer notes, and Yes asks Claude to', async ($, on) => {
+  const calls = setup(on, { 'project-notes': NOTES })
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SIGN-142', title: 'Faster sign-up' }, stage: 'visual' })
+  calls.askAnswer = 'Yes, update the notes'
+  const pane = await $.ui.mount(PANE())
+  await pane.select({ key: 'story-status-select', value: 'Feedback' })
+  expect(JSON.stringify(calls.asks.at(-1))).toMatch(/You marked SIGN-142 as Feedback\. Update the Designer notes/)
+  expect(calls.prompts).toContain('Leave notes for the team.')
+  // Not now leaves the notes alone
+  const before = calls.prompts.length
+  calls.askAnswer = 'Not now'
+  await pane.select({ key: 'story-status-select', value: 'Ready for dev' })
+  expect(calls.prompts.length).toBe(before)
+})
+
+test('a yes to a suggested Ready for dev tells Claude to offer notes for the team', async ($, on) => {
+  const calls = setup(on, { 'project-notes': NOTES })
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SIGN-142', title: 'Faster sign-up' }, stage: 'review' })
+  calls.askAnswer = 'Yes, mark it ready for dev'
+  const r: any = await $.tool.call({ tool: 'mcp__studio__story', suggestStatus: 'Ready for dev' })
+  expect(String(r.result)).toMatch(/Offer once to leave notes for the team/)
+})

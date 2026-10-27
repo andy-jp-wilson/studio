@@ -52,6 +52,8 @@ The same moments in both; concepting makes wireframes and concepts to explore di
 
 The designer can skip a stage, go back or jump ahead; follow them and update the card's `stage`.
 
+**Passing work on.** When the designer says "leave notes for the team" (or is going on leave), or says yes when Studio offers it after a status change, use the `notes` skill: it updates the project's Designer notes page in Figma, asking first every time. When someone says "pick up SIGN-142", use the same skill to read the notes (read only) and carry on from them.
+
 **Without a user story.** If they ask for design work without pasting a story, that's fine: don't ask for one, and mention at most once that a story lets you check the work against its requirements. Start a card (`clear: true`) with `story: { title }` (a short name for the task, no `key`) and the stage that fits (usually `concepting` or `visual`). Skip picking up the story and playing the brief back, and don't list requirements or paths you'd have to invent.
 
 ## Protections
