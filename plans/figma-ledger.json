@@ -4,10 +4,11 @@
     "00 Cover": "0:1",
     "01 Foundations": "73:2",
     "02 Designer journey": "33:2",
-    "03 Studio 0.4.7 · as built": "66:2",
     "---": "divider",
     "Archive · (18 pages, oldest first)": "see the file",
-    "04 Stages and status · proposal": "100:7"
+    "03 Studio 0.5 · as built": "100:7",
+    "Archive · As built, Studio 0.4.7": "66:2",
+    "Share · Team reveal": "82:7"
   },
   "collections": {
     "Primitives": "VariableCollectionId:3:6",
