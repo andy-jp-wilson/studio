@@ -82,13 +82,15 @@ function card(el, sec, i, color, actions, answers, surface) {
 // The top of the panel (Figma page 04): the story, the project status (a
 // dropdown only the designer uses), the four stage segments, and the stage.
 function storyHead(el, st, actions) {
-  const { Box, Text, Select } = el
+  const { Box, Text, Select, Link } = el
   const story = st.story || {}
   const stage = stageIndex(st.stage)
   const status = st.projectStatus || 'In progress'
   return Box({ key: 'story', flexDirection: 'column', rowGap: 0, paddingX: 1, children: [
     ...(story.key ? [Text({ key: 'story-key', size: 'caption', weight: 'medium', color: MIST.muted, children: [story.key + ' · User story'] })] : []),
     Text({ key: 'story-title', size: 'title', weight: 'semibold', color: MIST.text, wrap: 'wrap', children: [String(story.title || 'Untitled story')] }),
+    // The user story itself, one click away (Jira links say so; any other story link is "Open user story")
+    ...(story.link ? [Link({ key: 'story-link', href: story.link, label: (/atlassian\.net|jira/i.test(story.link) ? 'Open in Jira' : 'Open user story') + ' ↗' })] : []),
     ...(story.key ? [Text({ key: 'story-doc', size: 'footnote', color: MIST.muted, children: [story.hasDesignDoc ? 'Technical design in Confluence' : 'No technical design yet · optional, but encouraged'] })] : []),
     Box({ key: 'story-status', flexDirection: 'row', columnGap: 1, alignItems: 'center', marginTop: 1, children: [
       Text({ key: 'story-status-dot', color: STATUS_COLOR[status], children: ['●'] }),

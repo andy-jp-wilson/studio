@@ -30,6 +30,7 @@ const STORY_TOOL = {
         key: { type: 'string', description: 'The Jira key, e.g. SIGN-142. Leave out for work without a user story.' },
         title: { type: 'string', description: 'The story title, short; for work without a story, a short name for the task, e.g. "Sign-up screen tweaks".' },
         hasDesignDoc: { type: 'boolean', description: 'True if a Confluence technical design document was given.' },
+        link: { type: 'string', description: 'The https link to the user story in Jira, shown in the panel as "Open in Jira ↗". Leave out if you don’t have it.' },
       } },
       stage: { type: 'string', enum: STAGE_LIST.map(s => s.id), description: 'Where the work is: brief, concepting, visual or review.' },
       suggestStatus: { type: 'string', enum: PROJECT_STATUSES, description: 'Suggest a new project status. Studio asks the designer (Yes / Not yet) and tells you the answer; nothing changes without their yes. Use it when they ask for a status change, when they say they’ve shared the design for feedback (Feedback), and when the handover checklist is all done (Ready for dev).' },
@@ -57,7 +58,12 @@ const STORY_TOOL = {
 
 function applyStory(card, e) {
   const next = e.clear ? {} : { ...(card || {}) }
-  if (e.story && typeof e.story === 'object') next.story = { ...(next.story || {}), ...e.story }
+  if (e.story && typeof e.story === 'object') {
+    const { link, ...rest } = e.story
+    next.story = { ...(next.story || {}), ...rest }
+    // The story's own link (https only, no raw @), shown as "Open in Jira ↗"
+    if (typeof link === 'string' && /^https:\/\/[^\s@]+$/.test(link) && link.length <= 2048) next.story.link = link
+  }
   // The stage (Studio 0.5); an older step number is still understood.
   if (STAGE_STEP[e.stage]) { next.stage = e.stage; next.step = STAGE_STEP[e.stage] }
   else if (e.step != null) { next.step = Math.min(9, Math.max(1, Math.round(Number(e.step)) || 1)); next.stage = stageOfStep(next.step) }

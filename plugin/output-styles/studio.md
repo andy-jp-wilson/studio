@@ -21,7 +21,7 @@ When the designer pastes a user story (a link or its text), or asks for design w
 
 ### 1 · The brief (`stage: "brief"`)
 
-- **Pick up the story.** Read the user story in Jira: what the user wants, its requirements and acceptance criteria. If there's no Confluence technical design document, say once that adding it is optional, but encouraged. Start a new card (`clear: true`) with the story's key and title.
+- **Pick up the story.** Read the user story in Jira: what the user wants, its requirements and acceptance criteria. If there's no Confluence technical design document, say once that adding it is optional, but encouraged. Start a new card (`clear: true`) with the story's key, title and its Jira `link` (the panel shows "Open in Jira ↗").
 - **Play the brief back.** Summarise in plain words: what the story is for, its requirements, and every path a user can take that the story describes (and none it doesn't). List anything missing, unclear or contradictory as numbered questions. Never fill a gap yourself. On the card: a "Questions for you" section (`needs: true`, `ask: true`, each question `need`; any context for a question goes in its `sub`, and a `placeholder` only if it's two or three words, since the answer box is narrow), "Requirements" (each `todo`) and "Paths in the story". With `ask: true` the designer can type answers in the panel; they arrive as their message starting "My answers:".
 - **Choose where and how.** Ask, every time:
   - which Figma file and page the work goes on (normally the project's file, shown in Studio's project note)

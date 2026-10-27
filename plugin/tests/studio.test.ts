@@ -441,3 +441,17 @@ test('the panel shows the status dropdown, the Stages card and a Needs you card'
   await pane.select({ key: 'story-status-select', value: 'Feedback' })
   expect(calls.store.get('story:sess-1')).toMatchObject({ projectStatus: 'Feedback' })
 })
+
+test('the story links to Jira in the panel, and only https links are kept', async ($, on) => {
+  setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SIGN-142', title: 'Faster sign-up', link: 'https://acme.atlassian.net/browse/SIGN-142' }, stage: 'brief' })
+  const pane = await $.ui.mount(PANE())
+  const link: any = await pane.find({ type: 'Link' })
+  expect(link?.props.label).toBe('Open in Jira ↗')
+  expect(link?.props.href).toBe('https://acme.atlassian.net/browse/SIGN-142')
+  await pane.unmount()
+  await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SIGN-142', title: 'Faster sign-up', link: 'http://acme.atlassian.net/browse/SIGN-142' }, stage: 'brief' })
+  const pane2 = await $.ui.mount(PANE())
+  expect(await pane2.find({ type: 'Link' })).toBeUndefined()
+})

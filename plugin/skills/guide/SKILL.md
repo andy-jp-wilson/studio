@@ -77,7 +77,7 @@ You never need one; just ask in your own words. These are there if you like them
 
 ## Setting Studio up for a team
 
-Studio only needs one team setting: the list of design systems. The first person adds them during `/setup`, and can save a small team file to share (`studio-team export` puts it on the Desktop). Everyone else drags that file in during `/setup`. It stays on each computer; nothing is uploaded. `team/studio-team-setup.md` in Studio's folder explains it, with a checklist.
+A team shares a few settings: the list of design systems, and optionally the team logo for project covers and the page canvas colour (#F5F5F5 unless the team picks another). The first person adds them during `/setup`, and can save a small team file to share (`studio-team export` puts it on the Desktop). Everyone else drags that file in during `/setup`. It stays on each computer; nothing is uploaded. `team/studio-team-setup.md` in Studio's folder explains it, with a checklist.
 
 ---
 

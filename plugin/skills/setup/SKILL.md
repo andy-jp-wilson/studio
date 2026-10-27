@@ -18,7 +18,7 @@ Use the helper `studio-project` (already allowed) to read and remember answers. 
 
 ## Where things stand
 
-Run `studio-project status` and `studio-team show` (the team's design systems, as `STUDIO_DESIGN_SYSTEMS=Name | link; …`, or `none`).
+Run `studio-project status` and `studio-team show` (the team's settings as KEY=value lines, or `none`: `STUDIO_DESIGN_SYSTEMS=Name | link; …`, `STUDIO_TEAM_LOGO=<Figma link>`, `STUDIO_CANVAS_COLOR=#RRGGBB`).
 
 - If everything is done, show a short tick list and ask whether they want to **recheck** Figma or **change** an answer. Don't redo steps unasked.
 - If nothing is done on this computer yet (`computer` is empty), start with a short welcome, three lines at most: "Studio works inside Claude Code, the version of Claude that connects to Figma and your design system. That's what lets it build your designs in Figma from a user story, check them and get them ready for developers. For quick idea exploration, Claude Design is great too; `/guide which Claude` explains when to use which."
@@ -49,11 +49,20 @@ If the team has a design systems list:
 - One: "Your team uses **<name>**. Is that the one for this project?"
 - Several: "Which design system is this project using?" with each by name as a choice (a team may have a newer one and an older one still in use). They can also say none, or paste a different link.
 
-If there's no list, ask whether someone on the team shared a **team file** (a small file ending in `.studio-team.json`); that's the recommended way. If they drag one in, run `studio-team read <path>`, show the design systems in it, and ask before saving them for every project on this computer with `studio-team set STUDIO_DESIGN_SYSTEMS "<what it printed>"` (Claude Code asks them to allow it). Otherwise ask: "Does this project use a design system or component library? If so, paste the Figma link to its library file." Don't name or suggest any particular one. No design system is fine: say Studio works without one, and move on.
+If there's no list, ask whether someone on the team shared a **team file** (a small file ending in `.studio-team.json`); that's the recommended way. If they drag one in, run `studio-team read <path>`. It prints one line per setting in the file. Show what's in it in plain words (the design systems by name, "your team's logo for project covers", "page canvas colour #F5F5F5") and ask once before saving them for every project on this computer, then run `studio-team set <KEY> "<value>"` for each line (Claude Code asks them to allow it). Otherwise ask: "Does this project use a design system or component library? If so, paste the Figma link to its library file." Don't name or suggest any particular one. No design system is fine: say Studio works without one, and move on.
 
 Check the link: it must be a `figma.com/design/…` or `figma.com/file/…` link. Call `get_metadata` with its file key (no node id) to read its pages; if that fails, explain plainly (the link may be wrong, or this account can't open it) and ask for another. Show the file name and pages and ask "Is **<name>** the design system this project uses?" (skip that question for one picked from the team's list, but still read it, so a broken link is caught).
 
 Then `studio-project set designSystemUrl "<link>"`, `studio-project set designSystemName "<name>"`, `studio-project done designSystem`. Studio will never change this file.
+
+### Team extras (once per computer)
+
+Only if neither the team file nor `studio-team show` has them, and only after the design system. Say it's for every project on this computer, and optional:
+
+- **Team logo:** "Does your team have a logo for project covers? Studio puts it on a dark strip at the top of each project's cover, and never recolours it. Paste the Figma link to the logo component (right-click it in Figma, **Copy link to selection**), or skip." Check it with `get_metadata` (its file key and node id); if it isn't a component, say so and ask again. Then `studio-team set STUDIO_TEAM_LOGO "<link>"`, keeping its `node-id`.
+- **Page canvas colour:** "Studio sets every page's canvas (the background behind the frames) to **#F5F5F5**. Keep that, or use another colour?" Use question buttons. Only for another colour, `studio-team set STUDIO_CANVAS_COLOR "#RRGGBB"`.
+
+If they skip, move on; nothing else depends on it. Offer to save a team file afterwards if they're the first on their team (`studio-team export`).
 
 ## 4. Which Figma file?
 
@@ -83,7 +92,7 @@ Then the next step: "Paste a user story whenever you're ready, and I'll play the
 ## Rules
 
 - One question at a time; wait for answers.
-- When saving a Figma link, keep it up to the file name and drop anything from `?` onwards.
+- When saving a Figma link, keep it up to the file name and drop anything from `?` onwards, except the team logo's link, which keeps its `node-id`.
 - Plain words; no em dashes; no raw helper output or tool errors.
 - Ask before creating anything in Figma, and before installing anything.
 - Never upload anything, and never change the design system file.
