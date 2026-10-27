@@ -1,35 +1,40 @@
 ---
 name: guide
-description: Explain Studio in plain language: what it is, the nine-step journey from a Jira story to handover, what the band and panel show, how Studio keeps work safe, which Claude tool to use for what (Claude chat, Claude Design, Claude Code), and the commands. Use when the designer types /guide, asks for help, asks what Studio is or how it works, or asks why they're using Claude Code or when to use Claude Design instead.
+description: Explain Studio in plain language: what it is, the four stages from a Jira story to handover and the project status, what the band and panel show, how Studio keeps work safe, which Claude tool to use for what (Claude chat, Claude Design, Claude Code), and the commands. Use when the designer types /guide, asks for help, asks what Studio is or how it works, or asks why they're using Claude Code or when to use Claude Design instead.
 argument-hint: "[topic]"
 ---
 
 # /guide: Studio, explained
 
-If they named a topic ($ARGUMENTS), such as "the journey", "panel", "branches" or "which Claude", explain just that part in a few lines, then stop. For "which Claude" (or Claude Design, or why Claude Code), show the whole "Which Claude for what" section. Otherwise show the guide below, as written, and end with the closing line. Don't use em dashes.
+If they named a topic ($ARGUMENTS), such as "the stages", "status", "panel", "branches" or "which Claude", explain just that part in a few lines, then stop. For "which Claude" (or Claude Design, or why Claude Code), show the whole "Which Claude for what" section. Otherwise show the guide below, as written, and end with the closing line. Don't use em dashes.
 
 ## What Studio is
 
 Studio makes Claude an extension of you. Paste a Jira story, and Claude builds the design in Figma, from wireframes and concepts to full visuals, using only your design system. It follows the story's requirements (and its Confluence technical design, if you add it), covers every path the story describes, keeps every screen consistent, and makes the interactions clear, so what developers build matches the design. You decide; Claude proposes and does the work.
 
-## The journey
+## The stages
 
-1. **Pick up the story:** paste the Jira story. Its Confluence technical design is optional, but encouraged.
-2. **The brief, played back:** the requirements, the paths, and questions for anything unclear. Claude never fills a gap itself.
-3. **Where and how:** which Figma file and page, whether to use a Figma branch, and wireframes, concepts or full visuals. Claude can't make Figma branches, so you make one and paste its link.
-4. **Say first:** Claude says what it will make and waits for your yes.
-5. **Built in Figma,** with your design system's components, styles and variables. If something's missing from it, Claude stops and asks.
-6. **Your changes,** each made once and carried across every screen it affects.
-7. **Checked** against the story and the design system, with notes in Figma where something doesn't match.
-8. **Interactions made clear:** annotations or state pages in Figma, or a coded prototype (the design built in HTML and CSS) if you ask for one.
-9. **Ready to hand over:** marked ready for development, notes done, the presentation for stakeholders ready, and any coded prototype zipped up.
+Work moves through four stages, like a designer's own workflow:
 
-You can skip ahead or go back at any point; just say so.
+1. **The brief:** paste the Jira story (its Confluence technical design is optional, but encouraged). Claude plays it back: the requirements, the paths, and questions for anything unclear. It never fills a gap itself. Then you choose where in Figma, whether to use a Figma branch (you make it and paste its link; Claude can't make one), and whether to start with concepting or go straight to visual design.
+2. **Concepting:** wireframes and concepts in Figma, to explore directions.
+3. **Visual design:** full visuals with your design system's components, styles and variables. If something's missing from it, Claude stops and asks. Each change you ask for is made once and carried across every screen it affects.
+4. **Review:** checked against the story and the design system, with notes in Figma where something doesn't match; interactions made clear (annotations, state pages, or a coded prototype if you ask); and the handover checklist.
+
+In concepting and visual design, Claude always says what it will make first and waits for your yes. No story? Just describe what you'd like, and Claude starts at the stage that fits. You can skip a stage or go back; just say so.
+
+## Project status
+
+The **status** is for the whole project, and only you set it:
+
+- **Not started**, **In progress**, **Feedback** (shared with stakeholders or the team, waiting for their feedback), **Ready for dev** (review done, handover checklist ticked).
+- Change it from the dropdown in the panel, or just say it ("mark it as out for feedback"). When it's a natural moment, Studio asks you with one click, for example "Mark SIGN-142 as Ready for dev?". Claude never changes it on its own.
+- **Needs you** is separate: when Claude is waiting for your answer or your yes, it says so in ochre.
 
 ## The band and the panel
 
-- **The band** (above where you type) shows the Studio logo before any work, then where you are: "Step 5 of 9 · The design · building screen 3 of 5", with a dot and progress bars in the stage's colour (dusk blue for the brief, coral for the design, sage for ready for developers). When something needs you, they turn ochre. **Stop** appears while Claude is working. The hint under where you type says what to do at each step.
-- **The Studio panel** (beside the conversation; `/panel` opens it) starts with a welcome, then follows the story: the story and its progress, then cards for whatever matters at this step, with what needs you first, outlined in ochre. You can answer Claude's questions there, open the Figma page, and tick off the handover checklist.
+- **The band** (above where you type) shows the Studio logo before any work, then the stage and status, for example "Visual design · In progress". The dot's colour is the status: grey not started, coral in progress, dusk blue feedback, sage ready for dev. Four segments show the stages. Anything waiting for you is added in ochre. **Stop** appears while Claude is working, and the hint under where you type says what to do next.
+- **The Studio panel** (beside the conversation; `/panel` opens it) starts with a welcome, then follows the story: the title, the status dropdown, the stages, and cards for what matters now, with what needs you first, outlined in ochre. You can answer Claude's questions there, open the Figma page, and tick off the handover checklist.
 
 ## Your work is safe
 
@@ -76,4 +81,4 @@ Studio only needs one team setting: the list of design systems. The first person
 
 ---
 
-Closing line: "Paste a Jira story whenever you're ready. Try `/guide the journey` to learn about one part."
+Closing line: "Paste a Jira story whenever you're ready. Try `/guide the stages` to learn about one part."

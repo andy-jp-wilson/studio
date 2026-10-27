@@ -13,6 +13,9 @@ If the person named a word ($ARGUMENTS), explain just that one. Otherwise show t
 | Jira story | The piece of work: what a user wants, why, and how we'll know it's done (the acceptance criteria). Studio reads it and never changes it. |
 | Technical design | The Confluence page developers write about how the story will be built. Optional, but it helps Claude check the design. Read only. |
 | Path | One way a user can go through the story, like "email already used, then sign in". |
+| Stage | Where the work is: the brief, concepting, visual design or review. |
+| Project status | Where the whole project stands: not started, in progress, feedback or ready for dev. Only you set it. |
+| Needs you | Claude is waiting for your answer or your yes. Shown in ochre, separate from the status. |
 | Design system | Your team's shared components, styles and variables in Figma. Claude builds only with these, and never changes them. |
 | Figma branch | A copy of a Figma file where work happens without touching the main file, until you merge it. Claude can't make one, so you make it and paste its link. |
 | Annotation | A note in Figma beside a design, explaining how something behaves. |
