@@ -3,7 +3,7 @@
 // both in with the story tool. Works in the terminal and the Desktop Code tab;
 // nothing draws in VS Code.
 import { describe } from './studio/narrate.js'
-import { MIST } from './studio/mist.js'
+import { MIST, STAGE_LIST, PROJECT_STATUSES, STAGE_STEP, stageOfStep } from './studio/mist.js'
 import { drawBand, hintFor } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
 import { FIGMA_WRITE, keysIn, designSystemKeys, figmaQuestion, FIGMA_YES, friendlyFigma } from './studio/figma.js'
@@ -21,7 +21,7 @@ let storyKey = ''
 const STATES = ['done', 'now', 'todo', 'need', 'muted', 'none', 'plain', 'strong']
 const STORY_TOOL = {
   name: 'story',
-  description: 'Update the Studio story card that the designer sees in the Studio band and panel. Call it when a Jira story is pasted, and whenever the journey step, its status, what needs the designer, or the panel sections change. Steps: 1 pick up the story, 2 play the brief back, 3 choose where and how, 4 say first then wait for a yes, 5 build in Figma, 6 review and change, 7 check the work, 8 make interactions clear, 9 ready to hand over. Use short, plain wording and no em dashes. Fields you leave out stay as they were; send the whole list of sections whenever you change any. Set clear to true to start a new story.',
+  description: 'Update the Studio story card that the designer sees in the Studio band and panel. Call it when a Jira story is pasted or a task starts, and whenever the stage, what needs the designer, or the panel sections change. Stages: brief (read the story, play it back, choose where), concepting (wireframes and concepts), visual (full visuals with the design system, and the designer’s changes), review (check against the story, interactions, handover checklist). The project status (Not started, In progress, Feedback, Ready for dev) belongs to the designer: you can’t set it, only suggest a change with suggestStatus, which asks them. Use short, plain wording and no em dashes. Fields you leave out stay as they were; send the whole list of sections whenever you change any. Set clear to true to start a new story.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -31,8 +31,9 @@ const STORY_TOOL = {
         title: { type: 'string', description: 'The story title, short; for work without a story, a short name for the task, e.g. "Sign-up screen tweaks".' },
         hasDesignDoc: { type: 'boolean', description: 'True if a Confluence technical design document was given.' },
       } },
-      step: { type: 'integer', minimum: 1, maximum: 9, description: 'The current journey step.' },
-      status: { type: 'string', description: 'A few words on the step, with no counts or progress detail. Not shown in the band.' },
+      stage: { type: 'string', enum: STAGE_LIST.map(s => s.id), description: 'Where the work is: brief, concepting, visual or review.' },
+      suggestStatus: { type: 'string', enum: PROJECT_STATUSES, description: 'Suggest a new project status. Studio asks the designer (Yes / Not yet) and tells you the answer; nothing changes without their yes. Use it when they ask for a status change, when they say they’ve shared the design for feedback (Feedback), and when the handover checklist is all done (Ready for dev).' },
+      suggestReason: { type: 'string', description: 'One short sentence shown before the question, e.g. "The handover checklist is all ticked."' },
       needs: { type: 'string', description: 'What is waiting for the designer, a few words, e.g. "2 questions for you". Empty string when nothing is.' },
       sections: { type: 'array', description: 'The panel sections for this step, in order (do not repeat the story itself).', items: { type: 'object', properties: {
         title: { type: 'string' },
@@ -57,8 +58,11 @@ const STORY_TOOL = {
 function applyStory(card, e) {
   const next = e.clear ? {} : { ...(card || {}) }
   if (e.story && typeof e.story === 'object') next.story = { ...(next.story || {}), ...e.story }
-  if (e.step != null) next.step = Math.min(9, Math.max(1, Math.round(Number(e.step)) || 1))
-  if (typeof e.status === 'string') next.status = e.status.slice(0, 80)
+  // The stage (Studio 0.5); an older step number is still understood.
+  if (STAGE_STEP[e.stage]) { next.stage = e.stage; next.step = STAGE_STEP[e.stage] }
+  else if (e.step != null) { next.step = Math.min(9, Math.max(1, Math.round(Number(e.step)) || 1)); next.stage = stageOfStep(next.step) }
+  // The project status is the designer's: Claude can't set it. It starts as In progress once there's work.
+  if (!PROJECT_STATUSES.includes(next.projectStatus) && (next.story || next.stage)) next.projectStatus = 'In progress'
   if (typeof e.needs === 'string') next.needs = e.needs.slice(0, 80)
   if (Array.isArray(e.sections)) next.sections = e.sections.slice(0, 12).map(sec => ({
     title: String(sec?.title || '').slice(0, 60), needs: Boolean(sec?.needs), ask: Boolean(sec?.ask), checklist: Boolean(sec?.checklist),
@@ -189,6 +193,13 @@ function actionsFor($) {
     },
     // The starting screen's guide button.
     guide: () => { $.command.run({ command: 'guide' }).catch(() => $.prompt.submit({ text: '/guide', asUser: true }).catch(() => {})) },
+    // The designer sets the project status (the panel's dropdown, in S3).
+    setStatus: async status => {
+      if (!PROJECT_STATUSES.includes(status) || !storyCard) return
+      storyCard = { ...storyCard, projectStatus: status }
+      try { if (storyKey) await $.store.set(storyKey, storyCard) } catch {}
+      $.ui.invalidate('ui.render')
+    },
     // A checklist item's button: the designer asks Claude for that next step.
     ask: text => { $.prompt.submit({ text: String(text), asUser: true }).catch(() => {}) },
   }
@@ -231,8 +242,22 @@ export function register(on) {
     storyCard = applyStory(storyCard, e)
     try { if (storyKey) await $.store.set(storyKey, storyCard) } catch {}
     $.ui.invalidate('ui.render')
+    let asked = ''
+    // A suggested status change becomes a one-click question for the designer.
+    if (PROJECT_STATUSES.includes(e.suggestStatus) && e.suggestStatus !== storyCard.projectStatus) {
+      const name = (storyCard.story && (storyCard.story.key || storyCard.story.title)) || 'this project'
+      const question = (e.suggestReason ? String(e.suggestReason).trim().slice(0, 160).replace(/\.?$/, '. ') : '') + 'Mark ' + name + ' as ' + e.suggestStatus + '?'
+      const yes = 'Yes, mark it ' + e.suggestStatus.toLowerCase()
+      let answer = ''
+      try { answer = await $.ui.ask(question, [yes, 'Not yet']) } catch { answer = '' }
+      if (answer === yes) { storyCard = { ...storyCard, projectStatus: e.suggestStatus }; asked = ' The designer said yes: the project status is now ' + e.suggestStatus + '.' }
+      else asked = ' The designer didn’t change the project status' + (answer && answer !== 'Not yet' ? ' and said: "' + answer + '"' : '') + '; it stays ' + storyCard.projectStatus + '.'
+      try { if (storyKey) await $.store.set(storyKey, storyCard) } catch {}
+      $.ui.invalidate('ui.render')
+    }
     const st = storyCard
-    return { result: 'Studio story card updated' + (st.step ? ': step ' + st.step + ' of 9' : '') + (st.needs ? ', waiting for: ' + st.needs : '') + '.' }
+    const stage = STAGE_LIST.find(s => s.id === st.stage)
+    return { result: 'Studio story card updated' + (stage ? ': ' + stage.name : '') + (st.projectStatus ? ' · ' + st.projectStatus : '') + (st.needs ? ', waiting for: ' + st.needs : '') + '.' + asked }
   })
 
   on('tool.call', { tool: FIGMA_WRITE }, async ($, e, next) => figmaGate($, e, next))

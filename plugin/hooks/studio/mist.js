@@ -26,6 +26,19 @@ export const STAGES = [
 ]
 export const stageOf = step => STAGES.find(s => s.steps.includes(step)) || STAGES[0]
 
+// Studio 0.5 (Figma page 04): four stages that follow a designer's workflow,
+// and a project status that only the designer sets.
+export const STAGE_LIST = [
+  { id: 'brief', name: 'The brief' },
+  { id: 'concepting', name: 'Concepting' },
+  { id: 'visual', name: 'Visual design' },
+  { id: 'review', name: 'Review' },
+]
+export const PROJECT_STATUSES = ['Not started', 'In progress', 'Feedback', 'Ready for dev']
+// Until the band and panel are redrawn (S2, S3), each stage is shown as one of the old steps.
+export const STAGE_STEP = { brief: 2, concepting: 4, visual: 5, review: 8 }
+export const stageOfStep = step => step <= 3 ? 'brief' : step <= 4 ? 'concepting' : step <= 6 ? 'visual' : 'review'
+
 // The Studio logo (Figma page 17, "Studio logo / 16"): rounded crop corners
 // in charcoal with the coral dot, on a 24-unit grid. Light corners in dark mode.
 export const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><style>.c{fill:none;stroke:${MIST.text};stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}@media (prefers-color-scheme: dark){.c{stroke:#ECE7DE}}</style><path class="c" d="M2 8.5V4.5A2.5 2.5 0 0 1 4.5 2H8.5"/><path class="c" d="M15.5 2H19.5A2.5 2.5 0 0 1 22 4.5V8.5"/><path class="c" d="M22 15.5V19.5A2.5 2.5 0 0 1 19.5 22H15.5"/><path class="c" d="M8.5 22H4.5A2.5 2.5 0 0 1 2 19.5V15.5"/><circle cx="12" cy="12" r="3.5" fill="${MIST.coral}"/></svg>`

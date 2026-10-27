@@ -1,6 +1,6 @@
 # Build plan: Studio 0.5, stages and project status
 
-Status: **draft for the user's approval** (27 October 2026). Built only from Figma page **04 Stages and status · proposal** (`100:7`) and the decisions in CLAUDE.md. Nothing is built until approved.
+Status: **approved** (27 October 2026). **S1 built** (0.4.14): the card holds `stage` (brief, concepting, visual, review; an old `step` is still understood), Studio keeps `projectStatus` (starts In progress; Claude can't set it), `suggestStatus` asks the designer with `$.ui.ask`; the band and panel still draw the old look, mapped from the stage, until S2 and S3. Built only from Figma page **04 Stages and status · proposal** (`100:7`) and the decisions in CLAUDE.md. Nothing is built until approved.
 
 ## What changes
 

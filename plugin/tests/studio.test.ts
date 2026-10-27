@@ -224,7 +224,7 @@ test('Claude’s story updates fill the panel: the story, its progress, and what
   await start($)
   const r: any = await $.tool.call({ tool: 'mcp__studio__story', story: { key: 'SIGN-142', title: 'Faster sign-up', hasDesignDoc: true }, step: 2, status: 'playing the brief back', needs: '2 questions for you',
     sections: [{ title: 'Requirements', items: [{ text: 'Email field with validation', state: 'todo' }] }, { title: 'Questions for you', needs: true, ask: true, items: [{ text: '1. What counts as a valid email?', state: 'need', placeholder: 'Format only, or more?' }] }] })
-  expect(String(r.result)).toMatch(/step 2 of 9.*2 questions for you/)
+  expect(String(r.result)).toMatch(/The brief · In progress, waiting for: 2 questions for you/)
   const band = await $.ui.mount(BAND(120))
   expect(await band.find({ type: 'Text', text: '2 questions for you' })).toBeDefined()
   await band.unmount()
@@ -395,4 +395,27 @@ test('without a Jira story, the band says what Claude is doing, and a task card 
   expect(await pane.find({ type: 'Text', text: 'Step 5 of 9' })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: 'Sign-up screen tweaks' })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: 'No technical design yet · optional, but encouraged' })).toBeUndefined()
+})
+
+test('the card holds a stage, and the project status starts as In progress', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  const r: any = await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SIGN-142', title: 'Faster sign-up' }, stage: 'visual' })
+  expect(String(r.result)).toMatch(/Visual design · In progress/)
+  expect(calls.store.get('story:sess-1')).toMatchObject({ stage: 'visual', projectStatus: 'In progress' })
+})
+
+test('Claude can’t set the status; a suggestion asks the designer, and only Yes changes it', async ($, on) => {
+  const calls = setup(on)
+  await start($)
+  await $.tool.call({ tool: 'mcp__studio__story', clear: true, story: { key: 'SIGN-142', title: 'Faster sign-up' }, stage: 'review', projectStatus: 'Ready for dev' } as any)
+  expect(calls.store.get('story:sess-1')).toMatchObject({ projectStatus: 'In progress' })
+  calls.askAnswer = 'Not yet'
+  let r: any = await $.tool.call({ tool: 'mcp__studio__story', suggestStatus: 'Ready for dev', suggestReason: 'The handover checklist is all ticked' })
+  expect(JSON.stringify(calls.asks.at(-1))).toMatch(/The handover checklist is all ticked\. Mark SIGN-142 as Ready for dev\?/)
+  expect(String(r.result)).toMatch(/didn’t change the project status.*stays In progress/)
+  calls.askAnswer = 'Yes, mark it ready for dev'
+  r = await $.tool.call({ tool: 'mcp__studio__story', suggestStatus: 'Ready for dev' })
+  expect(String(r.result)).toMatch(/now Ready for dev/)
+  expect(calls.store.get('story:sess-1')).toMatchObject({ projectStatus: 'Ready for dev' })
 })
