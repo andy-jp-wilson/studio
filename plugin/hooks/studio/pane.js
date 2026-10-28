@@ -1,5 +1,5 @@
-// Studio: the panel beside the conversation (Figma page 15, "The panel at
-// five moments"). It follows the story: the story at the top with its
+// Studio: the panel beside the conversation (Figma page 03, Studio 0.6 · as
+// built). It follows the story: the story at the top with its
 // progress, then light grey cards for whatever matters at this step, with what
 // needs you first, outlined in ochre. Items can link straight to their frame
 // in Figma, questions can be answered here, and checklist items can ask Claude
@@ -79,7 +79,7 @@ function card(el, sec, i, color, actions, answers, surface) {
     borderStyle: 'round', borderColor: needs ? MIST.needs : MIST.card, children })
 }
 
-// The top of the panel (Figma page 04): the story, the project status (a
+// The top of the panel: the story, the project status (a
 // dropdown only the designer uses), the four stage segments, and the stage.
 function storyHead(el, st, actions) {
   const { Box, Text, Select, Link } = el
@@ -112,7 +112,7 @@ export function drawPane(el, s, actions, columns) {
   const st = s.story
   const children = []
   if (!st || !st.story) {
-    // The starting screen (Figma page 19, A · Welcome): the logo, the name and
+    // The starting screen (Figma archive, "Starting screen explorations", A): the logo, the name and
     // tagline, three steps to start, the project, and a footer.
     const { Text, Svg, Button } = el
     // The logo above the word (its margin trimmed so its left edge lines up

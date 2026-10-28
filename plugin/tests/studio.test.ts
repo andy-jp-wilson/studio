@@ -81,7 +81,7 @@ function setup(on: any, git: Record<string, string> = {}) {
   on('store.set', ($: any, e: any) => { calls.store.set(e.key, e.value); return { value: undefined } })
   on('store.delete', ($: any, e: any) => { calls.store.delete(e.key); return { value: undefined } })
   on('command.run', ($: any, e: any) => { calls.commands.push(e.command); return {} })
-  on('prompt.submit', ($: any, e: any) => { calls.prompts.push(e.text); return { text: e.text } })
+  on('prompt.submit', ($: any, e: any) => { calls.prompts.push(e.text); lastContext = e.context || []; return { ...e } })
   on('ui.toast', () => ({ value: undefined }))
   on('ui.close', ($: any, e: any) => { calls.closed.push(e.id); return { value: undefined } })
   on('turn.abort', ($: any, e: any) => { calls.aborts.push(e.turnId); return { value: undefined } })
@@ -113,14 +113,17 @@ test('the working line uses the plain wording', async ($, on) => {
   expect(calls.spinner.at(-1).message).toBe('Working in Figma')
 })
 
-const COMPOSE = { model: 'claude-opus-5-5', promptModel: 'claude-opus-5-5', surfaces: ['desktop'], tools: [], outputStyle: null, traits: [], sections: [] }
+// What Studio sends Claude with a message: its project note and its word note.
+let lastContext: string[] = []
+async function notesFor($: any) {
+  await $.prompt.submit({ text: 'Design the sign-up screen' })
+  return { project: lastContext.find(t => t.startsWith('Studio project note')) || '', words: lastContext.find(t => t.startsWith('Studio word explanations')) || '' }
+}
 
 test('design work defaults to Figma: Claude is told the project file', async ($, on) => {
   setup(on, { 'project-notes': NOTES })
-  on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
   await start($)
-  const r: any = await $.prompt.compose(COMPOSE)
-  const note = r.sections.find((x: any) => x.id === 'studio:project').text
+  const note = (await notesFor($)).project
   expect(note).toMatch(/happens in Figma, in "Onboarding" \(https:\/\/www\.figma\.com\/design\/abc\/Onboarding\)/)
   expect(note).toMatch(/Acme DS/)
   expect(note).toMatch(/Only make HTML or CSS files if the person asks for a coded prototype/)
@@ -128,10 +131,8 @@ test('design work defaults to Figma: Claude is told the project file', async ($,
 
 test('without Studio notes, Claude is told to offer /setup and not to make HTML unasked', async ($, on) => {
   setup(on)
-  on('prompt.compose', () => ({ sections: [] }))
   await start($)
-  const r: any = await $.prompt.compose(COMPOSE)
-  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/hasn’t been set up yet.*offer \/setup.*Only make HTML or CSS files if they ask for a coded prototype/)
+  expect((await notesFor($)).project).toMatch(/hasn’t been set up yet.*offer \/setup.*Only make HTML or CSS files if they ask for a coded prototype/)
 })
 
 test('before any work, the band shows the logo and how to start', async ($, on) => {
@@ -206,7 +207,6 @@ test('while Claude works, the band offers Stop, and Stop stops the turn', async 
   expect(await after.find({ key: 'band-stop' })).toBeUndefined()
 })
 
-const COMPOSE2 = { model: 'claude-opus-5-5', promptModel: 'claude-opus-5-5', surfaces: ['desktop'], tools: [], outputStyle: null, traits: [], sections: [] }
 
 test('Studio gives Claude a story tool, and the panel starts with the welcome', async ($, on) => {
   const calls = setup(on, { 'project-notes': NOTES })
@@ -301,13 +301,12 @@ test('clear starts a new story', async ($, on) => {
   expect(await pane.find({ type: 'Text', text: 'No technical design yet · optional, but encouraged' })).toBeDefined()
 })
 
-test('Claude is still told the word and project notes before each reply', async ($, on) => {
+test('Claude is told the word and project notes with every message', async ($, on) => {
   setup(on, { 'project-notes': NOTES })
-  on('prompt.compose', () => ({ sections: [] }))
   await start($)
-  const r: any = await $.prompt.compose(COMPOSE2)
-  const ids = r.sections.map((x: any) => x.id)
-  expect(ids).toEqual(expect.arrayContaining(['studio:words', 'studio:project']))
+  const n = await notesFor($)
+  expect(n.words).toMatch(/word explanations are ON/)
+  expect(n.project).toMatch(/Onboarding/)
 })
 
 test('only /panel is registered as a command; the cut commands and the lab are gone', async ($, on) => {
@@ -318,12 +317,10 @@ test('only /panel is registered as a command; the cut commands and the lab are g
 
 test('“don’t show again” takes effect before the next reply', async ($, on) => {
   const calls = setup(on)
-  on('prompt.compose', () => ({ sections: [] }))
   await start($)
   calls.wordsOff = true // what studio-words off records
   await $.tool.call({ tool: 'Bash', command: 'studio-words off' })
-  const r: any = await $.prompt.compose(COMPOSE2)
-  expect(r.sections.find((x: any) => x.id === 'studio:words').text).toMatch(/OFF: the person said "don’t show again"/)
+  expect((await notesFor($)).words).toMatch(/OFF: the person said "don’t show again"/)
 })
 
 const FIGMA = { tool: 'mcp__plugin_figma_figma__use_figma', code: '', description: 'Add the sign-up screens' }
@@ -458,18 +455,14 @@ test('the story links to Jira in the panel, and only https links are kept', asyn
 
 test('Claude is told whether the project template is set up, so it offers it only once', async ($, on) => {
   setup(on, { 'project-notes': NOTES })
-  on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
   await start($)
-  const r: any = await $.prompt.compose(COMPOSE)
-  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/template isn’t set up yet: offer it once/)
+  expect((await notesFor($)).project).toMatch(/template isn’t set up yet: offer it once/)
 })
 
 test('a project with the template set up sends work to its Concept and Final design pages', async ($, on) => {
   setup(on, { 'project-notes': JSON.stringify({ ...JSON.parse(NOTES), template: 'done' }) })
-  on('prompt.compose', () => ({ sections: [{ id: 'intro', text: 'x', scope: 'shared' }] }))
   await start($)
-  const r: any = await $.prompt.compose(COMPOSE)
-  expect(r.sections.find((x: any) => x.id === 'studio:project').text).toMatch(/Concept page and visual design on its Final design page/)
+  expect((await notesFor($)).project).toMatch(/Concept page and visual design on its Final design page/)
 })
 
 test('setting the status to Feedback offers to update the Designer notes, and Yes asks Claude to', async ($, on) => {

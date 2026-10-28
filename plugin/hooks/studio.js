@@ -1,18 +1,18 @@
 // Studio mod: the band above the prompt and the Studio panel (D5 Mist).
-// The band shows the journey step; the panel follows the story. Claude fills
+// The band shows the stage and project status; the panel follows the story. Claude fills
 // both in with the story tool. Works in the terminal and the Desktop Code tab;
 // nothing draws in VS Code.
 import { describe } from './studio/narrate.js'
 import { MIST, STAGE_LIST, PROJECT_STATUSES, STAGE_STEP, stageOfStep } from './studio/mist.js'
 import { drawBand, hintFor } from './studio/band.js'
 import { drawPane } from './studio/pane.js'
-import { FIGMA_WRITE, keysIn, designSystemKeys, figmaQuestion, FIGMA_YES, friendlyFigma } from './studio/figma.js'
+import { FIGMA_WRITE, keysIn, designSystemKeys, figmaQuestion, FIGMA_YES, FIGMA_NO, friendlyFigma } from './studio/figma.js'
 
 const PANE = 'studio'
 
 // What Claude is doing in this request (for Stop and the working line).
 let live = { working: false, turnId: '', current: null }
-// The story card for this session: the story, the journey step, what needs
+// The story card for this session: the story, its stage and status, what needs
 // the designer, and the panel's sections. Claude fills it in with the story
 // tool (mcp__studio__story); Claude Code keeps it ($.store), so no project
 // folder is needed.
@@ -97,7 +97,7 @@ async function loadPrefs($) {
 
 // The project's Studio notes (.studio/project.json, written by /setup), from
 // the folder Claude Code is open in, or the top of its git project.
-let notes = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', setUp: false }
+let notes = { figmaUrl: '', figmaName: '', dsName: '', dsUrl: '', template: '', setUp: false }
 
 async function readNotes($) {
   const cwd = String(await $.session.cwd())
@@ -161,7 +161,7 @@ async function figmaGate($, e, next) {
   if (figmaYes.has(key)) return next(e)
   const isProject = keysIn(notes.figmaUrl).includes(key)
   let answer = ''
-  try { answer = await $.ui.ask(figmaQuestion({ fileName: notes.figmaName, isProject, description: e.description }), [FIGMA_YES, 'No, not now']) } catch { answer = '' }
+  try { answer = await $.ui.ask(figmaQuestion({ fileName: notes.figmaName, isProject, description: e.description }), [FIGMA_YES, FIGMA_NO]) } catch { answer = '' }
   if (answer !== FIGMA_YES) return { deny: answer ? 'The designer answered Studio’s question about working in this Figma file with: "' + answer + '". Nothing was changed. Follow what they said.' : 'The designer said no to working in this Figma file (or closed the question). Nothing was changed. Ask what they’d like instead.' }
   figmaYes.add(key)
   try { await $.process.run([$.plugin.root + '/hooks/guard-figma.sh', 'allow', sessionId, key], { timeoutMs: 5000 }) } catch {}
@@ -211,7 +211,7 @@ function actionsFor($) {
     },
     // The starting screen's guide button.
     guide: () => { $.command.run({ command: 'guide' }).catch(() => $.prompt.submit({ text: '/guide', asUser: true }).catch(() => {})) },
-    // The designer sets the project status (the panel's dropdown, in S3).
+    // The designer sets the project status (the panel's dropdown).
     setStatus: async status => {
       if (!PROJECT_STATUSES.includes(status) || !storyCard) return
       const changed = status !== storyCard.projectStatus
@@ -318,10 +318,11 @@ export function register(on) {
     return next(e)
   }).catch(async ($, e, next) => next(e)) // Studio only narrates: if this hook fails, the step runs as normal
 
-  on('prompt.compose', async ($, e, next) => {
-    const r = await next(e)
-    return { ...r, sections: [...r.sections, { id: 'studio:words', text: wordsNote(), scope: 'session' }, { id: 'studio:project', text: projectNote(), scope: 'session' }] }
-  })
+  // Studio's notes for Claude (word explanations, and the project's Figma file,
+  // design system and template) go with every message the designer sends.
+  // Not prompt.compose: Claude Code's built-in guard skips that for mods a
+  // person installs, on computers with a work login or managed settings.
+  on('prompt.submit', async ($, e, next) => next({ ...e, context: [...(e.context ?? []), wordsNote(), projectNote()] }))
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)

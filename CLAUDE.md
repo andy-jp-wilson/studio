@@ -68,6 +68,7 @@ Studio is a Claude Code plugin that makes Claude Code simpler, calmer and more t
 - Mod Button hotkeys must be one digit or lowercase letter. No render site exists for Claude Code's welcome box; `/help` stays the built-in one (a plugin skill would be `/studio:help`).
 - **Svg `width` and `height` are pixels in the app**, not character cells (found 2026-10-20: 2 × 1 drew nothing). Studio's logo and checkboxes are 16 × 16.
 - **Rounded boxes in the app** (tested 2026-10-20): no corner radius prop, but `borderStyle: 'round'` with `borderColor` equal to the box's `backgroundColor` draws a rounded box. The app's panel is white, so Studio's cards are light grey (#F6F6F8).
+- **Claude Code's built-in guard mod skips some hooks** (found 2026-10-28). On a computer with a work login or managed settings, `cc-plugin-sec-default` runs first and passes over a person-installed mod's `prompt.compose` (and `prompt.section`, `prompt.context`, `skill.prompt`, `session.compact` and others), so Studio's notes never reached Claude. Since 0.6.3 they go as `prompt.submit` `context` with every message. Command hooks in `hooks.json` (the Figma and upload guards) still run.
 - Panes have no tab widget (use button rows), can't open Desktop's Browser pane (use a localhost Link), and can only show `Svg` in Desktop.
 
 ## Progress

@@ -1,4 +1,4 @@
-// Studio: Figma in plain words (B3, Figma page 15 section 4). Which Figma
+// Studio: Figma in plain words. Which Figma
 // steps can change a file, the file keys in Figma links, and what each Figma
 // step is called in the conversation. Pure helpers.
 

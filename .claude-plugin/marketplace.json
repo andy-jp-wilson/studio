@@ -3,12 +3,12 @@
   "owner": {
     "name": "Andrew Wilson"
   },
-  "description": "Local source for the Studio plugin while it's being built.",
+  "description": "Where Studio is installed from: this repository's plugin folder.",
   "plugins": [
     {
       "name": "studio",
       "source": "./plugin",
-      "description": "Makes Claude Code calmer and clearer for designers."
+      "description": "Clearer, calmer Claude Code for designers."
     }
   ]
 }

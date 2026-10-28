@@ -11,7 +11,7 @@
 # With --update, installs the latest and prints one line:
 #   updated <old> <new>
 #   update-failed <installed>
-# --no-fetch skips refreshing an online marketplace first (used by the band).
+# --no-fetch skips refreshing an online marketplace first.
 
 mode="$1"
 root="$(cd "$(dirname "$0")/.." && pwd)"

@@ -1,4 +1,4 @@
-// Studio: the band above the prompt (Figma page 04, stages and status).
+// Studio: the band above the prompt (Figma page 03, Studio 0.6 · as built).
 //   Before any work:  [logo] studio  Paste a user story, or describe what you'd like to do
 //   Once work starts: ● studio  ▬▬ ▬▬ ▬▬ ▬▬  Visual design · In progress · your review   [Stop]
 // The dot shows the project status (grey not started, coral in progress, dusk
@@ -55,11 +55,11 @@ export function drawBand(el, s, actions, columns) {
   return Box({ key: 'studio-band', flexDirection: 'row', columnGap: 2, alignItems: 'center', width, children: row })
 }
 
-// The hint under the prompt: what to do now, by stage (Figma page 04).
+// The hint under the prompt: what to do now, by stage.
 export const HINTS = {
   none: 'Paste a user story, or describe what you’d like to do.',
   needs: 'Claude is waiting for you. Answer here, or in the panel.',
-  working: 'Claude is working. Press Stop to pause it.',
+  working: 'Claude is working. Press Stop if you need it to stop.',
   brief: 'Answer Claude’s questions, and say where in Figma the work should go.',
   concepting: 'Ask for changes in your own words, or say when it’s ready for visual design.',
   visual: 'Ask for changes in your own words. Each one is carried across every screen.',

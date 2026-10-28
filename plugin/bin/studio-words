@@ -6,7 +6,6 @@
 #   studio-words know <word> stop explaining this word
 #   studio-words forget <word>  explain this word again
 #   studio-words on | off    explain words, or stop explaining all of them
-#   studio-words context     one line for Claude at the start of a session
 
 file="$HOME/.studio/words.json"
 read_json() { [ -f "$file" ] && jq -c . "$file" 2>/dev/null || echo '{"explain":true,"known":[]}'; }
@@ -31,18 +30,7 @@ case "$cmd" in
   on|off)
     write_json "$(read_json | jq -c --argjson v "$([ "$cmd" = on ] && echo true || echo false)" '.explain = $v')"; echo "explain $cmd"
     ;;
-  context)
-    j=$(read_json)
-    if [ "$(printf '%s' "$j" | jq -r '.explain')" = "false" ]; then
-      echo "Studio word explanations are OFF: the person asked not to have technical words explained. If they ask for them again, run studio-words on."
-    else
-      known=$(printf '%s' "$j" | jq -r '(.known // []) | join(", ")')
-      extra=""
-      [ -n "$known" ] && extra=" The person already knows these, so do not explain them: $known."
-      echo "Studio word explanations are ON: explain technical words and file names every time they come up (see the Studio voice).$extra"
-    fi
-    ;;
   *)
-    sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
     ;;
 esac
