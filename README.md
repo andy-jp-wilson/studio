@@ -7,7 +7,7 @@
 <p align="center"><strong>Clearer, calmer Claude Code for designers</strong></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.6.3-E07A6E" alt="Version 0.6.3">
+  <img src="https://img.shields.io/badge/version-0.6.4-E07A6E" alt="Version 0.6.4">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-40404A" alt="Claude Code plugin">
   <img src="https://img.shields.io/badge/works%20in-Figma-4F6D8F" alt="Works in Figma">
 </p>
@@ -98,7 +98,6 @@ You'll need:
 
 - **Claude Code** 2.1.287 or later, in the Claude app's Code tab or the terminal
 - **The official Figma plugin**, signed in to your work Figma account
-- Access to this repository
 
 In a terminal:
 
